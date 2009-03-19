@@ -20,10 +20,9 @@
 #define HEADER_WINDSTILLE_DISPLAY_FRAMEBUFFER_HPP
 
 #include "texture.hpp"
-
+
 class FramebufferImpl;
-
-/** */
+
 class Framebuffer
 {
 public:
@@ -48,7 +47,7 @@ public:
 private:
   boost::shared_ptr<FramebufferImpl> impl;
 };
-
+
 #endif
 
 /* EOF */
