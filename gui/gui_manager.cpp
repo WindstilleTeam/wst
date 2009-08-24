@@ -16,16 +16,8 @@
 **  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "input/controller.hpp"
-#include "button.hpp"
-#include "slider.hpp"
 #include "root_component.hpp"
 #include "screen/screen_manager.hpp"
-#include "grid_component.hpp"
-#include "tab_component.hpp"
-#include "list_view.hpp"
-#include "text_view.hpp"
-#include "automap.hpp"
 #include "gui_manager.hpp"
 
 namespace gui {
