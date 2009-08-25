@@ -20,17 +20,24 @@
 #define HEADER_WINDSTILLE_SCENEGRAPH_SCENE_GRAPH_HPP
 
 #include <boost/shared_ptr.hpp>
+#include <vector>
 
 class DrawingRequest;
+class Texture;
 
 class SceneGraph
 {
 private:
+  typedef std::vector<boost::shared_ptr<DrawingRequest> > DrawingRequests;
+  DrawingRequests m_drawing_requests;
+
 public:
   SceneGraph();
 
   void add_drawable(boost::shared_ptr<DrawingRequest> drawable);
   void remove_drawable(boost::shared_ptr<DrawingRequest> drawable);
+
+  void draw(const Texture& tmp_texture);
 
 private:
   SceneGraph(const SceneGraph&);
