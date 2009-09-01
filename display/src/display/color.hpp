@@ -19,6 +19,8 @@
 #ifndef HEADER_WINDSTILLE_DISPLAY_COLOR_HPP
 #define HEADER_WINDSTILLE_DISPLAY_COLOR_HPP
 
+#include <iosfwd>
+
 class Color
 {
 public:
@@ -31,6 +33,8 @@ public:
 
   float r, g, b, a;
 };
+
+std::ostream& operator<<(std::ostream& out, const Color& color);
 
 #endif
 
