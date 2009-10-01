@@ -23,23 +23,25 @@
 #include <vector>
 
 class Drawable;
+class DrawableGroup;
 class Texture;
 
 class SceneGraph
 {
 private:
-  typedef std::vector<boost::shared_ptr<Drawable> > Drawables;
-  Drawables m_drawables;
+  boost::shared_ptr<DrawableGroup> m_drawables;
 
 public:
   SceneGraph();
 
+  boost::shared_ptr<DrawableGroup> get_root() { return m_drawables; }
+
   void add_drawable(boost::shared_ptr<Drawable> drawable);
   void remove_drawable(boost::shared_ptr<Drawable> drawable);
-  
-  void clear();
 
-  void draw(unsigned int mask);
+  void render(unsigned int mask);
+
+  void clear();
 
 private:
   SceneGraph(const SceneGraph&);
