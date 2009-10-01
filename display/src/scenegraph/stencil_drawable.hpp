@@ -33,6 +33,9 @@ public:
 
   void render(unsigned int mask);
 
+  DrawableGroup& get_stencil_group()  { return m_stencil_group; }
+  DrawableGroup& get_drawable_group() { return m_drawable_group; }
+
 private:
   StencilDrawable(const StencilDrawable&);
   StencilDrawable& operator=(const StencilDrawable&);
