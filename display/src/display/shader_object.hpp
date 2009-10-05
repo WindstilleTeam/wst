@@ -32,7 +32,7 @@ public:
   ShaderObject(GLenum type, const std::string& filename);
   ~ShaderObject();
 
-  GLhandleARB get_handle() const;
+  GLuint get_handle() const;
   void load(const std::string& filename);
   void compile();
   void print_log();
