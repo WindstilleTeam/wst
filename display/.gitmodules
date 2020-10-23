@@ -1,0 +1,9 @@
+[submodule "external/cmake-modules"]
+	path = external/cmake-modules
+	url = https://gitlab.com/grumbel/cmake-modules.git
+[submodule "external/surfcpp"]
+	path = external/surfcpp
+	url = https://gitlab.com/grumbel/surfcpp.git
+[submodule "external/geomcpp"]
+	path = external/geomcpp
+	url = https://gitlab.com/grumbel/geomcpp.git
