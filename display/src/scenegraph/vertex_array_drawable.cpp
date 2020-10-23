@@ -21,9 +21,9 @@
 #include <iostream>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "display/assert_gl.hpp"
-#include "display/graphics_context.hpp"
-#include "display/opengl_state.hpp"
+#include "assert_gl.hpp"
+#include "graphics_context.hpp"
+#include "opengl_state.hpp"
 
 VertexArrayDrawable::VertexArrayDrawable() :
   VertexArrayDrawable({0.0f, 0.0f}, 0.0f, glm::mat4(1.0f))

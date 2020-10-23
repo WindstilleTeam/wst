@@ -52,31 +52,24 @@ pkg_search_module(SDL2_IMAGE REQUIRED SDL2_image IMPORTED_TARGET)
 function(build_dependencies)
   set(BUILD_TESTS OFF)
   set(BUILD_EXTRA OFF)
-  # add_subdirectory(external/argparser/ EXCLUDE_FROM_ALL)
-  # add_subdirectory(external/babyxml/ EXCLUDE_FROM_ALL)
-  add_subdirectory(external/geomcpp/ EXCLUDE_FROM_ALL)
-  # add_subdirectory(external/logmich/ EXCLUDE_FROM_ALL)
-  # add_subdirectory(external/sexp-cpp/ EXCLUDE_FROM_ALL)
-  # add_subdirectory(external/biiocpp/ EXCLUDE_FROM_ALL)
-  # add_subdirectory(external/priocpp/ EXCLUDE_FROM_ALL)
-  # add_subdirectory(external/miniswig/ EXCLUDE_FROM_ALL)
-  add_subdirectory(external/surfcpp/ EXCLUDE_FROM_ALL)
-
-  # add_subdirectory(external/wstinput/ EXCLUDE_FROM_ALL)
-  # add_subdirectory(external/wstsound/ EXCLUDE_FROM_ALL)
+  if(NOT TARGET geomcpp)
+    add_subdirectory(external/geomcpp/ EXCLUDE_FROM_ALL)
+  endif()
+  if(NOT TARGET surf)
+    add_subdirectory(external/surfcpp/ EXCLUDE_FROM_ALL)
+  endif()
 endfunction()
 build_dependencies()
 
 file(GLOB WSTDISPLAY_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
-  src/display/*.cpp
+  src/*.cpp
   src/scenegraph/*.cpp)
 add_library(wstdisplay STATIC ${WSTDISPLAY_SOURCES})
-target_include_directories(wstdisplay PRIVATE src/)
+target_include_directories(wstdisplay PRIVATE src/ include/wstdisplay/)
 target_include_directories(wstdisplay PUBLIC include/)
 target_compile_options(wstdisplay PUBLIC ${WARNINGS_CXX_FLAGS})
 target_link_libraries(wstdisplay PUBLIC
   geomcpp
-  logmich
   surf
   GLEW::GLEW
   JPEG::JPEG

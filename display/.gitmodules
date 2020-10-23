@@ -7,3 +7,6 @@
 [submodule "external/geomcpp"]
 	path = external/geomcpp
 	url = https://gitlab.com/grumbel/geomcpp.git
+[submodule "external/logmich"]
+	path = external/logmich
+	url = https://gitlab.com/logmich/logmich.git
