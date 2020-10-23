@@ -46,7 +46,6 @@ find_package(GLEW REQUIRED)
 find_package(PkgConfig REQUIRED)
 
 pkg_search_module(SDL2 REQUIRED sdl2 IMPORTED_TARGET)
-pkg_search_module(SDL2_IMAGE REQUIRED SDL2_image IMPORTED_TARGET)
 
 # Build dependencies
 function(build_dependencies)
@@ -77,7 +76,6 @@ target_link_libraries(wstdisplay PUBLIC
   OpenGL::GLU
   PNG::PNG
   PkgConfig::SDL2
-  PkgConfig::SDL2_IMAGE
   Threads::Threads)
 
 if(BUILD_TESTS)
