@@ -24,11 +24,11 @@
 
 #include <geom/size.hpp>
 #include <geom/rect.hpp>
-#include <surf/pixel_data.hpp>
+#include <surf/software_surface.hpp>
 
 #include "color.hpp"
 
-using SoftwareSurface = surf::PixelData;
+using SoftwareSurface = surf::SoftwareSurface;
 
 #endif
 

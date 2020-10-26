@@ -147,11 +147,11 @@ OpenGLWindow::~OpenGLWindow()
 void
 OpenGLWindow::set_icon(std::filesystem::path const& filename)
 {
-  surf::PixelData const pixeldata = surf::PixelData::from_file(filename);
+  surf::SoftwareSurface const pixeldata = surf::SoftwareSurface::from_file(filename);
 
   SDL_Surface* sdl_surface;
   if constexpr (std::endian::native == std::endian::big) {
-    sdl_surface = SDL_CreateRGBSurfaceFrom(const_cast<uint8_t*>(pixeldata.get_data()),
+    sdl_surface = SDL_CreateRGBSurfaceFrom(const_cast<uint8_t*>(static_cast<uint8_t const*>(pixeldata.get_data())),
                                            pixeldata.get_width(),
                                            pixeldata.get_height(),
                                            pixeldata.get_format() == surf::PixelFormat::RGB ? 24 : 32,
@@ -161,7 +161,7 @@ OpenGLWindow::set_icon(std::filesystem::path const& filename)
                                            0x0000ff00,
                                            pixeldata.get_format() == surf::PixelFormat::RGB ? 0x00000000 : 0x000000ff);
   } else {
-    sdl_surface = SDL_CreateRGBSurfaceFrom(const_cast<uint8_t*>(pixeldata.get_data()),
+    sdl_surface = SDL_CreateRGBSurfaceFrom(const_cast<uint8_t*>(static_cast<uint8_t const*>(pixeldata.get_data())),
                                            pixeldata.get_width(),
                                            pixeldata.get_height(),
                                            pixeldata.get_format() == surf::PixelFormat::RGB ? 24 : 32,

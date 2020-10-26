@@ -30,7 +30,7 @@ void generate_border(SoftwareSurface& surface,
 {
   assert(surface.get_bytes_per_pixel() == 4);
 
-  uint8_t* data = surface.get_data();
+  uint8_t* data = static_cast<uint8_t*>(surface.get_data());
   int pitch = surface.get_pitch();
 
   // duplicate the top line

@@ -106,7 +106,7 @@ Texture::Texture(SoftwareSurface const& image, GLint glformat) :
     }
   }
 
-  if (image.get_bits_per_pixel() != 24 && image.get_bits_per_pixel() != 32) {
+  if (image.get_format().bits_per_pixel() != 24 && image.get_format().bits_per_pixel() != 32) {
     throw std::runtime_error("image has not 24 or 32 bit color depth");
   }
 
@@ -141,7 +141,7 @@ Texture::Texture(SoftwareSurface const& image, GLint glformat) :
     glBindTexture(GL_TEXTURE_2D, m_handle);
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-    glPixelStorei(GL_UNPACK_ROW_LENGTH, image.get_pitch() / image.get_bytes_per_pixel());
+    glPixelStorei(GL_UNPACK_ROW_LENGTH, image.get_pitch() / image.get_format().bytes_per_pixel());
 
     if ((false))
     { // no mipmapping
@@ -230,13 +230,13 @@ Texture::put(SoftwareSurface const& image, const geom::irect& srcrect, int x, in
   // FIXME: Add some checks here to make sure image has the right format
   glPixelStorei(GL_UNPACK_ALIGNMENT, 4); // FIXME: Does SDL always use 4?
   glPixelStorei(GL_UNPACK_ROW_LENGTH,
-                image.get_pitch() / image.get_bytes_per_pixel());
+                image.get_pitch() / image.get_format().bytes_per_pixel());
 
   glTexSubImage2D(m_target, 0, x, y,
                   srcrect.width(), srcrect.height(), sdl_format, GL_UNSIGNED_BYTE,
-                  image.get_data()
+                  static_cast<uint8_t const*>(image.get_data())
                   + srcrect.top()  * image.get_pitch()
-                  + srcrect.left() * image.get_bytes_per_pixel());
+                  + srcrect.left() * image.get_format().bytes_per_pixel());
 
   assert_gl();
 }
