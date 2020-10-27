@@ -37,7 +37,7 @@ public:
 
   TexturePtr texture[MAX_TEXTURE_UNITS];
 
-  RGBAf color;
+  surf::Color color;
 
   GLenum blend_sfactor;
   GLenum blend_dfactor;
@@ -105,7 +105,7 @@ OpenGLState::OpenGLState() :
   impl->blend_sfactor      = GL_SRC_ALPHA;
   impl->blend_dfactor      = GL_ONE_MINUS_SRC_ALPHA;
 
-  impl->color              = RGBAf(1.0f, 1.0f, 1.0f);
+  impl->color              = surf::Color(1.0f, 1.0f, 1.0f);
 }
 
 OpenGLState::~OpenGLState()
@@ -175,7 +175,7 @@ OpenGLState::disable(GLenum cap)
 }
 
 void
-OpenGLState::color(const RGBAf& color_)
+OpenGLState::color(const surf::Color& color_)
 {
   impl->color = color_;
 }

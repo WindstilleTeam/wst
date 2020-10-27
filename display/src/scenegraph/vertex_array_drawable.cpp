@@ -256,7 +256,7 @@ VertexArrayDrawable::normal(float x, float y, float z)
 }
 
 void
-VertexArrayDrawable::color(RGBAf const& color_)
+VertexArrayDrawable::color(surf::Color const& color_)
 {
   m_colors.push_back(color_.r);
   m_colors.push_back(color_.g);

@@ -30,7 +30,7 @@
 #include <geom/rect.hpp>
 #include <geom/line.hpp>
 #include <geom/quad.hpp>
-#include <surf/rgba.hpp>
+#include <surf/palette.hpp>
 
 #include "color.hpp"
 #include "assert_gl.hpp"
@@ -94,7 +94,7 @@ GraphicsContext::GraphicsContext() :
                                                 default_frag_source);
 
   m_white_texture = Texture::create(SoftwareSurface::create(surf::PixelFormat::RGBA, geom::isize(1, 1),
-                                                            surf::RGBA(255, 255, 255, 255)));
+                                                            surf::palette::white));
 
   glUseProgram(m_default_shader->get_handle());
 
@@ -106,13 +106,13 @@ GraphicsContext::~GraphicsContext()
 }
 
 void
-GraphicsContext::draw_line(const geom::line& line, const RGBAf& color)
+GraphicsContext::draw_line(const geom::line& line, const surf::Color& color)
 {
   draw_line(line.p1, line.p2, color);
 }
 
 void
-GraphicsContext::draw_line_with_normal(const geom::line& line, const RGBAf& color)
+GraphicsContext::draw_line_with_normal(const geom::line& line, const surf::Color& color)
 {
   glm::vec2 normal = (line.p2 - line.p1);
 
@@ -123,11 +123,11 @@ GraphicsContext::draw_line_with_normal(const geom::line& line, const RGBAf& colo
   glm::vec2 p3 = line.p1 + 0.5f * (line.p2 - line.p1);
 
   draw_line(line,   color);
-  draw_line(p3, p3 + normal, RGBAf(0.0f, 1.0f, 1.0f));
+  draw_line(p3, p3 + normal, surf::Color(0.0f, 1.0f, 1.0f));
 }
 
 void
-GraphicsContext::draw_line(const glm::vec2& pos1, const glm::vec2& pos2, const RGBAf& color)
+GraphicsContext::draw_line(const glm::vec2& pos1, const glm::vec2& pos2, const surf::Color& color)
 {
   VertexArrayDrawable va;
 
@@ -145,7 +145,7 @@ GraphicsContext::draw_line(const glm::vec2& pos1, const glm::vec2& pos2, const R
 }
 
 void
-GraphicsContext::fill_quad(const geom::quad& quad, const RGBAf& color)
+GraphicsContext::fill_quad(const geom::quad& quad, const surf::Color& color)
 {
   VertexArrayDrawable va;
 
@@ -169,7 +169,7 @@ GraphicsContext::fill_quad(const geom::quad& quad, const RGBAf& color)
 }
 
 void
-GraphicsContext::draw_quad(const geom::quad& quad, const RGBAf& color)
+GraphicsContext::draw_quad(const geom::quad& quad, const surf::Color& color)
 {
   VertexArrayDrawable va;
 
@@ -193,7 +193,7 @@ GraphicsContext::draw_quad(const geom::quad& quad, const RGBAf& color)
 }
 
 void
-GraphicsContext::fill_rect(const geom::frect& rect, const RGBAf& color)
+GraphicsContext::fill_rect(const geom::frect& rect, const surf::Color& color)
 {
   VertexArrayDrawable va;
 
@@ -217,7 +217,7 @@ GraphicsContext::fill_rect(const geom::frect& rect, const RGBAf& color)
 }
 
 void
-GraphicsContext::draw_rect(const geom::frect& rect, const RGBAf& color)
+GraphicsContext::draw_rect(const geom::frect& rect, const surf::Color& color)
 {
   VertexArrayDrawable va;
 
@@ -241,7 +241,7 @@ GraphicsContext::draw_rect(const geom::frect& rect, const RGBAf& color)
 }
 
 void
-GraphicsContext::fill_rounded_rect(const geom::frect& rect, float radius, const RGBAf& color)
+GraphicsContext::fill_rounded_rect(const geom::frect& rect, float radius, const surf::Color& color)
 {
   // Keep radius in the limits, so that we get a circle instead of
   // just graphic junk
@@ -287,7 +287,7 @@ GraphicsContext::fill_rounded_rect(const geom::frect& rect, float radius, const 
 }
 
 void
-GraphicsContext::draw_rounded_rect(const geom::frect& rect, float radius, const RGBAf& color)
+GraphicsContext::draw_rounded_rect(const geom::frect& rect, float radius, const surf::Color& color)
 {
   // Keep radius in the limits, so that we get a circle instead of
   // just graphic junk
@@ -348,7 +348,7 @@ GraphicsContext::draw_rounded_rect(const geom::frect& rect, float radius, const 
 }
 
 void
-GraphicsContext::draw_circle(const glm::vec2& pos, float radius, const RGBAf& color, int segments)
+GraphicsContext::draw_circle(const glm::vec2& pos, float radius, const surf::Color& color, int segments)
 {
   assert(segments >= 0);
 
@@ -377,7 +377,7 @@ GraphicsContext::draw_circle(const glm::vec2& pos, float radius, const RGBAf& co
 }
 
 void
-GraphicsContext::fill_circle(const glm::vec2& pos, float radius, const RGBAf& color, int segments)
+GraphicsContext::fill_circle(const glm::vec2& pos, float radius, const surf::Color& color, int segments)
 {
   assert(segments >= 0);
 
@@ -407,7 +407,7 @@ GraphicsContext::fill_circle(const glm::vec2& pos, float radius, const RGBAf& co
 }
 
 void
-GraphicsContext::draw_arc(const glm::vec2& pos, float radius, float start, float end, const RGBAf& color, int segments)
+GraphicsContext::draw_arc(const glm::vec2& pos, float radius, float start, float end, const surf::Color& color, int segments)
 {
   assert(segments >= 0);
 
@@ -452,7 +452,7 @@ GraphicsContext::draw_arc(const glm::vec2& pos, float radius, float start, float
 }
 
 void
-GraphicsContext::fill_arc(const glm::vec2& pos, float radius, float start, float end, const RGBAf& color, int segments)
+GraphicsContext::fill_arc(const glm::vec2& pos, float radius, float start, float end, const surf::Color& color, int segments)
 {
   assert(segments >= 0);
 
@@ -494,14 +494,14 @@ GraphicsContext::fill_arc(const glm::vec2& pos, float radius, float start, float
 }
 
 void
-GraphicsContext::draw_grid(const glm::vec2& offset, const geom::fsize& size, const RGBAf& rgba)
+GraphicsContext::draw_grid(const glm::vec2& offset, const geom::fsize& size, const surf::Color& rgba)
 {
   VertexArrayDrawable va;
 
   va.set_blend_func(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   va.set_mode(GL_LINES);
-  //glRGBAf4ub(rgba.r, rgba.g, rgba.b, rgba.a);
+  //glsurf::Color4ub(rgba.r, rgba.g, rgba.b, rgba.a);
 
   float start_x = fmodf(offset.x, size.width());
   float start_y = fmodf(offset.y, size.height());

@@ -39,7 +39,7 @@ public:
   float    z_pos;
 
   /** Includes color and alpha settings */
-  RGBAf   color;
+  surf::Color   color;
 
   float angle;
 
@@ -72,7 +72,7 @@ public:
     return *this;
   }
 
-  SurfaceDrawingParameters& set_color(const RGBAf& c)
+  SurfaceDrawingParameters& set_color(const surf::Color& c)
   {
     color = c;
     return *this;

@@ -22,12 +22,13 @@
 #include <vector>
 
 #include <geom/fwd.hpp>
+#include <surf/fwd.hpp>
 
 #include <wstdisplay/scenegraph/drawable.hpp>
+
 #include "texture.hpp"
 #include "surface.hpp"
 
-class RGBAf;
 class Compositor;
 class DrawingParameters;
 class GraphicsContext;
@@ -62,18 +63,18 @@ public:
   /** Fills the screen with a given color, this is different from
       clear() in that it doesn't remove other Drawable from the
       queue */
-  void fill_screen(const RGBAf& color);
+  void fill_screen(const surf::Color& color);
 
   void fill_pattern(TexturePtr pattern, const glm::vec2& offset);
 
-  void draw_line(const geom::line& line, const RGBAf& color, float z_pos = 0);
-  void draw_line(const glm::vec2& pos1, const glm::vec2& pos2, const RGBAf& color, float z_pos = 0);
+  void draw_line(const geom::line& line, const surf::Color& color, float z_pos = 0);
+  void draw_line(const glm::vec2& pos1, const glm::vec2& pos2, const surf::Color& color, float z_pos = 0);
 
-  void draw_rect(const geom::frect& rect, const RGBAf& color, float z_pos = 0);
-  void fill_rect(const geom::frect& rect, const RGBAf& color, float z_pos = 0);
+  void draw_rect(const geom::frect& rect, const surf::Color& color, float z_pos = 0);
+  void fill_rect(const geom::frect& rect, const surf::Color& color, float z_pos = 0);
 
-  void draw_quad(const geom::quad& quad, const RGBAf& color, float z_pos = 0);
-  void fill_quad(const geom::quad& quad, const RGBAf& color, float z_pos = 0);
+  void draw_quad(const geom::quad& quad, const surf::Color& color, float z_pos = 0);
+  void fill_quad(const geom::quad& quad, const surf::Color& color, float z_pos = 0);
 
   /*{ */
   void draw(std::unique_ptr<Drawable> request);

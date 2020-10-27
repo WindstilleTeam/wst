@@ -23,7 +23,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include <wstdisplay/color.hpp>
+#include <surf/color.hpp>
 #include <wstdisplay/scenegraph/drawable.hpp>
 #include <wstdisplay/shader_program.hpp>
 
@@ -42,7 +42,7 @@ public:
   void vertex(glm::vec2 const& vec, float z = 0.0f);
 
   void texcoord(float u, float v);
-  void color(RGBAf const& color);
+  void color(surf::Color const& color);
 
   void add_vertices(std::span<float const> data);
   void add_texcoords(std::span<float const> data);

@@ -22,7 +22,6 @@
 
 #include <GL/glew.h>
 
-class RGBAf;
 class GraphicsContext;
 
 class GLVertexArrays final

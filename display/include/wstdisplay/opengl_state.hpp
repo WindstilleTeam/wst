@@ -22,10 +22,11 @@
 #include <GL/glew.h>
 #include <memory>
 
+#include <surf/fwd.hpp>
+
 #include "texture.hpp"
 
 class Framebuffer;
-class RGBAf;
 class OpenGLStateImpl;
 
 /**
@@ -82,9 +83,9 @@ public:
   void set_state(GLenum array, bool value);
   bool get_state(GLenum array) const;
 
-  // FIXME: RGBAf is a per vertex attribute, doesn't make much sense
+  // FIXME: surf::Color is a per vertex attribute, doesn't make much sense
   // to have it here
-  void color(const RGBAf& color);
+  void color(const surf::Color& color);
 
   /**
    * Activates the given state, you *must* call this before you issue
