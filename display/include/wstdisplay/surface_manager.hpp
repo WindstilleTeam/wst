@@ -19,10 +19,10 @@
 #ifndef HEADER_WINDSTILLE_DISPLAY_SURFACE_MANAGER_HPP
 #define HEADER_WINDSTILLE_DISPLAY_SURFACE_MANAGER_HPP
 
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
-#include <map>
 
 #include "texture.hpp"
 #include "surface.hpp"
@@ -34,12 +34,6 @@ class TexturePacker;
 /** This class keeps a list of loaded surfaces and manages loading new ones */
 class SurfaceManager final
 {
-private:
-  std::unique_ptr<TexturePacker> texture_packer;
-
-  using Surfaces = std::map<std::filesystem::path, SurfacePtr>;
-  Surfaces surfaces;
-
 public:
   SurfaceManager();
   ~SurfaceManager();
@@ -47,12 +41,10 @@ public:
   /** returns a surface containing the image specified with filename */
   SurfacePtr get(std::filesystem::path const& filename);
 
-  /**
-   * Loads an image and splits it into several Surfaces sized width and height.
-   * The created surfaces will be added to the surfaces vector.
-   */
+  /** Loads an image and splits it into several Surfaces sized width and height.
+      The created surfaces will be added to the surfaces vector. */
   void load_grid(std::filesystem::path const& filename,
-                 std::vector<SurfacePtr>& surfaces, int width, int height);
+                 std::vector<SurfacePtr>& surfaces, geom::isize const& size);
 
   TexturePtr create_texture(SoftwareSurface const& image,
                             float* maxu, float* maxv);
@@ -61,6 +53,10 @@ public:
   void cleanup();
 
   void save_all_as_png() const;
+
+private:
+  std::unique_ptr<TexturePacker> m_texture_packer;
+  std::map<std::filesystem::path, SurfacePtr> m_surfaces;
 };
 
 } // namespace wstdisplay

@@ -29,15 +29,14 @@
 namespace wstdisplay {
 
 SurfaceManager::SurfaceManager() :
-  texture_packer(),
-  surfaces()
+  m_texture_packer(),
+  m_surfaces()
 {
   // NPOV should be ok with OpenGL2.0 in theory, but in practice there
   // is hardware that does OpenGL2.0, but not NPOV, see:
   // http://www.opengl.org/wiki/NPOT_Texture
-  if (!GLEW_ARB_texture_non_power_of_two)
-  {
-    texture_packer.reset(new TexturePacker(geom::isize(2048, 2048)));
+  if (!GLEW_ARB_texture_non_power_of_two) {
+    m_texture_packer.reset(new TexturePacker(geom::isize(2048, 2048)));
   }
 }
 
@@ -58,82 +57,69 @@ SurfaceManager::~SurfaceManager()
 SurfacePtr
 SurfaceManager::get(std::filesystem::path const& filename)
 {
-  Surfaces::iterator i = surfaces.find(filename);
-
-  if(i != surfaces.end())
-  { // Surface in cache, return it
-    return i->second;
+  if (auto it = m_surfaces.find(filename); it != m_surfaces.end()) {
+    // Surface in cache, return it
+    return it->second;
   }
-  else
-  {
-    SoftwareSurface software_surface = SoftwareSurface::from_file(filename);
 
-    if (texture_packer)
-    {
-      SurfacePtr result = texture_packer->upload(software_surface);
-      surfaces.insert(std::make_pair(filename, result));
-      return result;
+  // load Surface from file
+  SoftwareSurface software_surface = SoftwareSurface::from_file(filename);
+
+  if (m_texture_packer) {
+    SurfacePtr result = m_texture_packer->upload(software_surface);
+    m_surfaces[filename] = result;
+    return result;
+  } else {
+    float maxu = 0.0f;
+    float maxv = 0.0f;
+    TexturePtr texture;
+
+    try {
+      texture = create_texture(software_surface, &maxu, &maxv);
+    } catch(std::exception& e) {
+      std::ostringstream msg;
+      msg << "Couldn't create texture for '" << filename << "': " << e.what();
+      throw std::runtime_error(msg.str());
     }
-    else
-    {
-      float maxu = 0.0f;
-      float maxv = 0.0f;
-      TexturePtr texture;
 
-      try
-      {
-        texture = create_texture(software_surface, &maxu, &maxv);
-      }
-      catch(std::exception& e)
-      {
-        std::ostringstream msg;
-        msg << "Couldn't create texture for '" << filename << "': " << e.what();
-        throw std::runtime_error(msg.str());
-      }
-
-      SurfacePtr result = Surface::create(texture, geom::frect(0.0f, 0.0f, maxu, maxv),
-                                          geom::fsize(static_cast<float>(software_surface.get_width()),
-                                                static_cast<float>(software_surface.get_height())));
-      surfaces.insert(std::make_pair(filename, result));
-      return result;
-    }
+    SurfacePtr result = Surface::create(texture, geom::frect(0.0f, 0.0f, maxu, maxv),
+                                        geom::fsize(static_cast<float>(software_surface.get_width()),
+                                                    static_cast<float>(software_surface.get_height())));
+    m_surfaces[filename] = result;
+    return result;
   }
 }
 
 void
 SurfaceManager::load_grid(std::filesystem::path const& filename,
                           std::vector<SurfacePtr>& out_surfaces,
-                          int width, int height)
+                          geom::isize const& size)
 {
   SoftwareSurface const image = SoftwareSurface::from_file(filename);
-  float maxu, maxv;
 
+  float maxu;
+  float maxv;
   TexturePtr texture;
 
-  try
-  {
+  try {
     texture = create_texture(image, &maxu, &maxv);
-  }
-  catch(const std::exception& e)
-  {
+  } catch(const std::exception& e) {
     std::ostringstream msg;
     msg << "Couldn't create texture for '" << filename << "': " << e.what();
     throw std::runtime_error(msg.str());
   }
 
-  for(int y = 0; y <= image.get_height() - height + 1; y += height)
-  {
-    for(int x = 0; x <= image.get_width() - width + 1; x += width)
-    {
-      float s_min_u = maxu * static_cast<float>(x) / static_cast<float>(image.get_width());
-      float s_min_v = maxv * static_cast<float>(x) / static_cast<float>(image.get_height());
-      float s_max_u = (maxu * (static_cast<float>(x + width)))  / static_cast<float>(image.get_width());
-      float s_max_v = (maxv * (static_cast<float>(x + height))) / static_cast<float>(image.get_height());
+  for(int y = 0; y <= image.get_height() - size.height() + 1; y += size.height()) {
+    for(int x = 0; x <= image.get_width() - size.width() + 1; x += size.width()) {
+      float const s_min_u = maxu * static_cast<float>(x) / static_cast<float>(image.get_width());
+      float const s_min_v = maxv * static_cast<float>(x) / static_cast<float>(image.get_height());
+      float const s_max_u = (maxu * (static_cast<float>(x + size.width())))  / static_cast<float>(image.get_width());
+      float const s_max_v = (maxv * (static_cast<float>(x + size.height()))) / static_cast<float>(image.get_height());
 
       out_surfaces.push_back(Surface::create(texture,
                                              geom::frect(s_min_u, s_min_v, s_max_u, s_max_v),
-                                             geom::fsize(static_cast<float>(width),
-                                                   static_cast<float>(height))));
+                                             geom::fsize(static_cast<float>(size.width()),
+                                                   static_cast<float>(size.height()))));
     }
   }
 }
@@ -144,14 +130,11 @@ SurfaceManager::create_texture(SoftwareSurface const& image,
 {
   // OpenGL2.0 should be fine with non-power-of-two, but some
   // implementations aren't
-  if (GLEW_ARB_texture_non_power_of_two)
-  {
+  if (GLEW_ARB_texture_non_power_of_two) {
     *maxu = 1.0f;
     *maxv = 1.0f;
     return Texture::create(image);
-  }
-  else
-  {
+  } else {
     geom::isize texture_size(glm::ceilPowerOfTwo(image.get_width()),
                              glm::ceilPowerOfTwo(image.get_height()));
 
@@ -171,21 +154,15 @@ SurfaceManager::create_texture(SoftwareSurface const& image,
 void
 SurfaceManager::cleanup()
 {
-  //std::cout << "SurfaceManager: size: " << surfaces.size() << std::endl;
-  for(Surfaces::iterator i = surfaces.begin(); i != surfaces.end(); ++i)
-  {
-    if (i->second.use_count() == 1)
-    {
-      //std::cout << "SurfaceManager: erasing a surface" << std::endl;
-      surfaces.erase(i);
-    }
-  }
+  std::erase_if(m_surfaces, [](auto const& item) {
+    return item.second.use_count() == 0;
+  });
 }
 
 void
 SurfaceManager::save_all_as_png() const
 {
-  texture_packer->save_all_as_png();
+  m_texture_packer->save_all_as_png();
 }
 
 } // namespace wstdisplay
