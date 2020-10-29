@@ -25,7 +25,7 @@
 namespace wstdisplay {
 
 class Renderbuffer;
-typedef std::shared_ptr<Renderbuffer> RenderbufferPtr;
+using RenderbufferPtr = std::shared_ptr<Renderbuffer>;
 
 class Renderbuffer
 {

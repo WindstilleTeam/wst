@@ -37,7 +37,7 @@ class SurfaceManager final
 private:
   std::unique_ptr<TexturePacker> texture_packer;
 
-  typedef std::map<std::filesystem::path, SurfacePtr> Surfaces;
+  using Surfaces = std::map<std::filesystem::path, SurfacePtr>;
   Surfaces surfaces;
 
 public:

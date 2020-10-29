@@ -29,7 +29,7 @@
 namespace wstdisplay {
 
 class ShaderObject;
-typedef std::shared_ptr<ShaderObject> ShaderObjectPtr;
+using ShaderObjectPtr = std::shared_ptr<ShaderObject>;
 
 class ShaderObject
 {

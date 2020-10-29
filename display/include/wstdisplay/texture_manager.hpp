@@ -49,7 +49,7 @@ public:
   void cleanup();
 
 private:
-  typedef std::map<std::filesystem::path, TexturePtr> Textures;
+  using Textures = std::map<std::filesystem::path, TexturePtr>;
   Textures textures;
   TexturePtr m_fallback;
 };

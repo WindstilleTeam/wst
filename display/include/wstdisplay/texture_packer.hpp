@@ -35,7 +35,7 @@ class TexturePackerTexture;
 class TexturePacker
 {
 private:
-  typedef std::vector<TexturePackerTexture*> Textures;
+  using Textures = std::vector<TexturePackerTexture*>;
   geom::isize     texture_size;
   Textures textures;
 

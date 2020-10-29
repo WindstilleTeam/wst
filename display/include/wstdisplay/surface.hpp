@@ -29,7 +29,7 @@ class GraphicsContext;
 class SurfaceDrawingParameters;
 class Surface;
 
-typedef std::shared_ptr<Surface> SurfacePtr;
+using SurfacePtr = std::shared_ptr<Surface>;
 
 /**
  * Surface class. This class basically holds a reference to an opengl texture

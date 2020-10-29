@@ -47,7 +47,7 @@ class SurfaceDrawingParameters;
 class DrawingContext
 {
 private:
-  typedef std::vector<std::unique_ptr<Drawable> > Drawables;
+  using Drawables = std::vector<std::unique_ptr<Drawable> >;
   Drawables drawingrequests;
 
   std::vector<glm::mat4> modelview_stack;

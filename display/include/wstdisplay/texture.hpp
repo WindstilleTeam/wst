@@ -34,7 +34,7 @@ namespace wstdisplay {
 class TextureImpl;
 
 class Texture;
-typedef std::shared_ptr<Texture> TexturePtr;
+using TexturePtr = std::shared_ptr<Texture>;
 
 class Texture
 {
