@@ -33,7 +33,7 @@ class VertexArrayDrawable : public Drawable
 {
 public:
   VertexArrayDrawable();
-  VertexArrayDrawable(glm::vec2 const& pos, float z_pos, glm::mat4 const& modelview);
+  VertexArrayDrawable(geom::fpoint const& pos, float z_pos, glm::mat4 const& modelview);
 
   void render(GraphicsContext& gc, unsigned int mask = ~0u) override;
 
@@ -41,7 +41,7 @@ public:
 
   void vertex(int x, int y, int z = 0);
   void vertex(float x, float y, float z = 0.0f);
-  void vertex(glm::vec2 const& vec, float z = 0.0f);
+  void vertex(geom::fpoint const& vec, float z = 0.0f);
 
   void texcoord(float u, float v);
   void color(surf::Color const& color);

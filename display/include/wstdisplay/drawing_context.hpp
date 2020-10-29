@@ -67,25 +67,25 @@ public:
       queue */
   void fill_screen(const surf::Color& color);
 
-  void fill_pattern(TexturePtr pattern, const glm::vec2& offset);
+  void fill_pattern(TexturePtr pattern, const geom::foffset& offset);
 
-  void draw_line(const geom::line& line, const surf::Color& color, float z_pos = 0);
-  void draw_line(const glm::vec2& pos1, const glm::vec2& pos2, const surf::Color& color, float z_pos = 0);
+  void draw_line(const geom::fline& line, const surf::Color& color, float z_pos = 0);
+  void draw_line(const geom::fpoint& pos1, const geom::fpoint& pos2, const surf::Color& color, float z_pos = 0);
 
   void draw_rect(const geom::frect& rect, const surf::Color& color, float z_pos = 0);
   void fill_rect(const geom::frect& rect, const surf::Color& color, float z_pos = 0);
 
-  void draw_quad(const geom::quad& quad, const surf::Color& color, float z_pos = 0);
-  void fill_quad(const geom::quad& quad, const surf::Color& color, float z_pos = 0);
+  void draw_quad(const geom::fquad& quad, const surf::Color& color, float z_pos = 0);
+  void fill_quad(const geom::fquad& quad, const surf::Color& color, float z_pos = 0);
 
   /*{ */
   void draw(std::unique_ptr<Drawable> request);
-  void draw(SurfacePtr surface, const glm::vec2& pos, float z = 0, float alpha = 0);
+  void draw(SurfacePtr surface, const geom::fpoint& pos, float z = 0, float alpha = 0);
   void draw(SurfacePtr surface, float x, float y, float z = 0, float alpha = 0);
   void draw(SurfacePtr surface, const SurfaceDrawingParameters& params, float z_pos = 0);
-  void draw(SurfacePtr surface, const glm::vec2& pos, const geom::quad& quad,
+  void draw(SurfacePtr surface, const geom::fpoint& pos, const geom::fquad& quad,
             const DrawingParameters& params, float z_pos = 0);
-  void draw_control(SurfacePtr surface, const glm::vec2& pos, float angle, float z_pos = 0);
+  void draw_control(SurfacePtr surface, const geom::fpoint& pos, float angle, float z_pos = 0);
   /*} */
 
   /** Translate the drawing context */

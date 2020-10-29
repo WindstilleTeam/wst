@@ -29,18 +29,18 @@ class FillScreenPatternDrawable : public Drawable
 {
 private:
   TexturePtr m_texture;
-  glm::vec2 m_offset;
+  geom::foffset m_offset;
 
 public:
-  FillScreenPatternDrawable(TexturePtr texture, const glm::vec2& offset) :
-    Drawable(glm::vec2(0, 0), -1000.0f),
+  FillScreenPatternDrawable(TexturePtr texture, const geom::foffset& offset) :
+    Drawable(geom::fpoint(0.0f, 0.0f), -1000.0f),
     m_texture(texture),
     m_offset(offset)
   {}
 
   ~FillScreenPatternDrawable() override {}
 
-  void set_offset(const glm::vec2& offset)
+  void set_offset(const geom::foffset& offset)
   {
     m_offset = offset;
   }
@@ -50,11 +50,11 @@ public:
     float u = static_cast<float>(gc.size().width())  / static_cast<float>(m_texture->get_width());
     float v = static_cast<float>(gc.size().height()) / static_cast<float>(m_texture->get_height());
 
-    float u_start = -m_offset.x / static_cast<float>(m_texture->get_width());
-    float v_start = -m_offset.y / static_cast<float>(m_texture->get_height());
+    float u_start = -m_offset.x() / static_cast<float>(m_texture->get_width());
+    float v_start = -m_offset.y() / static_cast<float>(m_texture->get_height());
 
-    u -= m_offset.x / static_cast<float>(m_texture->get_width());
-    v -= m_offset.y / static_cast<float>(m_texture->get_height());
+    u -= m_offset.x() / static_cast<float>(m_texture->get_width());
+    v -= m_offset.y() / static_cast<float>(m_texture->get_height());
 
     VertexArrayDrawable va;
 

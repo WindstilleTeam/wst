@@ -82,7 +82,7 @@ DrawingContext::draw(std::unique_ptr<Drawable> request)
 }
 
 void
-DrawingContext::draw(SurfacePtr surface, const glm::vec2& pos, const geom::quad& quad,
+DrawingContext::draw(SurfacePtr surface, const geom::fpoint& pos, const geom::fquad& quad,
                      const DrawingParameters& params, float z_pos)
 {
   draw(std::make_unique<SurfaceQuadDrawable>(surface, pos, quad, params, z_pos,
@@ -97,21 +97,21 @@ DrawingContext::draw(SurfacePtr surface, const SurfaceDrawingParameters& params,
 }
 
 void
-DrawingContext::draw(SurfacePtr surface, const glm::vec2& pos, float z, float alpha)
+DrawingContext::draw(SurfacePtr surface, const geom::fpoint& pos, float z, float alpha)
 {
-  draw(surface, pos.x, pos.y, z, alpha);
+  draw(surface, pos.x(), pos.y(), z, alpha);
 }
 
 void
 DrawingContext::draw(SurfacePtr surface, float x, float y, float z, float )
 {
   draw(std::make_unique<SurfaceDrawable>(surface,
-                                         SurfaceDrawingParameters().set_pos(glm::vec2(x, y)),
+                                         SurfaceDrawingParameters().set_pos(geom::fpoint(x, y)),
                                          z, modelview_stack.back()));
 }
 
 void
-DrawingContext::draw_control(SurfacePtr surface, const glm::vec2& pos, float angle, float z_pos)
+DrawingContext::draw_control(SurfacePtr surface, const geom::fpoint& pos, float angle, float z_pos)
 {
   draw(std::make_unique<ControlDrawable>(surface, pos, angle, z_pos, modelview_stack.back()));
 }
@@ -123,7 +123,7 @@ DrawingContext::fill_screen(const surf::Color& color)
 }
 
 void
-DrawingContext::fill_pattern(TexturePtr pattern, const glm::vec2& offset)
+DrawingContext::fill_pattern(TexturePtr pattern, const geom::foffset& offset)
 {
   draw(std::make_unique<FillScreenPatternDrawable>(pattern, offset));
 }
@@ -182,76 +182,76 @@ geom::frect
 DrawingContext::get_clip_rect()
 {
   // FIXME: Need to check the modelview matrix
-  return geom::frect(glm::vec2(glm::value_ptr(modelview_stack.back())[12],
+  return geom::frect(geom::fpoint(glm::value_ptr(modelview_stack.back())[12],
                                glm::value_ptr(modelview_stack.back())[13]),
                      geom::fsize(800, 600));
 }
 
 void
-DrawingContext::draw_line(const geom::line& line, const surf::Color& color, float z_pos)
+DrawingContext::draw_line(const geom::fline& line, const surf::Color& color, float z_pos)
 {
   draw_line(line.p1, line.p2, color, z_pos);
 }
 
 void
-DrawingContext::draw_line(const glm::vec2& pos1, const glm::vec2& pos2, const surf::Color& color, float z_pos)
+DrawingContext::draw_line(geom::fpoint const& pos1, geom::fpoint const& pos2, const surf::Color& color, float z_pos)
 {
-  auto array = std::make_unique<VertexArrayDrawable>(glm::vec2(0, 0), z_pos, modelview_stack.back());
+  auto array = std::make_unique<VertexArrayDrawable>(geom::fpoint(0, 0), z_pos, modelview_stack.back());
 
   array->set_mode(GL_LINES);
   array->set_blend_func(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   array->color(color);
-  array->vertex(pos1.x, pos1.y);
+  array->vertex(pos1.x(), pos1.y());
 
   array->color(color);
-  array->vertex(pos2.x, pos2.y);
+  array->vertex(pos2.x(), pos2.y());
 
   draw(std::move(array));
 }
 
 void
-DrawingContext::draw_quad(const geom::quad& quad, const surf::Color& color, float z_pos)
+DrawingContext::draw_quad(const geom::fquad& quad, const surf::Color& color, float z_pos)
 {
-  auto array = std::make_unique<VertexArrayDrawable>(glm::vec2(0, 0), z_pos, modelview_stack.back());
+  auto array = std::make_unique<VertexArrayDrawable>(geom::fpoint(0, 0), z_pos, modelview_stack.back());
 
   array->set_mode(GL_LINE_LOOP);
   array->set_blend_func(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   array->color(color);
-  array->vertex(quad.p1.x, quad.p1.y);
+  array->vertex(quad.p1.x(), quad.p1.y());
 
   array->color(color);
-  array->vertex(quad.p2.x, quad.p2.y);
+  array->vertex(quad.p2.x(), quad.p2.y());
 
   array->color(color);
-  array->vertex(quad.p3.x, quad.p3.y);
+  array->vertex(quad.p3.x(), quad.p3.y());
 
   array->color(color);
-  array->vertex(quad.p4.x, quad.p4.y);
+  array->vertex(quad.p4.x(), quad.p4.y());
 
   draw(std::move(array));
 }
 
 void
-DrawingContext::fill_quad(const geom::quad& quad, const surf::Color& color, float z_pos)
+DrawingContext::fill_quad(const geom::fquad& quad, const surf::Color& color, float z_pos)
 {
-  auto array = std::make_unique<VertexArrayDrawable>(glm::vec2(0, 0), z_pos, modelview_stack.back());
+  auto array = std::make_unique<VertexArrayDrawable>(geom::fpoint(0, 0), z_pos, modelview_stack.back());
 
   array->set_mode(GL_TRIANGLE_FAN);
   array->set_blend_func(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
   array->color(color);
-  array->vertex(quad.p1.x, quad.p1.y);
+  array->vertex(quad.p1.x(), quad.p1.y());
 
   array->color(color);
-  array->vertex(quad.p2.x, quad.p2.y);
+  array->vertex(quad.p2.x(), quad.p2.y());
 
   array->color(color);
-  array->vertex(quad.p3.x, quad.p3.y);
+  array->vertex(quad.p3.x(), quad.p3.y());
 
   array->color(color);
-  array->vertex(quad.p4.x, quad.p4.y);
+  array->vertex(quad.p4.x(), quad.p4.y());
 
   draw(std::move(array));
 }
@@ -259,7 +259,7 @@ DrawingContext::fill_quad(const geom::quad& quad, const surf::Color& color, floa
 void
 DrawingContext::draw_rect(const geom::frect& rect, const surf::Color& color, float z_pos)
 {
-  auto array = std::make_unique<VertexArrayDrawable>(glm::vec2(0, 0), z_pos, modelview_stack.back());
+  auto array = std::make_unique<VertexArrayDrawable>(geom::fpoint(0, 0), z_pos, modelview_stack.back());
 
   array->set_mode(GL_LINE_LOOP);
   array->set_blend_func(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -282,7 +282,7 @@ DrawingContext::draw_rect(const geom::frect& rect, const surf::Color& color, flo
 void
 DrawingContext::fill_rect(const geom::frect& rect, const surf::Color& color, float z_pos)
 {
-  auto array = std::make_unique<VertexArrayDrawable>(glm::vec2(0, 0), z_pos, modelview_stack.back());
+  auto array = std::make_unique<VertexArrayDrawable>(geom::fpoint(0, 0), z_pos, modelview_stack.back());
 
   array->set_mode(GL_TRIANGLE_FAN);
   array->set_blend_func(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

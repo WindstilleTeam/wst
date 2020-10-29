@@ -31,7 +31,7 @@ VertexArrayDrawable::VertexArrayDrawable() :
   VertexArrayDrawable({0.0f, 0.0f}, 0.0f, glm::mat4(1.0f))
 {}
 
-VertexArrayDrawable::VertexArrayDrawable(glm::vec2 const& pos_, float z_pos_,
+VertexArrayDrawable::VertexArrayDrawable(geom::fpoint const& pos_, float z_pos_,
                                          glm::mat4 const& modelview_) :
   Drawable(pos_, z_pos_, modelview_),
   m_program(),
@@ -167,9 +167,9 @@ VertexArrayDrawable::render(GraphicsContext& gc, unsigned int mask)
 }
 
 void
-VertexArrayDrawable::vertex(glm::vec2 const& vec, float z)
+VertexArrayDrawable::vertex(geom::fpoint const& vec, float z)
 {
-  vertex(vec.x, vec.y, z);
+  vertex(vec.x(), vec.y(), z);
 }
 
 void
@@ -183,8 +183,8 @@ VertexArrayDrawable::vertex(int x, int y, int z)
 void
 VertexArrayDrawable::vertex(float x, float y, float z)
 {
-  m_vertices.push_back(x + pos.x);
-  m_vertices.push_back(y + pos.y);
+  m_vertices.push_back(x + pos.x());
+  m_vertices.push_back(y + pos.y());
   m_vertices.push_back(z);
 }
 

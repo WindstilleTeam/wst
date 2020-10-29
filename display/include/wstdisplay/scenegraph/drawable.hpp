@@ -30,7 +30,7 @@ class GraphicsContext;
 class Drawable
 {
 protected:
-  glm::vec2 pos;
+  geom::fpoint pos;
   float    z_pos;
   glm::mat4   modelview;
   unsigned int render_mask;
@@ -43,7 +43,7 @@ public:
       render_mask(1) // FIXME: Evil hardcoded constant
   {}
 
-  Drawable(const glm::vec2& pos_, float z_pos_ = 0,  const glm::mat4& modelview_ = glm::mat4(1.0))
+  Drawable(const geom::fpoint& pos_, float z_pos_ = 0,  const glm::mat4& modelview_ = glm::mat4(1.0))
     : pos(pos_),
       z_pos(z_pos_),
       modelview(modelview_),
@@ -67,7 +67,7 @@ public:
   void set_render_mask(unsigned int mask) { render_mask = mask; }
   unsigned int get_render_mask() const { return render_mask; }
 
-  void set_pos(const glm::vec2& pos_) { pos = pos_; }
+  void set_pos(const geom::fpoint& pos_) { pos = pos_; }
 
 private:
   Drawable (const Drawable&);

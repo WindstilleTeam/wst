@@ -143,10 +143,10 @@ Surface::draw(GraphicsContext& gc, const SurfaceDrawingParameters& params) const
     std::swap(uv_top, uv_bottom);
   }
 
-  geom::quad quad(params.pos.x,
-            params.pos.y,
-            params.pos.x + m_size.width()  * params.scale.x,
-            params.pos.y + m_size.height() * params.scale.y);
+  geom::fquad quad(params.pos.x(),
+                   params.pos.y(),
+                   params.pos.x() + m_size.width()  * params.scale.x,
+                   params.pos.y() + m_size.height() * params.scale.y);
 
   quad.rotate(params.angle);
 
@@ -154,19 +154,19 @@ Surface::draw(GraphicsContext& gc, const SurfaceDrawingParameters& params) const
 
   va.color(params.color);
   va.texcoord(uv_left, uv_top);
-  va.vertex(quad.p1.x, quad.p1.y, params.z_pos);
+  va.vertex(quad.p1.x(), quad.p1.y(), params.z_pos);
 
   va.color(params.color);
   va.texcoord(uv_right, uv_top);
-  va.vertex(quad.p2.x, quad.p2.y, params.z_pos);
+  va.vertex(quad.p2.x(), quad.p2.y(), params.z_pos);
 
   va.color(params.color);
   va.texcoord(uv_right, uv_bottom);
-  va.vertex(quad.p3.x, quad.p3.y, params.z_pos);
+  va.vertex(quad.p3.x(), quad.p3.y(), params.z_pos);
 
   va.color(params.color);
   va.texcoord(uv_left, uv_bottom);
-  va.vertex(quad.p4.x, quad.p4.y, params.z_pos);
+  va.vertex(quad.p4.x(), quad.p4.y(), params.z_pos);
 
   va.render(gc);
 }

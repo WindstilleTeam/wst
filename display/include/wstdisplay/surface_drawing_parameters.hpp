@@ -37,7 +37,7 @@ public:
 
   bool depth_test;
 
-  glm::vec2 pos;
+  geom::fpoint pos;
   float    z_pos;
 
   /** Includes color and alpha settings */
@@ -92,7 +92,7 @@ public:
     return *this;
   }
 
-  SurfaceDrawingParameters& set_pos(const glm::vec2& p)
+  SurfaceDrawingParameters& set_pos(const geom::fpoint& p)
   {
     pos = p;
     return *this;

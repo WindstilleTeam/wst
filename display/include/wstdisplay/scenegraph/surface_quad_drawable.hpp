@@ -32,11 +32,11 @@ class SurfaceQuadDrawable : public Drawable
 {
 private:
   SurfacePtr m_surface;
-  geom::quad m_quad;
+  geom::fquad m_quad;
   DrawingParameters m_params;
 
 public:
-  SurfaceQuadDrawable(SurfacePtr surface, const glm::vec2& pos_, const geom::quad& quad,
+  SurfaceQuadDrawable(SurfacePtr surface, const geom::fpoint& pos_, const geom::fquad& quad,
                       const DrawingParameters& params, float z_pos_,
                       const glm::mat4& modelview_)
     : Drawable(pos_, z_pos_, modelview_),
@@ -61,23 +61,23 @@ public:
     va.set_mode(GL_TRIANGLE_FAN);
     {
       va.texcoord(m_surface->get_uv().left(), m_surface->get_uv().top());
-      va.vertex(pos.x + m_quad.p1.x, pos.y + m_quad.p1.y);
+      va.vertex(pos.x() + m_quad.p1.x(), pos.y() + m_quad.p1.y());
 
       va.texcoord(m_surface->get_uv().right(), m_surface->get_uv().top());
-      va.vertex(pos.x + m_quad.p2.x, pos.y + m_quad.p2.y);
+      va.vertex(pos.x() + m_quad.p2.x(), pos.y() + m_quad.p2.y());
 
       va.texcoord(m_surface->get_uv().right(), m_surface->get_uv().bottom());
-      va.vertex(pos.x + m_quad.p3.x, pos.y + m_quad.p3.y);
+      va.vertex(pos.x() + m_quad.p3.x(), pos.y() + m_quad.p3.y());
 
       va.texcoord(m_surface->get_uv().left(), m_surface->get_uv().bottom());
-      va.vertex(pos.x + m_quad.p4.x, pos.y + m_quad.p4.y);
+      va.vertex(pos.x() + m_quad.p4.x(), pos.y() + m_quad.p4.y());
     }
     va.render(gc);
 
     gc.pop_matrix();
   }
 
-  void set_quad(const geom::quad& quad) { m_quad = quad; }
+  void set_quad(const geom::fquad& quad) { m_quad = quad; }
 };
 
 } // namespace wstdisplay

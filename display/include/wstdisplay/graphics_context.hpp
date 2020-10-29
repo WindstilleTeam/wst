@@ -41,8 +41,8 @@ public:
   GraphicsContext();
   ~GraphicsContext();
 
-  void fill_quad(const geom::quad& quad, const surf::Color& color);
-  void draw_quad(const geom::quad& quad, const surf::Color& color);
+  void fill_quad(const geom::fquad& quad, const surf::Color& color);
+  void draw_quad(const geom::fquad& quad, const surf::Color& color);
 
   void fill_rect(const geom::frect& rect, const surf::Color& color);
   void draw_rect(const geom::frect& rect, const surf::Color& color);
@@ -51,18 +51,18 @@ public:
   void draw_rounded_rect(const geom::frect& rect, float radius, const surf::Color& color);
 
   /** Same as draw_line, but in addition draw a normal on top of the line */
-  void draw_line_with_normal(const geom::line& line, const surf::Color& color);
+  void draw_line_with_normal(const geom::fline& line, const surf::Color& color);
 
-  void draw_line(const geom::line& line, const surf::Color& color);
-  void draw_line(const glm::vec2& pos1, const glm::vec2& pos2, const surf::Color& color);
+  void draw_line(const geom::fline& line, const surf::Color& color);
+  void draw_line(const geom::fpoint& pos1, const geom::fpoint& pos2, const surf::Color& color);
 
-  void draw_circle(const glm::vec2& pos, float radius, const surf::Color& color, int segments = 16);
-  void fill_circle(const glm::vec2& pos, float radius, const surf::Color& color, int segments = 16);
+  void draw_circle(const geom::fpoint& pos, float radius, const surf::Color& color, int segments = 16);
+  void fill_circle(const geom::fpoint& pos, float radius, const surf::Color& color, int segments = 16);
 
-  void draw_arc(const glm::vec2& pos, float radius, float start, float end, const surf::Color& color, int segments = 16);
-  void fill_arc(const glm::vec2& pos, float radius, float start, float end, const surf::Color& color, int segments = 16);
+  void draw_arc(const geom::fpoint& pos, float radius, float start, float end, const surf::Color& color, int segments = 16);
+  void fill_arc(const geom::fpoint& pos, float radius, float start, float end, const surf::Color& color, int segments = 16);
 
-  void draw_grid(const glm::vec2& offset, const geom::fsize& size, const surf::Color& color);
+  void draw_grid(const geom::fpoint& offset, const geom::fsize& size, const surf::Color& color);
 
   void push_cliprect(const geom::irect& rect);
   void pop_cliprect();

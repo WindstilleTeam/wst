@@ -108,28 +108,28 @@ GraphicsContext::~GraphicsContext()
 }
 
 void
-GraphicsContext::draw_line(const geom::line& line, const surf::Color& color)
+GraphicsContext::draw_line(const geom::fline& line, const surf::Color& color)
 {
   draw_line(line.p1, line.p2, color);
 }
 
 void
-GraphicsContext::draw_line_with_normal(const geom::line& line, const surf::Color& color)
+GraphicsContext::draw_line_with_normal(const geom::fline& line, const surf::Color& color)
 {
-  glm::vec2 normal = (line.p2 - line.p1);
+  glm::vec2 normal = (line.p2.as_vec() - line.p1.as_vec());
 
   normal = glm::vec2(-normal.y, normal.x);
   normal = glm::normalize(normal);
   normal *= -32.0f;
 
-  glm::vec2 p3 = line.p1 + 0.5f * (line.p2 - line.p1);
+  glm::vec2 p3 = line.p1.as_vec() + 0.5f * (line.p2.as_vec() - line.p1.as_vec());
 
   draw_line(line,   color);
   draw_line(p3, p3 + normal, surf::Color(0.0f, 1.0f, 1.0f));
 }
 
 void
-GraphicsContext::draw_line(const glm::vec2& pos1, const glm::vec2& pos2, const surf::Color& color)
+GraphicsContext::draw_line(const geom::fpoint& pos1, const geom::fpoint& pos2, const surf::Color& color)
 {
   VertexArrayDrawable va;
 
@@ -138,16 +138,16 @@ GraphicsContext::draw_line(const glm::vec2& pos1, const glm::vec2& pos2, const s
   va.set_mode(GL_LINES);
 
   va.color(color);
-  va.vertex(pos1.x, pos1.y);
+  va.vertex(pos1.x(), pos1.y());
 
   va.color(color);
-  va.vertex(pos2.x, pos2.y);
+  va.vertex(pos2.x(), pos2.y());
 
   va.render(*this, ~0u);
 }
 
 void
-GraphicsContext::fill_quad(const geom::quad& quad, const surf::Color& color)
+GraphicsContext::fill_quad(const geom::fquad& quad, const surf::Color& color)
 {
   VertexArrayDrawable va;
 
@@ -156,22 +156,22 @@ GraphicsContext::fill_quad(const geom::quad& quad, const surf::Color& color)
   va.set_mode(GL_TRIANGLE_FAN);
 
   va.color(color);
-  va.vertex(quad.p1.x, quad.p1.y);
+  va.vertex(quad.p1.x(), quad.p1.y());
 
   va.color(color);
-  va.vertex(quad.p2.x, quad.p2.y);
+  va.vertex(quad.p2.x(), quad.p2.y());
 
   va.color(color);
-  va.vertex(quad.p3.x, quad.p3.y);
+  va.vertex(quad.p3.x(), quad.p3.y());
 
   va.color(color);
-  va.vertex(quad.p4.x, quad.p4.y);
+  va.vertex(quad.p4.x(), quad.p4.y());
 
   va.render(*this, ~0u);
 }
 
 void
-GraphicsContext::draw_quad(const geom::quad& quad, const surf::Color& color)
+GraphicsContext::draw_quad(const geom::fquad& quad, const surf::Color& color)
 {
   VertexArrayDrawable va;
 
@@ -180,16 +180,16 @@ GraphicsContext::draw_quad(const geom::quad& quad, const surf::Color& color)
   va.set_mode(GL_LINE_LOOP);
 
   va.color(color);
-  va.vertex(quad.p1.x, quad.p1.y);
+  va.vertex(quad.p1.x(), quad.p1.y());
 
   va.color(color);
-  va.vertex(quad.p2.x, quad.p2.y);
+  va.vertex(quad.p2.x(), quad.p2.y());
 
   va.color(color);
-  va.vertex(quad.p3.x, quad.p3.y);
+  va.vertex(quad.p3.x(), quad.p3.y());
 
   va.color(color);
-  va.vertex(quad.p4.x, quad.p4.y);
+  va.vertex(quad.p4.x(), quad.p4.y());
 
   va.render(*this, ~0u);
 }
@@ -350,7 +350,7 @@ GraphicsContext::draw_rounded_rect(const geom::frect& rect, float radius, const 
 }
 
 void
-GraphicsContext::draw_circle(const glm::vec2& pos, float radius, const surf::Color& color, int segments)
+GraphicsContext::draw_circle(const geom::fpoint& pos, float radius, const surf::Color& color, int segments)
 {
   assert(segments >= 0);
 
@@ -363,23 +363,23 @@ GraphicsContext::draw_circle(const glm::vec2& pos, float radius, const surf::Col
   va.set_mode(GL_LINE_STRIP);
 
   va.color(color);
-  va.vertex(radius + pos.x, pos.y);
+  va.vertex(radius + pos.x(), pos.y());
   for(int i = 1; i < segments; ++i)
   {
     float x = cosf(static_cast<float>(i) * glm::half_pi<float>() / n) * radius;
     float y = sinf(static_cast<float>(i) * glm::half_pi<float>() / n) * radius;
 
     va.color(color);
-    va.vertex(x + pos.x, y + pos.y);
+    va.vertex(x + pos.x(), y + pos.y());
   }
   va.color(color);
-  va.vertex(radius + pos.x, pos.y);
+  va.vertex(radius + pos.x(), pos.y());
 
   va.render(*this, ~0u);
 }
 
 void
-GraphicsContext::fill_circle(const glm::vec2& pos, float radius, const surf::Color& color, int segments)
+GraphicsContext::fill_circle(const geom::fpoint& pos, float radius, const surf::Color& color, int segments)
 {
   assert(segments >= 0);
 
@@ -391,25 +391,25 @@ GraphicsContext::fill_circle(const glm::vec2& pos, float radius, const surf::Col
   va.set_mode(GL_TRIANGLE_FAN);
 
   va.color(color);
-  va.vertex(pos.x, pos.y);
+  va.vertex(pos.x(), pos.y());
 
   va.color(color);
-  va.vertex(radius + pos.x, pos.y);
+  va.vertex(radius + pos.x(), pos.y());
   for(int i = 1; i < segments; ++i) {
     float x = cosf(static_cast<float>(i) * glm::half_pi<float>() / n) * radius;
     float y = sinf(static_cast<float>(i) * glm::half_pi<float>() / n) * radius;
 
     va.color(color);
-    va.vertex(x + pos.x, y + pos.y);
+    va.vertex(x + pos.x(), y + pos.y());
   }
   va.color(color);
-  va.vertex(radius + pos.x, pos.y);
+  va.vertex(radius + pos.x(), pos.y());
 
   va.render(*this, ~0u);
 }
 
 void
-GraphicsContext::draw_arc(const glm::vec2& pos, float radius, float start, float end, const surf::Color& color, int segments)
+GraphicsContext::draw_arc(const geom::fpoint& pos, float radius, float start, float end, const surf::Color& color, int segments)
 {
   assert(segments >= 0);
 
@@ -434,27 +434,27 @@ GraphicsContext::draw_arc(const glm::vec2& pos, float radius, float start, float
     va.set_mode(GL_LINE_STRIP);
 
     va.color(color);
-    va.vertex(pos.x, pos.y);
+    va.vertex(pos.x(), pos.y());
 
     for(float angle = start; angle < end; angle += step) {
       va.color(color);
-      va.vertex((cosf(angle) * radius) + pos.x,
-                (sinf(angle) * radius) + pos.y);
+      va.vertex((cosf(angle) * radius) + pos.x(),
+                (sinf(angle) * radius) + pos.y());
     }
 
     va.color(color);
-    va.vertex((cosf(end) * radius) + pos.x,
-              (sinf(end) * radius) + pos.y);
+    va.vertex((cosf(end) * radius) + pos.x(),
+              (sinf(end) * radius) + pos.y());
 
     va.color(color);
-    va.vertex(pos.x, pos.y);
+    va.vertex(pos.x(), pos.y());
 
     va.render(*this, ~0u);
   }
 }
 
 void
-GraphicsContext::fill_arc(const glm::vec2& pos, float radius, float start, float end, const surf::Color& color, int segments)
+GraphicsContext::fill_arc(const geom::fpoint& pos, float radius, float start, float end, const surf::Color& color, int segments)
 {
   assert(segments >= 0);
 
@@ -479,24 +479,24 @@ GraphicsContext::fill_arc(const glm::vec2& pos, float radius, float start, float
     va.set_mode(GL_TRIANGLE_FAN);
 
     va.color(color);
-    va.vertex(pos.x, pos.y);
+    va.vertex(pos.x(), pos.y());
 
     for(float angle = start; angle < end; angle += step) {
       va.color(color);
-      va.vertex((cosf(angle) * radius) + pos.x,
-                (sinf(angle) * radius) + pos.y);
+      va.vertex((cosf(angle) * radius) + pos.x(),
+                (sinf(angle) * radius) + pos.y());
     }
 
     va.color(color);
-    va.vertex(cosf(end) * radius + pos.x,
-              sinf(end) * radius + pos.y);
+    va.vertex(cosf(end) * radius + pos.x(),
+              sinf(end) * radius + pos.y());
 
     va.render(*this, ~0u);
   }
 }
 
 void
-GraphicsContext::draw_grid(const glm::vec2& offset, const geom::fsize& size, const surf::Color& rgba)
+GraphicsContext::draw_grid(const geom::fpoint& offset, const geom::fsize& size, const surf::Color& rgba)
 {
   VertexArrayDrawable va;
 
@@ -505,8 +505,8 @@ GraphicsContext::draw_grid(const glm::vec2& offset, const geom::fsize& size, con
   va.set_mode(GL_LINES);
   //glsurf::Color4ub(rgba.r, rgba.g, rgba.b, rgba.a);
 
-  float start_x = fmodf(offset.x, size.width());
-  float start_y = fmodf(offset.y, size.height());
+  float start_x = fmodf(offset.x(), size.width());
+  float start_y = fmodf(offset.y(), size.height());
 
   for(float x = start_x; x < static_cast<float>(m_aspect_size.width()); x += size.width())
   {
