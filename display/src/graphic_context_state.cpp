@@ -28,20 +28,12 @@ namespace wstdisplay {
 class GraphicContextStateImpl
 {
 public:
-  int width;
-  int height;
+  int width = 1;
+  int height = 1;
 
-  glm::vec2 offset;
-  float zoom;
-  float rotation;
-
-  GraphicContextStateImpl()
-    : width(1),
-      height(1),
-      offset(0.0f, 0.0f),
-      zoom(1.0f),
-      rotation(0)
-  {}
+  geom::foffset offset = geom::foffset(0.0f, 0.0f);
+  float zoom = 1.0f;
+  float rotation = 0.0f;
 };
 
 GraphicContextState::GraphicContextState() :
@@ -52,10 +44,10 @@ GraphicContextState::GraphicContextState() :
 GraphicContextState::GraphicContextState(int w, int h) :
   impl(new GraphicContextStateImpl())
 {
-  impl->width  = w;
+  impl->width = w;
   impl->height = h;
-  impl->offset = glm::vec2(0,0);
-  impl->zoom   = 1.0f;
+  impl->offset = geom::foffset(0.0f, 0.0f);
+  impl->zoom = 1.0f;
   impl->rotation = 0;
 }
 
@@ -83,7 +75,7 @@ GraphicContextState::get_matrix() const
 
   matrix = glm::scale(matrix, glm::vec3(get_zoom(), get_zoom(), 1.0f));
 
-  matrix = glm::translate(matrix, glm::vec3(impl->offset.x, impl->offset.y, 0.0f));
+  matrix = glm::translate(matrix, glm::vec3(impl->offset.x(), impl->offset.y(), 0.0f));
 
   return matrix;
 }
@@ -100,7 +92,7 @@ GraphicContextState::push(SceneContext& sc) const
                static_cast<float>(-impl->height) / 2.0f);
 
   sc.scale(get_zoom(), get_zoom());
-  sc.translate(impl->offset.x, impl->offset.y);
+  sc.translate(impl->offset.x(), impl->offset.y());
 }
 
 void
@@ -112,39 +104,38 @@ GraphicContextState::pop(SceneContext& sc) const
 geom::frect
 GraphicContextState::get_clip_rect()
 {
-  return geom::frect(glm::vec2(-impl->offset.x,
-                        -impl->offset.y),
-               geom::fsize(static_cast<float>(get_width())  / impl->zoom,
-                     static_cast<float>(get_height()) / impl->zoom));
+  return geom::frect(geom::fpoint(-impl->offset.x(), -impl->offset.y()),
+                     geom::fsize(static_cast<float>(get_width())  / impl->zoom,
+                                 static_cast<float>(get_height()) / impl->zoom));
 }
 
 void
-GraphicContextState::set_pos(const glm::vec2& pos)
+GraphicContextState::set_pos(geom::fpoint const& pos)
 {
-  impl->offset.x = -pos.x + (static_cast<float>(get_width())  / 2.0f / impl->zoom);
-  impl->offset.y = -pos.y + (static_cast<float>(get_height()) / 2.0f / impl->zoom);
+  impl->offset = geom::foffset(-pos.x() + (static_cast<float>(get_width())  / 2.0f / impl->zoom),
+                               -pos.y() + (static_cast<float>(get_height()) / 2.0f / impl->zoom));
 }
 
-glm::vec2
+geom::foffset
 GraphicContextState::get_offset() const
 {
   return impl->offset;
 }
 
-glm::vec2
+geom::fpoint
 GraphicContextState::get_pos() const
 {
-  return glm::vec2(-impl->offset.x + (static_cast<float>(get_width())  / 2.0f / impl->zoom),
-                  -impl->offset.y + (static_cast<float>(get_height()) / 2.0f / impl->zoom));
+  return geom::fpoint(-impl->offset.x() + (static_cast<float>(get_width())  / 2.0f / impl->zoom),
+                      -impl->offset.y() + (static_cast<float>(get_height()) / 2.0f / impl->zoom));
 }
 
 void
-GraphicContextState::set_zoom(const glm::vec2& pos, float z)
+GraphicContextState::set_zoom(geom::fpoint const& pos, float z)
 {
-  float old_zoom = impl->zoom;
+  float const old_zoom = impl->zoom;
   set_zoom(z);
-  impl->offset.x = pos.x/impl->zoom - pos.x/old_zoom + impl->offset.x;
-  impl->offset.y = pos.y/impl->zoom - pos.y/old_zoom + impl->offset.y;
+  impl->offset = geom::foffset(pos.x() / impl->zoom - pos.x() / old_zoom + impl->offset.x(),
+                               pos.y() / impl->zoom - pos.y() / old_zoom + impl->offset.y());
 }
 
 void
@@ -180,14 +171,14 @@ GraphicContextState::zoom_to (const geom::frect& rect)
     impl->zoom = static_cast<float>(get_height()) / height;
   }
 
-  impl->offset.x = (static_cast<float>(get_width())  / (2.0f * impl->zoom)) - center_x;
-  impl->offset.y = (static_cast<float>(get_height()) / (2.0f * impl->zoom)) - center_y;
+  impl->offset = geom::foffset((static_cast<float>(get_width())  / (2.0f * impl->zoom)) - center_x,
+                               (static_cast<float>(get_height()) / (2.0f * impl->zoom)) - center_y);
 }
 
-glm::vec2
-GraphicContextState::screen_to_world(const glm::vec2& pos_)
+geom::fpoint
+GraphicContextState::screen_to_world(geom::fpoint const& pos_)
 {
-  glm::vec2 pos(pos_.x, pos_.y);
+  glm::vec2 pos(pos_.x(), pos_.y());
   float sa = sinf(-impl->rotation / 180.0f * glm::pi<float>());
   float ca = cosf(-impl->rotation / 180.0f * glm::pi<float>());
 
@@ -197,8 +188,8 @@ GraphicContextState::screen_to_world(const glm::vec2& pos_)
   pos.x = static_cast<float>(impl->width)  / 2.0f + (ca * dx - sa * dy);
   pos.y = static_cast<float>(impl->height) / 2.0f + (sa * dx + ca * dy);
 
-  glm::vec2 p((pos.x / impl->zoom) - impl->offset.x,
-             (pos.y / impl->zoom) - impl->offset.y);
+  glm::vec2 p((pos.x / impl->zoom) - impl->offset.x(),
+              (pos.y / impl->zoom) - impl->offset.y());
 
   return p;
 }

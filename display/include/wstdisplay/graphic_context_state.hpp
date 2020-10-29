@@ -61,21 +61,21 @@ public:
   float get_rotation();
 
   /** Move the center of the visible area to pos */
-  void     set_pos(const glm::vec2& pos);
-  glm::vec2 get_pos() const;
+  void set_pos(geom::fpoint const& pos);
+  geom::fpoint get_pos() const;
 
-  glm::vec2 get_offset() const;
+  geom::foffset get_offset() const;
 
   /** Set zoom to z, while ensuring that the screen position \a pos
       (normaly the position of the mouse pointer) stays in the same
       position even after zoomed in/out */
-  void  set_zoom(const glm::vec2& pos, float z);
+  void  set_zoom(geom::fpoint const& pos, float z);
   void  set_zoom(float z);
   float get_zoom() const;
 
   void zoom_to (const geom::frect& rect);
 
-  glm::vec2 screen_to_world(const glm::vec2& pos);
+  geom::fpoint screen_to_world(geom::fpoint const& pos);
 
   GraphicContextState clone() const;
 
