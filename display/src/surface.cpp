@@ -97,7 +97,7 @@ Surface::get_uv() const
 }
 
 void
-Surface::draw(GraphicsContext& gc, const glm::vec2& pos) const
+Surface::draw(GraphicsContext& gc, geom::fpoint const& pos) const
 {
   VertexArrayDrawable va;
 
@@ -107,16 +107,16 @@ Surface::draw(GraphicsContext& gc, const glm::vec2& pos) const
   va.set_mode(GL_TRIANGLE_FAN);
 
   va.texcoord(m_uv.left(), m_uv.top());
-  va.vertex(pos.x, pos.y);
+  va.vertex(pos.x(), pos.y());
 
   va.texcoord(m_uv.right(), m_uv.top());
-  va.vertex(pos.x + m_size.width(), pos.y);
+  va.vertex(pos.x() + m_size.width(), pos.y());
 
   va.texcoord(m_uv.right(), m_uv.bottom());
-  va.vertex(pos.x + m_size.width(), pos.y + m_size.height());
+  va.vertex(pos.x() + m_size.width(), pos.y() + m_size.height());
 
   va.texcoord(m_uv.left(), m_uv.bottom());
-  va.vertex(pos.x, pos.y + m_size.height());
+  va.vertex(pos.x(), pos.y() + m_size.height());
 
   va.render(gc);
 }

@@ -66,23 +66,17 @@ public:
   /** Returns texture coordinates for the Surface rectangle */
   geom::frect get_uv() const;
 
-  void draw(GraphicsContext& gc, const glm::vec2& pos) const;
-  void draw(GraphicsContext& gc, const SurfaceDrawingParameters& params) const;
+  void draw(GraphicsContext& gc, geom::fpoint const& pos) const;
+  void draw(GraphicsContext& gc, SurfaceDrawingParameters const& params) const;
 
 private:
-  /**
-   * Texture on which the surface is located
-   */
+  /** Texture on which the surface is located */
   TexturePtr m_texture;
 
-  /**
-   * uv coordinates of the Surface in [0,1] range
-   */
+  /** uv coordinates of the Surface in [0,1] range */
   geom::frect m_uv;
 
-  /**
-   * The size of the Surface in pixels
-   */
+  /** The size of the Surface in pixels */
   geom::fsize m_size;
 };
 

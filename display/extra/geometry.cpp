@@ -12,6 +12,8 @@
 
 #include <wstdisplay/graphics_context.hpp>
 #include <wstdisplay/opengl_window.hpp>
+#include <wstdisplay/surface_drawing_parameters.hpp>
+#include <wstdisplay/surface_manager.hpp>
 
 using namespace wstdisplay;
 
@@ -32,12 +34,18 @@ int main()
   std::uniform_real_distribution<float> rand_color(0.0f, 1.0f);
   std::uniform_real_distribution<float> rand_radius(0.0f, 256.0f);
   std::uniform_real_distribution<float> rand_rounded_radius(0.0f, 64.0f);
+  std::uniform_real_distribution<float> rand_angle(0.0f, 360.0f);
+  std::uniform_real_distribution<float> rand_scale(0.01f, 5.0f);
 
   OpenGLWindow window("Geometry Test", geom::isize(1280, 720), geom::isize(1280, 720),
                       false, 0);
 
   GraphicsContext gc;
   gc.set_aspect_size(geom::isize(1280, 720));
+
+  SurfaceManager surface_manager;
+
+  SurfacePtr surface = surface_manager.get("extra/tux.png");
 
   FramebufferPtr fb = Framebuffer::create(geom::isize(1280, 720));
 
@@ -90,7 +98,7 @@ int main()
                                 1000.0f,
                                 -1000.0f));
 
-      switch (mode % 8) {
+      switch (mode % 10) {
         case 0:
           gc.fill_rect(geom::normalize(geom::frect(rand_x(gen), rand_y(gen), rand_x(gen), rand_y(gen))),
                        surf::Color(rand_color(gen), rand_color(gen), rand_color(gen), 1.0f));
@@ -138,6 +146,17 @@ int main()
         case 7:
           gc.draw_grid(geom::fpoint(rand_x(gen), rand_y(gen)), geom::fsize(rand_radius(gen), rand_radius(gen)),
                        surf::Color(rand_color(gen), rand_color(gen), rand_color(gen), 1.0f));
+          break;
+
+        case 8:
+          surface->draw(gc, geom::fpoint(rand_x(gen), rand_y(gen)));
+          break;
+
+        case 9:
+          surface->draw(gc, SurfaceDrawingParameters()
+                        .set_pos(geom::fpoint(rand_x(gen), rand_y(gen)))
+                        .set_angle(rand_angle(gen))
+                        .set_scale(rand_scale(gen)));
           break;
       }
 
