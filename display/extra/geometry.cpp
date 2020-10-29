@@ -17,7 +17,9 @@
 
 using namespace wstdisplay;
 
-int main()
+namespace {
+
+void run()
 {
   if (SDL_Init(SDL_INIT_VIDEO) < 0) {
     std::ostringstream msg;
@@ -174,8 +176,17 @@ int main()
 
     window.swap_buffers();
   }
+}
 
-  return 0;
+} // namespace
+
+int main()
+{
+  try {
+    run();
+  } catch (std::exception const& err) {
+    std::cerr << "error: " << err.what() << std::endl;
+  }
 }
 
 /* EOF */
