@@ -27,6 +27,8 @@
 #include <wstdisplay/scenegraph/drawable.hpp>
 #include <wstdisplay/shader_program.hpp>
 
+namespace wstdisplay {
+
 class VertexArrayDrawable : public Drawable
 {
 public:
@@ -81,6 +83,8 @@ private:
   std::vector<float> m_vertices;
   std::vector<unsigned short int> m_indices;
 };
+
+} // namespace wstdisplay
 
 #endif
 

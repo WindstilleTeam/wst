@@ -24,6 +24,8 @@
 
 #include <wstdisplay/scenegraph/vertex_array_drawable.hpp>
 
+namespace wstdisplay {
+
 class GradientDrawable : public Drawable
 {
 public:
@@ -39,6 +41,8 @@ private:
   GradientDrawable(const GradientDrawable&);
   GradientDrawable& operator=(const GradientDrawable&);
 };
+
+} // namespace wstdisplay
 
 #endif
 

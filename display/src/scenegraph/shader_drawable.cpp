@@ -18,6 +18,8 @@
 
 #include "scenegraph/shader_drawable.hpp"
 
+namespace wstdisplay {
+
 ShaderDrawable::ShaderDrawable() :
   m_shader(),
   m_drawables()
@@ -33,5 +35,7 @@ ShaderDrawable::render(GraphicsContext& gc, unsigned int mask)
   m_drawables.render(gc, mask);
   glUseProgram(0);
 }
+
+} // namespace wstdisplay
 
 /* EOF */

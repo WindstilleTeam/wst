@@ -22,6 +22,8 @@
 
 #include "graphics_context.hpp"
 
+namespace wstdisplay {
+
 ScissorDrawable::ScissorDrawable(const geom::irect& cliprect) :
   m_cliprect(cliprect), // FIXME: should we keep cliprect in world space instead of screen space?
   m_drawable_group()
@@ -36,5 +38,7 @@ ScissorDrawable::render(GraphicsContext& gc, unsigned int mask)
   m_drawable_group.render(gc, mask);
   gc.pop_cliprect();
 }
+
+} // namespace wstdisplay
 
 /* EOF */

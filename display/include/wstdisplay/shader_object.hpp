@@ -26,6 +26,8 @@
 
 #include <GL/glew.h>
 
+namespace wstdisplay {
+
 class ShaderObject;
 typedef std::shared_ptr<ShaderObject> ShaderObjectPtr;
 
@@ -52,6 +54,8 @@ public:
 private:
   GLuint m_handle;
 };
+
+} // namespace wstdisplay
 
 #endif
 

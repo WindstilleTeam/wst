@@ -22,6 +22,8 @@
 
 #include <GL/glew.h>
 
+namespace wstdisplay {
+
 class GraphicsContext;
 
 class GLVertexArrays final
@@ -47,6 +49,8 @@ private:
   GLVertexArrays(const GLVertexArrays&) = delete;
   GLVertexArrays& operator=(const GLVertexArrays&) = delete;
 };
+
+} // namespace wstdisplay
 
 #endif
 

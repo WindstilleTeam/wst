@@ -22,6 +22,8 @@
 #include <memory>
 #include <geom/size.hpp>
 
+namespace wstdisplay {
+
 class Renderbuffer;
 typedef std::shared_ptr<Renderbuffer> RenderbufferPtr;
 
@@ -46,6 +48,8 @@ private:
 private:
   GLuint m_handle;
 };
+
+} // namespace wstdisplay
 
 #endif
 

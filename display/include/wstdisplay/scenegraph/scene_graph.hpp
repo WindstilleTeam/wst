@@ -22,6 +22,8 @@
 #include <memory>
 #include <vector>
 
+namespace wstdisplay {
+
 class Drawable;
 class DrawableGroup;
 class GraphicsContext;
@@ -48,6 +50,8 @@ private:
   SceneGraph(const SceneGraph&);
   SceneGraph& operator=(const SceneGraph&);
 };
+
+} // namespace wstdisplay
 
 #endif
 

@@ -36,6 +36,8 @@
 #include "color.hpp"
 #include "assert_gl.hpp"
 
+namespace wstdisplay {
+
 void save_screenshot(std::filesystem::path const& filename)
 {
   GLint viewport[4];
@@ -163,5 +165,7 @@ void save_screenshot(std::filesystem::path const& filename)
     }
   }
 }
+
+} // namespace wstdisplay
 
 /* EOF */

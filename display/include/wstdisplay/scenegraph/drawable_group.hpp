@@ -24,6 +24,8 @@
 
 #include <wstdisplay/scenegraph/drawable.hpp>
 
+namespace wstdisplay {
+
 class Texture;
 
 class DrawableGroup : public Drawable
@@ -47,6 +49,8 @@ private:
   DrawableGroup(const DrawableGroup&);
   DrawableGroup& operator=(const DrawableGroup&);
 };
+
+} // namespace wstdisplay
 
 #endif
 

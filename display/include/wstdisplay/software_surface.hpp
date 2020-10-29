@@ -28,7 +28,11 @@
 
 #include "color.hpp"
 
+namespace wstdisplay {
+
 using SoftwareSurface = surf::SoftwareSurface;
+
+} // namespace wstdisplay
 
 #endif
 

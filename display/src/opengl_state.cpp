@@ -28,6 +28,8 @@
 
 #define MAX_TEXTURE_UNITS 4
 
+namespace wstdisplay {
+
 class OpenGLStateImpl
 {
 public:
@@ -291,5 +293,7 @@ OpenGLState::verify()
   }
   assert_gl();
 }
+
+} // namespace wstdisplay
 
 /* EOF */

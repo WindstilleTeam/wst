@@ -21,6 +21,8 @@
 
 #include "renderbuffer.hpp"
 
+namespace wstdisplay {
+
 RenderbufferPtr
 Renderbuffer::create(GLenum format, geom::isize const& size, int multisample)
 {
@@ -57,5 +59,7 @@ Renderbuffer::get_handle() const
 {
   return m_handle;
 }
+
+} // namespace wstdisplay
 
 /* EOF */

@@ -27,6 +27,8 @@
 
 #include "surface.hpp"
 
+namespace wstdisplay {
+
 class Texture;
 class TexturePackerTexture;
 
@@ -50,6 +52,8 @@ private:
   TexturePacker(const TexturePacker&);
   TexturePacker& operator=(const TexturePacker&);
 };
+
+} // namespace wstdisplay
 
 #endif
 

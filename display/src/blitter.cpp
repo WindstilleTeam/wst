@@ -25,6 +25,8 @@
 
 #include "software_surface.hpp"
 
+namespace wstdisplay {
+
 void generate_border(SoftwareSurface& surface,
                      int x_pos, int y_pos, int width, int height)
 {
@@ -52,5 +54,7 @@ void generate_border(SoftwareSurface& surface,
     *p = *(p-1);
   }
 }
+
+} // namespace wstdisplay
 
 /* EOF */

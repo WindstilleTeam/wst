@@ -22,6 +22,8 @@
 #include <wstdisplay/scenegraph/drawable.hpp>
 #include <wstdisplay/scenegraph/drawable_group.hpp>
 
+namespace wstdisplay {
+
 class StencilDrawable : public Drawable
 {
 private:
@@ -40,6 +42,8 @@ private:
   StencilDrawable(const StencilDrawable&);
   StencilDrawable& operator=(const StencilDrawable&);
 };
+
+} // namespace wstdisplay
 
 #endif
 

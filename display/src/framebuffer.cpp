@@ -27,6 +27,8 @@
 #include "framebuffer.hpp"
 #include "assert_gl.hpp"
 
+namespace wstdisplay {
+
 FramebufferPtr
 Framebuffer::create_with_texture(GLenum target, geom::isize const& size, int multisample)
 {
@@ -185,5 +187,7 @@ Framebuffer::check_completness()
       break;
   }
 }
+
+} // namespace wstdisplay
 
 /* EOF */

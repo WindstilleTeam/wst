@@ -25,6 +25,8 @@
 
 #include "texture.hpp"
 
+namespace wstdisplay {
+
 /** This class manages a map of image files to OpenGL textures. */
 class TextureManager final
 {
@@ -51,6 +53,8 @@ private:
   Textures textures;
   TexturePtr m_fallback;
 };
+
+} // namespace wstdisplay
 
 #endif
 

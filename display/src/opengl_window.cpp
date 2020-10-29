@@ -29,6 +29,8 @@
 #include "graphics_context.hpp"
 #include "assert_gl.hpp"
 
+namespace wstdisplay {
+
 class OpenGLWindowImpl
 {
 public:
@@ -235,5 +237,7 @@ OpenGLWindow::swap_buffers()
 {
   SDL_GL_SwapWindow(m_impl->m_window);
 }
+
+} // namespace wstdisplay
 
 /* EOF */

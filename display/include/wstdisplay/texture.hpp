@@ -29,6 +29,8 @@
 
 #include "software_surface.hpp"
 
+namespace wstdisplay {
+
 class TextureImpl;
 
 class Texture;
@@ -83,6 +85,8 @@ private:
   GLuint m_handle;
   geom::isize m_size;
 };
+
+} // namespace wstdisplay
 
 #endif
 

@@ -37,6 +37,8 @@
 #include "scenegraph/vertex_array_drawable.hpp"
 #include "scenegraph/vertex_array_drawable.hpp"
 
+namespace wstdisplay {
+
 struct DrawablesSorter
 {
   bool operator()(std::unique_ptr<Drawable> const& a, std::unique_ptr<Drawable> const& b) {
@@ -299,5 +301,7 @@ DrawingContext::fill_rect(const geom::frect& rect, const surf::Color& color, flo
 
   draw(std::move(array));
 }
+
+} // namespace wstdisplay
 
 /* EOF */

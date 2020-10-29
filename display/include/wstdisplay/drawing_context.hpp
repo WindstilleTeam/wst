@@ -29,6 +29,8 @@
 #include "texture.hpp"
 #include "surface.hpp"
 
+namespace wstdisplay {
+
 class Compositor;
 class DrawingParameters;
 class GraphicsContext;
@@ -111,6 +113,8 @@ private:
   DrawingContext (const DrawingContext&);
   DrawingContext& operator= (const DrawingContext&);
 };
+
+} // namespace wstdisplay
 
 #endif
 

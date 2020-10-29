@@ -25,6 +25,8 @@
 
 #include <wstdisplay/scenegraph/vertex_array_drawable.hpp>
 
+namespace wstdisplay {
+
 class ShockwaveDrawable : public Drawable
 {
 public:
@@ -244,6 +246,8 @@ public:
     }
   }
 };
+
+} // namespace wstdisplay
 
 #endif
 

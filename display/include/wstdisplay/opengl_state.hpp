@@ -26,6 +26,8 @@
 
 #include "texture.hpp"
 
+namespace wstdisplay {
+
 class Framebuffer;
 class OpenGLStateImpl;
 
@@ -103,6 +105,8 @@ private:
   OpenGLState (const OpenGLState&);
   OpenGLState& operator= (const OpenGLState&);
 };
+
+} // namespace wstdisplay
 
 #endif
 

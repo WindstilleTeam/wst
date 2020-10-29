@@ -24,6 +24,8 @@
 
 #include <geom/rect.hpp>
 
+namespace wstdisplay {
+
 class SceneContext;
 
 class GraphicContextStateImpl;
@@ -80,6 +82,8 @@ public:
 private:
   std::shared_ptr<GraphicContextStateImpl> impl;
 };
+
+} // namespace wstdisplay
 
 #endif
 

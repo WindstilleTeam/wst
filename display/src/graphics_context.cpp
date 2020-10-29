@@ -37,6 +37,8 @@
 
 #include "scenegraph/vertex_array_drawable.hpp"
 
+namespace wstdisplay {
+
 namespace {
 int g_default_framebuffer = 0;
 std::vector<FramebufferPtr> framebuffers;
@@ -682,5 +684,7 @@ GraphicsContext::rotate(float degree, float x, float y, float z)
   m_modelview_stack.top() = glm::rotate(m_modelview_stack.top(),
                                         glm::radians(degree), glm::vec3(x, y, z));
 }
+
+} // namespace wstdisplay
 
 /* EOF */

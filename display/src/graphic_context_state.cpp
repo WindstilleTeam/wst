@@ -23,6 +23,8 @@
 
 #include "scene_context.hpp"
 
+namespace wstdisplay {
+
 class GraphicContextStateImpl
 {
 public:
@@ -244,5 +246,7 @@ GraphicContextState::clone() const
 
   return tmp;
 }
+
+} // namespace wstdisplay
 
 /* EOF */

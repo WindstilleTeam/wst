@@ -25,6 +25,8 @@
 #include "graphics_context.hpp"
 #include "opengl_state.hpp"
 
+namespace wstdisplay {
+
 VertexArrayDrawable::VertexArrayDrawable() :
   VertexArrayDrawable({0.0f, 0.0f}, 0.0f, glm::mat4(1.0f))
 {}
@@ -300,5 +302,7 @@ VertexArrayDrawable::set_mode(GLenum mode)
 {
   m_mode = mode;
 }
+
+} // namespace wstdisplay
 
 /* EOF */

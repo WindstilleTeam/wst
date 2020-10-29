@@ -22,6 +22,8 @@
 #include <wstdisplay/scenegraph/drawable.hpp>
 #include <wstdisplay/scenegraph/drawable_group.hpp>
 
+namespace wstdisplay {
+
 class ScissorDrawable : public Drawable
 {
 private:
@@ -39,6 +41,8 @@ private:
   ScissorDrawable(const ScissorDrawable&);
   ScissorDrawable& operator=(const ScissorDrawable&);
 };
+
+} // namespace wstdisplay
 
 #endif
 

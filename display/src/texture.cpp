@@ -33,6 +33,8 @@
 #include "software_surface.hpp"
 #include "texture_manager.hpp"
 
+namespace wstdisplay {
+
 TexturePtr
 Texture::create(SoftwareSurface const& image, GLint format)
 {
@@ -291,5 +293,7 @@ Texture::get_target() const
 {
   return m_target;
 }
+
+} // namespace wstdisplay
 
 /* EOF */

@@ -23,6 +23,8 @@
 #include <wstdisplay/scenegraph/drawable.hpp>
 #include <wstdisplay/scenegraph/vertex_array_drawable.hpp>
 
+namespace wstdisplay {
+
 class FillScreenPatternDrawable : public Drawable
 {
 private:
@@ -81,6 +83,8 @@ public:
     gc.pop_matrix();
   }
 };
+
+} // namespace wstdisplay
 
 #endif
 

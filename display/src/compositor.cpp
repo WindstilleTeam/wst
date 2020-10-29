@@ -27,6 +27,8 @@
 #include "scenegraph/scene_graph.hpp"
 #include "scenegraph/vertex_array_drawable.hpp"
 
+namespace wstdisplay {
+
 static const int LIGHTMAP_DIV = 4;
 
 Compositor::Compositor(geom::isize const& framebuffer_size,
@@ -196,5 +198,7 @@ Compositor::get_viewport_size() const
 {
   return m_viewport_size;
 }
+
+} // namespace wstdisplay
 
 /* EOF */

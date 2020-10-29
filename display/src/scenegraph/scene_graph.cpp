@@ -21,6 +21,8 @@
 #include "scenegraph/drawable.hpp"
 #include "scenegraph/drawable_group.hpp"
 
+namespace wstdisplay {
+
 SceneGraph::SceneGraph()
   : m_drawables(new DrawableGroup())
 {
@@ -49,5 +51,7 @@ SceneGraph::clear()
 {
   m_drawables->clear();
 }
+
+} // namespace wstdisplay
 
 /* EOF */

@@ -23,6 +23,8 @@
 
 #include "drawing_context.hpp"
 
+namespace wstdisplay {
+
 class SceneContextImpl;
 
 /** The SceneContext maintains all the different drawing layers to
@@ -96,6 +98,8 @@ private:
   SceneContext (const SceneContext&);
   SceneContext& operator= (const SceneContext&);
 };
+
+} // namespace wstdisplay
 
 #endif
 

@@ -23,6 +23,8 @@
 
 #include "color.hpp"
 
+namespace wstdisplay {
+
 /** Helper class which holds all the parameters that you can tweak
     when you want to draw a Quad */
 class DrawingParameters
@@ -54,6 +56,8 @@ public:
     return *this;
   }
 };
+
+} // namespace wstdisplay
 
 #endif
 

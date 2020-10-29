@@ -11,6 +11,8 @@
 #include <wstdisplay/graphics_context.hpp>
 #include <wstdisplay/opengl_window.hpp>
 
+using namespace wstdisplay;
+
 int main()
 {
   if (SDL_Init(SDL_INIT_VIDEO) < 0) {

@@ -18,6 +18,8 @@
 
 #include "scenegraph/stencil_drawable.hpp"
 
+namespace wstdisplay {
+
 namespace {
 int g_stencil_enabled = 0;
 } // namespace
@@ -77,5 +79,7 @@ StencilDrawable::render(GraphicsContext& gc, unsigned int mask)
     glDisable(GL_STENCIL_TEST);
   }
 }
+
+} // namespace wstdisplay
 
 /* EOF */

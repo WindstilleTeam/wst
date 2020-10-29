@@ -23,6 +23,8 @@
 #include <wstdisplay/scene_context.hpp>
 #include <wstdisplay/scenegraph/drawable.hpp>
 
+namespace wstdisplay {
+
 class NavigationGraph;
 
 class NavigationGraphDrawable : public Drawable
@@ -49,6 +51,8 @@ private:
   NavigationGraphDrawable(const NavigationGraphDrawable&);
   NavigationGraphDrawable& operator=(const NavigationGraphDrawable&);
 };
+
+} // namespace wstdisplay
 
 #endif
 

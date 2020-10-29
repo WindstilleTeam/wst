@@ -26,6 +26,8 @@
 #include "software_surface.hpp"
 #include "texture_packer.hpp"
 
+namespace wstdisplay {
+
 SurfaceManager::SurfaceManager() :
   texture_packer(),
   surfaces()
@@ -185,5 +187,7 @@ SurfaceManager::save_all_as_png() const
 {
   texture_packer->save_all_as_png();
 }
+
+} // namespace wstdisplay
 
 /* EOF */

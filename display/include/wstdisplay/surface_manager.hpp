@@ -27,6 +27,8 @@
 #include "texture.hpp"
 #include "surface.hpp"
 
+namespace wstdisplay {
+
 class TexturePacker;
 
 /** This class keeps a list of loaded surfaces and manages loading new ones */
@@ -60,6 +62,8 @@ public:
 
   void save_all_as_png() const;
 };
+
+} // namespace wstdisplay
 
 #endif
 

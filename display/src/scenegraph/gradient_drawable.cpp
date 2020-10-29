@@ -22,6 +22,8 @@
 
 #include "graphics_context.hpp"
 
+namespace wstdisplay {
+
 GradientDrawable::GradientDrawable(std::vector<float> colors)
   : Drawable(glm::vec2(0, 0), -1000),
     m_array(new VertexArrayDrawable(glm::vec2(0, 0), -1000, glm::mat4(1.0))),
@@ -82,5 +84,7 @@ GradientDrawable::render(GraphicsContext& gc, unsigned int mask)
   m_array->render(gc, mask);
   gc.pop_matrix();
 }
+
+} // namespace wstdisplay
 
 /* EOF */

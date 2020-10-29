@@ -23,6 +23,8 @@
 
 #include "scene_context.hpp"
 
+namespace wstdisplay {
+
 class SceneContextImpl
 {
 public:
@@ -161,5 +163,7 @@ SceneContext::get_render_mask()
 {
   return impl->render_mask;
 }
+
+} // namespace wstdisplay
 
 /* EOF */

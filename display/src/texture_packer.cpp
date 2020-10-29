@@ -28,6 +28,8 @@
 #include "software_surface.hpp"
 #include "texture_packer.hpp"
 
+namespace wstdisplay {
+
 class TextureSpace
 {
 private:
@@ -219,5 +221,7 @@ TexturePacker::save_all_as_png() const
     surf::save(surface, filename, "png");
   }
 }
+
+} // namespace wstdisplay
 
 /* EOF */

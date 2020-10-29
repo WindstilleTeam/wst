@@ -20,6 +20,8 @@
 
 #include "software_surface.hpp"
 
+namespace wstdisplay {
+
 /** Duplicate all the edge pixel of the given rectangle to the outside
     of the rectangle, thus creating a border around the given
     rectangle, this is needed for OpenGL textures to avoid filtering
@@ -31,6 +33,8 @@
     X X X X X    4 4 5 6 6
 */
 void generate_border(SoftwareSurface& surface, int x_pos, int y_pos, int width, int height);
+
+} // namespace wstdisplay
 
 #endif
 

@@ -27,6 +27,8 @@
 #include "assert_gl.hpp"
 #include "shader_object.hpp"
 
+namespace wstdisplay {
+
 ShaderProgramPtr
 ShaderProgram::from_file(std::filesystem::path const& vert_filename,
                          std::filesystem::path const& frag_filename)
@@ -240,5 +242,7 @@ ShaderProgram::get_info_log() const
     return std::string("<empty>");
   }
 }
+
+} // namespace wstdisplay
 
 /* EOF */

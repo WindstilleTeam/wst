@@ -24,6 +24,8 @@
 #include "texture.hpp"
 #include "renderbuffer.hpp"
 
+namespace wstdisplay {
+
 class Framebuffer;
 typedef std::shared_ptr<Framebuffer> FramebufferPtr;
 
@@ -58,6 +60,8 @@ private:
   RenderbufferPtr m_color_buffer;
   RenderbufferPtr m_depth_stencil_buffer;
 };
+
+} // namespace wstdisplay
 
 #endif
 

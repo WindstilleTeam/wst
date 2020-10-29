@@ -31,6 +31,8 @@
 #include "gl_vertex_arrays.hpp"
 #include "shader_program.hpp"
 
+namespace wstdisplay {
+
 class GLVertexArrays;
 
 class GraphicsContext
@@ -103,6 +105,8 @@ private:
   GraphicsContext(const GraphicsContext&) = delete;
   GraphicsContext& operator=(const GraphicsContext&) = delete;
 };
+
+} // namespace wstdisplay
 
 #endif
 

@@ -24,6 +24,8 @@
 #include "surface_manager.hpp"
 #include "scenegraph/vertex_array_drawable.hpp"
 
+namespace wstdisplay {
+
 SurfacePtr
 Surface::create(TexturePtr texture, const geom::frect& uv, const geom::fsize& size)
 {
@@ -168,5 +170,7 @@ Surface::draw(GraphicsContext& gc, const SurfaceDrawingParameters& params) const
 
   va.render(gc);
 }
+
+} // namespace wstdisplay
 
 /* EOF */

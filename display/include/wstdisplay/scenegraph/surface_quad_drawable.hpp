@@ -26,6 +26,8 @@
 
 #include <wstdisplay/scenegraph/drawable.hpp>
 
+namespace wstdisplay {
+
 class SurfaceQuadDrawable : public Drawable
 {
 private:
@@ -77,6 +79,8 @@ public:
 
   void set_quad(const geom::quad& quad) { m_quad = quad; }
 };
+
+} // namespace wstdisplay
 
 #endif
 

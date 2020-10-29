@@ -23,6 +23,8 @@
 
 #include <wstdisplay/texture.hpp>
 
+namespace wstdisplay {
+
 class GraphicsContext;
 
 class Drawable
@@ -71,6 +73,8 @@ private:
   Drawable (const Drawable&);
   Drawable& operator= (const Drawable&);
 };
+
+} // namespace wstdisplay
 
 #endif
 

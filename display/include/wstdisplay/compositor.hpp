@@ -23,6 +23,8 @@
 
 #include "framebuffer.hpp"
 
+namespace wstdisplay {
+
 class GraphicContextState;
 class GraphicsContext;
 class SceneContext;
@@ -52,6 +54,8 @@ private:
   Compositor(const Compositor&);
   Compositor& operator=(const Compositor&);
 };
+
+} // namespace wstdisplay
 
 #endif
 

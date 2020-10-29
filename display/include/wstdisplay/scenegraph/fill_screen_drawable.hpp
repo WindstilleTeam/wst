@@ -19,6 +19,8 @@
 #ifndef HEADER_WINDSTILLE_SCENEGRAPH_FILL_SCREEN_DRAWABLE_HPP
 #define HEADER_WINDSTILLE_SCENEGRAPH_FILL_SCREEN_DRAWABLE_HPP
 
+namespace wstdisplay {
+
 class FillScreenDrawable : public Drawable
 {
 private:
@@ -37,6 +39,8 @@ public:
     glClear(GL_COLOR_BUFFER_BIT);
   }
 };
+
+} // namespace wstdisplay
 
 #endif
 

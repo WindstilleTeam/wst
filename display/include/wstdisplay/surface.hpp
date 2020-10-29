@@ -23,6 +23,8 @@
 
 #include "texture.hpp"
 
+namespace wstdisplay {
+
 class GraphicsContext;
 class SurfaceDrawingParameters;
 class Surface;
@@ -83,6 +85,8 @@ private:
    */
   geom::fsize m_size;
 };
+
+} // namespace wstdisplay
 
 #endif
 

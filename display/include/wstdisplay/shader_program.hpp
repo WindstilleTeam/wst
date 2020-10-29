@@ -25,6 +25,8 @@
 
 #include "shader_object.hpp"
 
+namespace wstdisplay {
+
 class ShaderObject;
 class ShaderProgram;
 typedef std::shared_ptr<ShaderProgram> ShaderProgramPtr;
@@ -71,6 +73,8 @@ public:
 private:
   GLuint m_handle;
 };
+
+} // namespace wstdisplay
 
 #endif
 

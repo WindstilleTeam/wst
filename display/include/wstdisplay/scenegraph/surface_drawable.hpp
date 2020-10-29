@@ -26,6 +26,8 @@
 #include <wstdisplay/graphics_context.hpp>
 #include <wstdisplay/surface_drawing_parameters.hpp>
 
+namespace wstdisplay {
+
 class SurfaceDrawable : public Drawable
 {
 private:
@@ -57,6 +59,8 @@ public:
     gc.pop_matrix();
   }
 };
+
+} // namespace wstdisplay
 
 #endif
 

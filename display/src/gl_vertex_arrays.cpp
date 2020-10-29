@@ -21,6 +21,8 @@
 #include "assert_gl.hpp"
 #include "graphics_context.hpp"
 
+namespace wstdisplay {
+
 GLVertexArrays::GLVertexArrays(GraphicsContext& gc) :
   m_gc(gc),
   m_vao(),
@@ -121,5 +123,7 @@ GLVertexArrays::set_colors(std::span<float const> data)
 
   assert_gl();
 }
+
+} // namespace wstdisplay
 
 /* EOF */

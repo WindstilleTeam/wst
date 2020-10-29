@@ -23,6 +23,8 @@
 #include <wstdisplay/scenegraph/drawable_group.hpp>
 #include <wstdisplay/scenegraph/drawable.hpp>
 
+namespace wstdisplay {
+
 class ShaderDrawable : public Drawable
 {
 private:
@@ -42,6 +44,8 @@ private:
   ShaderDrawable(const ShaderDrawable&);
   ShaderDrawable& operator=(const ShaderDrawable&);
 };
+
+} // namespace wstdisplay
 
 #endif
 

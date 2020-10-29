@@ -23,6 +23,8 @@
 #include "texture.hpp"
 #include "software_surface.hpp"
 
+namespace wstdisplay {
+
 TextureManager::TextureManager() :
   textures(),
   m_fallback()
@@ -88,5 +90,7 @@ TextureManager::cleanup()
     }
   }
 }
+
+} // namespace wstdisplay
 
 /* EOF */

@@ -20,6 +20,8 @@
 
 #include "scenegraph/drawable.hpp"
 
+namespace wstdisplay {
+
 DrawableGroup::DrawableGroup()
   : Drawable(glm::vec2(), 0.0f, glm::mat4(1.0)),
     m_drawables()
@@ -53,5 +55,7 @@ DrawableGroup::render(GraphicsContext& gc, unsigned int mask)
       (*i)->render(gc, mask);
   }
 }
+
+} // namespace wstdisplay
 
 /* EOF */

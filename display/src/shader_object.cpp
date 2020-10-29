@@ -25,6 +25,8 @@
 
 #include "assert_gl.hpp"
 
+namespace wstdisplay {
+
 /** Read a file, user must free() the returned pointer */
 static GLchar* load_file(const char* filename)
 {
@@ -166,5 +168,7 @@ ShaderObject::get_info_log() const
     return std::string("<empty>");
   }
 }
+
+} // namespace wstdisplay
 
 /* EOF */

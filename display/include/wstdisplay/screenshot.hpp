@@ -21,7 +21,11 @@
 
 #include <filesystem>
 
+namespace wstdisplay {
+
 void save_screenshot(std::filesystem::path const& filename);
+
+} // namespace wstdisplay
 
 #endif
 

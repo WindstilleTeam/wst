@@ -22,6 +22,8 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+namespace wstdisplay {
+
 class ControlDrawable : public Drawable
 {
 private:
@@ -48,6 +50,8 @@ public:
                                      p.y - surface->get_height()/2)));
   }
 };
+
+} // namespace wstdisplay
 
 #endif
 

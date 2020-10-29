@@ -24,6 +24,8 @@
 
 #include <geom/size.hpp>
 
+namespace wstdisplay {
+
 class GraphicsContext;
 class OpenGLWindowImpl;
 
@@ -56,6 +58,8 @@ private:
   OpenGLWindow(const OpenGLWindow&);
   OpenGLWindow& operator=(const OpenGLWindow&);
 };
+
+} // namespace wstdisplay
 
 #endif
 
