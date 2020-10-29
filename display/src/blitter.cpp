@@ -24,7 +24,7 @@
 #include <string.h>
 
 #include "software_surface.hpp"
-
+
 void generate_border(SoftwareSurface& surface,
                      int x_pos, int y_pos, int width, int height)
 {
@@ -52,5 +52,5 @@ void generate_border(SoftwareSurface& surface,
     *p = *(p-1);
   }
 }
-
+
 /* EOF */

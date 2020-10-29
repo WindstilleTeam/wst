@@ -26,10 +26,10 @@
 #include <surf/fwd.hpp>
 
 #include "surface.hpp"
-
+
 class Texture;
 class TexturePackerTexture;
-
+
 class TexturePacker
 {
 private:
@@ -52,5 +52,5 @@ private:
 };
 
 #endif
-
+
 /* EOF */

@@ -37,7 +37,7 @@ public:
     glClear(GL_COLOR_BUFFER_BIT);
   }
 };
-
+
 #endif
 
 /* EOF */

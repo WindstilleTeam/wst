@@ -24,7 +24,7 @@
 #include <vector>
 
 #include "assert_gl.hpp"
-
+
 /** Read a file, user must free() the returned pointer */
 static GLchar* load_file(const char* filename)
 {
@@ -52,7 +52,7 @@ static GLchar* load_file(const char* filename)
   fclose(f);
   return str;
 }
-
+
 ShaderObjectPtr
 ShaderObject::from_file(GLenum type, std::filesystem::path const& filename)
 {
@@ -75,7 +75,7 @@ ShaderObject::from_string(GLenum type, std::string_view source)
   shader->compile();
   return shader;
 }
-
+
 ShaderObject::ShaderObject(GLenum type) :
   m_handle(0)
 {
@@ -166,5 +166,5 @@ ShaderObject::get_info_log() const
     return std::string("<empty>");
   }
 }
-
+
 /* EOF */

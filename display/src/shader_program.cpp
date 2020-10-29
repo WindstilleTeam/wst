@@ -60,7 +60,7 @@ ShaderProgram::create()
 {
   return ShaderProgramPtr(new ShaderProgram());
 }
-
+
 ShaderProgram::ShaderProgram() :
  m_handle(0)
 {

@@ -44,7 +44,7 @@ Texture::create(GLenum target, geom::isize const& size, GLint format)
 {
   return TexturePtr(new Texture(target, size, format));
 }
-
+
 Texture::Texture() :
   m_target(0),
   m_handle(0),
@@ -291,5 +291,5 @@ Texture::get_target() const
 {
   return m_target;
 }
-
+
 /* EOF */

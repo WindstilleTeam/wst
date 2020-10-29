@@ -36,14 +36,14 @@
 #include "scenegraph/surface_quad_drawable.hpp"
 #include "scenegraph/vertex_array_drawable.hpp"
 #include "scenegraph/vertex_array_drawable.hpp"
-
+
 struct DrawablesSorter
 {
   bool operator()(std::unique_ptr<Drawable> const& a, std::unique_ptr<Drawable> const& b) {
     return a->get_z_pos() < b->get_z_pos();
   }
 };
-
+
 DrawingContext::DrawingContext() :
   drawingrequests(),
   modelview_stack()
@@ -299,5 +299,5 @@ DrawingContext::fill_rect(const geom::frect& rect, const surf::Color& color, flo
 
   draw(std::move(array));
 }
-
+
 /* EOF */

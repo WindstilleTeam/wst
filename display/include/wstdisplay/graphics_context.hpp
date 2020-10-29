@@ -32,7 +32,7 @@
 #include "shader_program.hpp"
 
 class GLVertexArrays;
-
+
 class GraphicsContext
 {
 public:
@@ -103,7 +103,7 @@ private:
   GraphicsContext(const GraphicsContext&) = delete;
   GraphicsContext& operator=(const GraphicsContext&) = delete;
 };
-
+
 #endif
 
 /* EOF */

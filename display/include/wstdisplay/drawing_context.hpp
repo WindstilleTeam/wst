@@ -111,7 +111,7 @@ private:
   DrawingContext (const DrawingContext&);
   DrawingContext& operator= (const DrawingContext&);
 };
-
+
 #endif
 
 /* EOF */

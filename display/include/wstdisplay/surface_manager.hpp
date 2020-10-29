@@ -26,9 +26,9 @@
 
 #include "texture.hpp"
 #include "surface.hpp"
-
+
 class TexturePacker;
-
+
 /** This class keeps a list of loaded surfaces and manages loading new ones */
 class SurfaceManager final
 {
@@ -60,7 +60,7 @@ public:
 
   void save_all_as_png() const;
 };
-
+
 #endif
 
 /* EOF */

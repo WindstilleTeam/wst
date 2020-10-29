@@ -23,7 +23,7 @@
 #include "surface_drawing_parameters.hpp"
 #include "surface_manager.hpp"
 #include "scenegraph/vertex_array_drawable.hpp"
-
+
 SurfacePtr
 Surface::create(TexturePtr texture, const geom::frect& uv, const geom::fsize& size)
 {
@@ -35,7 +35,7 @@ Surface::create(geom::isize const& size)
 {
   return SurfacePtr(new Surface(size));
 }
-
+
 Surface::Surface(geom::isize const& size) :
   m_texture(),
   m_uv(),
@@ -168,5 +168,5 @@ Surface::draw(GraphicsContext& gc, const SurfaceDrawingParameters& params) const
 
   va.render(gc);
 }
-
+
 /* EOF */

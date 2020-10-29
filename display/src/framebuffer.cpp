@@ -26,7 +26,7 @@
 #include "renderbuffer.hpp"
 #include "framebuffer.hpp"
 #include "assert_gl.hpp"
-
+
 FramebufferPtr
 Framebuffer::create_with_texture(GLenum target, geom::isize const& size, int multisample)
 {
@@ -50,7 +50,7 @@ Framebuffer::create_hdr(geom::isize const& size, int multisample)
   framebuffer->create_internal(GL_RGBA16F, size, multisample);
   return framebuffer;
 }
-
+
 Framebuffer::Framebuffer() :
   m_handle(0),
   m_size(),
@@ -185,5 +185,5 @@ Framebuffer::check_completness()
       break;
   }
 }
-
+
 /* EOF */

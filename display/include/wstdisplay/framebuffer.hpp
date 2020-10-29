@@ -23,10 +23,10 @@
 
 #include "texture.hpp"
 #include "renderbuffer.hpp"
-
+
 class Framebuffer;
 typedef std::shared_ptr<Framebuffer> FramebufferPtr;
-
+
 class Framebuffer
 {
 public:
@@ -58,7 +58,7 @@ private:
   RenderbufferPtr m_color_buffer;
   RenderbufferPtr m_depth_stencil_buffer;
 };
-
+
 #endif
 
 /* EOF */

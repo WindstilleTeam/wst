@@ -20,7 +20,7 @@
 
 #include "scenegraph/drawable.hpp"
 #include "scenegraph/drawable_group.hpp"
-
+
 SceneGraph::SceneGraph()
   : m_drawables(new DrawableGroup())
 {
@@ -49,5 +49,5 @@ SceneGraph::clear()
 {
   m_drawables->clear();
 }
-
+
 /* EOF */

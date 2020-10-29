@@ -27,7 +27,7 @@
 
 #include "software_surface.hpp"
 #include "texture_packer.hpp"
-
+
 class TextureSpace
 {
 private:
@@ -87,7 +87,7 @@ private:
   TextureSpace(const TextureSpace&);
   TextureSpace& operator=(const TextureSpace&);
 };
-
+
 class TexturePackerTexture
 {
 private:
@@ -123,7 +123,7 @@ private:
   TexturePackerTexture(const TexturePackerTexture&);
   TexturePackerTexture& operator=(const TexturePackerTexture&);
 };
-
+
 TexturePacker::TexturePacker(const geom::isize& texture_size_) :
   texture_size(texture_size_),
   textures()
@@ -219,5 +219,5 @@ TexturePacker::save_all_as_png() const
     surf::save(surface, filename, "png");
   }
 }
-
+
 /* EOF */
