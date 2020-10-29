@@ -188,6 +188,26 @@ Framebuffer::check_completness()
   }
 }
 
+void
+Framebuffer::blit(geom::irect const& srcrect, geom::irect const& dstrect,
+                  GLbitfield mask, GLenum filter)
+{
+  assert_gl();
+
+  int previous_framebuffer = 0;
+  glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &previous_framebuffer);
+
+  glBindFramebuffer(GL_READ_FRAMEBUFFER, m_handle);
+
+  glBlitFramebuffer(srcrect.left(), srcrect.top(), srcrect.right(), srcrect.bottom(),
+                    dstrect.left(), dstrect.top(), dstrect.right(), dstrect.bottom(),
+                    mask, filter);
+
+  glBindFramebuffer(GL_READ_FRAMEBUFFER, previous_framebuffer);
+
+  assert_gl();
+}
+
 } // namespace wstdisplay
 
 /* EOF */

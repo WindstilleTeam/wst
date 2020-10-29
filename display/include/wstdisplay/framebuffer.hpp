@@ -46,6 +46,11 @@ public:
 
   GLuint get_handle() const;
 
+  /** @param mask GL_COLOR_BUFFER_BIT, GL_DEPTH_BUFFER_BIT and GL_STENCIL_BUFFER_BIT
+      @param filter GL_NEAREST or GL_LINEAR. */
+  void blit(geom::irect const& srcrect, geom::irect const& dstrect,
+            GLbitfield mask​, GLenum filter);
+
 private:
   Framebuffer();
   void check_completness();
