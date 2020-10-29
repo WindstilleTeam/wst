@@ -145,6 +145,12 @@ OpenGLWindow::~OpenGLWindow()
 }
 
 void
+OpenGLWindow::set_title(std::string const& title)
+{
+  SDL_SetWindowTitle(m_impl->m_window, title.c_str());
+}
+
+void
 OpenGLWindow::set_icon(std::filesystem::path const& filename)
 {
   surf::SoftwareSurface const pixeldata = surf::SoftwareSurface::from_file(filename);

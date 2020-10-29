@@ -35,6 +35,7 @@ public:
                bool fullscreen = false, int anti_aliasing = 0);
   ~OpenGLWindow();
 
+  void set_title(std::string const& title);
   void set_icon(std::filesystem::path const& filename);
 
   int  get_width() const;
