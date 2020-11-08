@@ -105,8 +105,9 @@ Texture::Texture(SoftwareSurface const& image, GLint glformat) :
     }
   }
 
-  if (image.get_format().bits_per_pixel() != 24 && image.get_format().bits_per_pixel() != 32) {
-    throw std::runtime_error("image has not 24 or 32 bit color depth");
+  if (image.get_format() != surf::PixelFormat::RGB8 &&
+      image.get_format() != surf::PixelFormat::RGBA8) {
+    throw std::runtime_error("image not in RGB8 or RGBA8 format");
   }
 
   // FIXME: User SDL_ConvertSurface to bring images in the right format
@@ -123,14 +124,17 @@ Texture::Texture(SoftwareSurface const& image, GLint glformat) :
     }
 
     GLint sdl_format;
+    int bytes_per_pixel;
 
-    if (image.get_format() == surf::PixelFormat::RGB)
+    if (image.get_format() == surf::PixelFormat::RGB8)
     {
       sdl_format = GL_RGB;
+      bytes_per_pixel = 3;
     }
-    else if (image.get_format() == surf::PixelFormat::RGBA)
+    else if (image.get_format() == surf::PixelFormat::RGBA8)
     {
       sdl_format = GL_RGBA;
+      bytes_per_pixel = 4;
     }
     else
     {
@@ -140,7 +144,7 @@ Texture::Texture(SoftwareSurface const& image, GLint glformat) :
     glBindTexture(GL_TEXTURE_2D, m_handle);
 
     glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
-    glPixelStorei(GL_UNPACK_ROW_LENGTH, image.get_pitch() / image.get_format().bytes_per_pixel());
+    glPixelStorei(GL_UNPACK_ROW_LENGTH, image.get_pitch() / bytes_per_pixel);
 
     if ((false))
     { // no mipmapping
@@ -210,14 +214,17 @@ Texture::put(SoftwareSurface const& image, const geom::irect& srcrect, int x, in
   assert_gl();
 
   GLint sdl_format;
+  int bytes_per_pixel;
 
-  if (image.get_format() == surf::PixelFormat::RGB)
+  if (image.get_format() == surf::PixelFormat::RGB8)
   {
     sdl_format = GL_RGB;
+    bytes_per_pixel = 3;
   }
-  else if (image.get_format() == surf::PixelFormat::RGBA)
+  else if (image.get_format() == surf::PixelFormat::RGBA8)
   {
     sdl_format = GL_RGBA;
+    bytes_per_pixel = 4;
   }
   else
   {
@@ -229,13 +236,13 @@ Texture::put(SoftwareSurface const& image, const geom::irect& srcrect, int x, in
   // FIXME: Add some checks here to make sure image has the right format
   glPixelStorei(GL_UNPACK_ALIGNMENT, 4); // FIXME: Does SDL always use 4?
   glPixelStorei(GL_UNPACK_ROW_LENGTH,
-                image.get_pitch() / image.get_format().bytes_per_pixel());
+                image.get_pitch() / bytes_per_pixel);
 
   glTexSubImage2D(m_target, 0, x, y,
                   srcrect.width(), srcrect.height(), sdl_format, GL_UNSIGNED_BYTE,
                   static_cast<uint8_t const*>(image.get_data())
                   + srcrect.top()  * image.get_pitch()
-                  + srcrect.left() * image.get_format().bytes_per_pixel());
+                  + srcrect.left() * bytes_per_pixel);
 
   assert_gl();
 }
@@ -278,7 +285,7 @@ Texture::get_software_surface() const
 {
   glBindTexture(GL_TEXTURE_2D, m_handle);
 
-  SoftwareSurface surface = SoftwareSurface::create(surf::PixelFormat::RGBA, m_size);
+  SoftwareSurface surface = SoftwareSurface::create(surf::PixelFormat::RGBA8, m_size);
 
   glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, surface.get_data());
 

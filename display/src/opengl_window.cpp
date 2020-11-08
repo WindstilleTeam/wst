@@ -160,22 +160,22 @@ OpenGLWindow::set_icon(std::filesystem::path const& filename)
     sdl_surface = SDL_CreateRGBSurfaceFrom(const_cast<uint8_t*>(static_cast<uint8_t const*>(pixeldata.get_data())),
                                            pixeldata.get_width(),
                                            pixeldata.get_height(),
-                                           pixeldata.get_format() == surf::PixelFormat::RGB ? 24 : 32,
+                                           pixeldata.get_format() == surf::PixelFormat::RGB8 ? 24 : 32,
                                            pixeldata.get_pitch(),
                                            0xff000000,
                                            0x00ff0000,
                                            0x0000ff00,
-                                           pixeldata.get_format() == surf::PixelFormat::RGB ? 0x00000000 : 0x000000ff);
+                                           pixeldata.get_format() == surf::PixelFormat::RGB8 ? 0x00000000 : 0x000000ff);
   } else {
     sdl_surface = SDL_CreateRGBSurfaceFrom(const_cast<uint8_t*>(static_cast<uint8_t const*>(pixeldata.get_data())),
                                            pixeldata.get_width(),
                                            pixeldata.get_height(),
-                                           pixeldata.get_format() == surf::PixelFormat::RGB ? 24 : 32,
+                                           pixeldata.get_format() == surf::PixelFormat::RGB8 ? 24 : 32,
                                            pixeldata.get_pitch(),
                                            0x000000ff,
                                            0x0000ff00,
                                            0x00ff0000,
-                                           pixeldata.get_format() == surf::PixelFormat::RGB ? 0x00000000 : 0xff000000);
+                                           pixeldata.get_format() == surf::PixelFormat::RGB8 ? 0x00000000 : 0xff000000);
   }
 
   SDL_SetWindowIcon(m_impl->m_window, sdl_surface);

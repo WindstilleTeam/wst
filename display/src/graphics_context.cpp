@@ -93,7 +93,7 @@ GraphicsContext::GraphicsContext() :
   m_default_shader = ShaderProgram::from_string(default_vert_source,
                                                 default_frag_source);
 
-  m_white_texture = Texture::create(SoftwareSurface::create(surf::PixelFormat::RGBA, geom::isize(1, 1),
+  m_white_texture = Texture::create(SoftwareSurface::create(surf::PixelFormat::RGBA8, geom::isize(1, 1),
                                                             surf::palette::white));
 
   glUseProgram(m_default_shader->get_handle());

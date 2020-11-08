@@ -27,7 +27,7 @@ namespace wstdisplay {
 void generate_border(SoftwareSurface& surface,
                      int x_pos, int y_pos, int width, int height)
 {
-  assert(surface.get_format().bytes_per_pixel() == 4);
+  assert(surface.get_format() == surf::PixelFormat::RGBA8);
 
   uint8_t* data = static_cast<uint8_t*>(surface.get_data());
   int pitch = surface.get_pitch();

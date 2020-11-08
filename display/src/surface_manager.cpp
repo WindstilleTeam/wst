@@ -136,9 +136,9 @@ SurfaceManager::create_texture(SoftwareSurface const& image,
     geom::isize texture_size(glm::ceilPowerOfTwo(image.get_width()),
                              glm::ceilPowerOfTwo(image.get_height()));
 
-    SoftwareSurface convert = SoftwareSurface::create(surf::PixelFormat::RGBA, texture_size);
+    SoftwareSurface convert = SoftwareSurface::create(surf::PixelFormat::RGBA8, texture_size);
 
-    image.blit_to(convert, {0, 0});
+    surf::blit(image, convert, {0, 0});
 
     TexturePtr texture = Texture::create(convert);
 
