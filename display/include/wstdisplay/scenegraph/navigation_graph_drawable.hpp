@@ -21,9 +21,9 @@
 #include <wstdisplay/scene_context.hpp>
 #include <wstdisplay/scenegraph/drawable.hpp>
 
-namespace wstdisplay {
-
 class NavigationGraph;
+
+namespace wstdisplay {
 
 class NavigationGraphDrawable : public Drawable
 {
