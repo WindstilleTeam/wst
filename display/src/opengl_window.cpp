@@ -27,6 +27,20 @@
 #include "graphics_context.hpp"
 #include "assert_gl.hpp"
 
+namespace {
+
+std::string get_gl_string(GLenum name)
+{
+  const GLubyte* ret = glGetString(name);
+  if (ret == nullptr) {
+    return "(null)";
+  } else {
+    return reinterpret_cast<char const*>(ret);
+  }
+}
+
+} // namespace
+
 namespace wstdisplay {
 
 class OpenGLWindowImpl
@@ -103,9 +117,13 @@ OpenGLWindow::OpenGLWindow(const std::string& title,
     else
     {
       std::cout << "glewInit() successfull: " << glewGetString(GLEW_VERSION) << std::endl;
-      std::cout << "OpenGL " << glGetString(GL_VERSION) << " detected" << std::endl;
       std::cout << "OpenGL 3.2: " << GL_VERSION_3_2 << std::endl;
       std::cout << "GL_VERSION_3_0: " << GL_VERSION_3_0 << std::endl;
+      std::cout << "GL_VENDOR: " << get_gl_string(GL_VENDOR) << std::endl;
+      std::cout << "GL_RENDERER: " << get_gl_string(GL_RENDERER) << std::endl;
+      std::cout << "GL_VERSION: " << get_gl_string(GL_VERSION) << std::endl;
+      std::cout << "GL_SHADING_LANGUAGE_VERSION: " << get_gl_string(GL_SHADING_LANGUAGE_VERSION) << std::endl;
+      // std::cout << "GL_EXTENSIONS: " << get_gl_string(GL_EXTENSIONS) << std::endl;
 
       if (anti_aliasing)
         glEnable(GL_MULTISAMPLE);
