@@ -46,6 +46,7 @@ public:
    * @param height Height of the surface on the screen
    */
   static SurfacePtr create(TexturePtr texture, const geom::frect& uv, const geom::fsize& size);
+  static SurfacePtr create(surf::SoftwareSurface surface);
   static SurfacePtr create(geom::isize const& size);
 
 private:
@@ -65,6 +66,8 @@ public:
   geom::frect get_uv() const;
 
   void draw(GraphicsContext& gc, geom::fpoint const& pos) const;
+  void draw(GraphicsContext& gc, geom::frect const& dstrect) const;
+  void draw(GraphicsContext& gc, geom::frect const& srcrect, geom::frect const& dstrect) const;
   void draw(GraphicsContext& gc, SurfaceDrawingParameters const& params) const;
 
 private:

@@ -25,6 +25,14 @@
 namespace wstdisplay {
 
 SurfacePtr
+Surface::create(surf::SoftwareSurface surface)
+{
+  return create(Texture::create(surface),
+                geom::frect(0.0f, 0.0f, 1.0f, 1.0f),
+                geom::fsize(surface.get_size()));
+}
+
+SurfacePtr
 Surface::create(TexturePtr texture, const geom::frect& uv, const geom::fsize& size)
 {
   return SurfacePtr(new Surface(texture, uv, size));
@@ -115,6 +123,62 @@ Surface::draw(GraphicsContext& gc, geom::fpoint const& pos) const
 
   va.texcoord(m_uv.left(), m_uv.bottom());
   va.vertex(pos.x(), pos.y() + m_size.height());
+
+  va.render(gc);
+}
+
+void
+Surface::draw(GraphicsContext& gc, geom::frect const& dstrect) const
+{
+  VertexArrayDrawable va;
+
+  va.set_blend_func(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  va.set_texture(m_texture);
+
+  va.set_mode(GL_TRIANGLE_FAN);
+
+  va.texcoord(m_uv.left(), m_uv.top());
+  va.vertex(dstrect.left(), dstrect.top());
+
+  va.texcoord(m_uv.right(), m_uv.top());
+  va.vertex(dstrect.right(), dstrect.top());
+
+  va.texcoord(m_uv.right(), m_uv.bottom());
+  va.vertex(dstrect.right(), dstrect.bottom());
+
+  va.texcoord(m_uv.left(), m_uv.bottom());
+  va.vertex(dstrect.left(), dstrect.bottom());
+
+  va.render(gc);
+}
+
+void
+Surface::draw(GraphicsContext& gc, geom::frect const& srcrect, geom::frect const& dstrect) const
+{
+  VertexArrayDrawable va;
+  geom::frect const uv{
+    m_uv.left() + srcrect.left() / get_width() * m_uv.width(),
+    m_uv.top() + srcrect.top() / get_height() * m_uv.height(),
+    m_uv.left() + srcrect.right() / get_width() * m_uv.width(),
+    m_uv.top() + srcrect.bottom() / get_height() * m_uv.height(),
+  };
+
+  va.set_blend_func(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  va.set_texture(m_texture);
+
+  va.set_mode(GL_TRIANGLE_FAN);
+
+  va.texcoord(uv.left(), uv.top());
+  va.vertex(dstrect.left(), dstrect.top());
+
+  va.texcoord(uv.right(), uv.top());
+  va.vertex(dstrect.right(), dstrect.top());
+
+  va.texcoord(uv.right(), uv.bottom());
+  va.vertex(dstrect.right(), dstrect.bottom());
+
+  va.texcoord(uv.left(), uv.bottom());
+  va.vertex(dstrect.left(), dstrect.bottom());
 
   va.render(gc);
 }
