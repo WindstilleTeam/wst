@@ -15,6 +15,8 @@
 #include <wstdisplay/opengl_window.hpp>
 #include <wstdisplay/surface_drawing_parameters.hpp>
 #include <wstdisplay/surface_manager.hpp>
+#include <wstdisplay/font/ttf_font_manager.hpp>
+#include <wstdisplay/font/ttf_font.hpp>
 
 using namespace wstdisplay;
 
@@ -47,7 +49,9 @@ void run()
   gc.set_aspect_size(geom::isize(1280, 720));
 
   SurfaceManager surface_manager;
+  TTFFontManager font_manager;
 
+  std::unique_ptr<TTFFont> font = font_manager.create_font("extra/Vera.ttf", 32);
   SurfacePtr surface = surface_manager.get("extra/tux.png");
 
   FramebufferPtr fb = Framebuffer::create(geom::isize(1280, 720));
@@ -110,7 +114,7 @@ void run()
                                 1000.0f,
                                 -1000.0f));
 
-      switch (mode % 10) {
+      switch (mode % 11) {
         case 0:
           gc.fill_rect(geom::normalize(geom::frect(rand_x(gen), rand_y(gen), rand_x(gen), rand_y(gen))),
                        surf::Color(rand_color(gen), rand_color(gen), rand_color(gen), 1.0f));
@@ -169,6 +173,11 @@ void run()
                         .set_pos(geom::fpoint(rand_x(gen), rand_y(gen)))
                         .set_angle(rand_angle(gen))
                         .set_scale(rand_scale(gen)));
+          break;
+
+        case 10:
+          font->draw(gc, geom::fpoint(rand_x(gen), rand_y(gen)).as_vec(), "Hello World",
+                     surf::Color(rand_color(gen), rand_color(gen), rand_color(gen), 1.0f));
           break;
       }
 

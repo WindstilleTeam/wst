@@ -41,6 +41,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 find_package(Threads REQUIRED)
 find_package(JPEG REQUIRED)
 find_package(PNG REQUIRED)
+find_package(Freetype REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(GLEW REQUIRED)
 find_package(PkgConfig REQUIRED)
@@ -62,6 +63,7 @@ build_dependencies()
 
 file(GLOB WSTDISPLAY_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
   src/*.cpp
+  src/font/*.?pp
   src/scenegraph/*.cpp)
 add_library(wstdisplay STATIC ${WSTDISPLAY_SOURCES})
 target_include_directories(wstdisplay PRIVATE src/ include/wstdisplay/)
@@ -75,6 +77,7 @@ target_link_libraries(wstdisplay PUBLIC
   OpenGL::GL
   OpenGL::GLU
   PNG::PNG
+  Freetype::Freetype
   PkgConfig::SDL2
   Threads::Threads)
 

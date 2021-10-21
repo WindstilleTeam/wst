@@ -20,6 +20,7 @@
 
 namespace wstdisplay {
 
+class BorderFontEffect;
 class Compositor;
 class ControlDrawable;
 class Drawable;
@@ -28,12 +29,14 @@ class DrawingContext;
 class DrawingParameters;
 class FillScreenDrawable;
 class FillScreenPatternDrawable;
+class FontEffect;
 class Framebuffer;
 class GLVertexArrays;
 class GradientDrawable;
 class GraphicContextState;
 class GraphicsContext;
 class NavigationGraphDrawable;
+class NoFontEffect;
 class OpenGLState;
 class OpenGLWindow;
 class Renderbuffer;
@@ -50,6 +53,8 @@ class SurfaceDrawable;
 class SurfaceDrawingParameters;
 class SurfaceManager;
 class SurfaceQuadDrawable;
+class TTFFont;
+class TTFFontManager;
 class Texture;
 class TextureManager;
 class TexturePacker;
