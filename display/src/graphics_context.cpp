@@ -106,6 +106,13 @@ GraphicsContext::~GraphicsContext()
 }
 
 void
+GraphicsContext::clear(surf::Color const& color)
+{
+  glClearColor(color.r, color.g, color.b, color.a);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
+void
 GraphicsContext::draw_line(const geom::fline& line, const surf::Color& color)
 {
   draw_line(line.p1, line.p2, color);

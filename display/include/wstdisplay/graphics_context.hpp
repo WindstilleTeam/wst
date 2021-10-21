@@ -39,6 +39,8 @@ public:
   GraphicsContext();
   ~GraphicsContext();
 
+  void clear(surf::Color const& color);
+
   void fill_quad(const geom::fquad& quad, const surf::Color& color);
   void draw_quad(const geom::fquad& quad, const surf::Color& color);
 
