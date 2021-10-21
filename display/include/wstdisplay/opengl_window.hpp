@@ -21,6 +21,7 @@
 #include <memory>
 
 #include <geom/size.hpp>
+#include <surf/fwd.hpp>
 
 namespace wstdisplay {
 
@@ -48,6 +49,8 @@ public:
   GraphicsContext& get_gc() const;
 
   void swap_buffers();
+
+  surf::SoftwareSurface screenshot() const;
 
 private:
   std::unique_ptr<OpenGLWindowImpl> m_impl;

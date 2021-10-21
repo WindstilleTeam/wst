@@ -236,6 +236,22 @@ OpenGLWindow::swap_buffers()
   SDL_GL_SwapWindow(m_impl->m_window);
 }
 
+surf::SoftwareSurface
+OpenGLWindow::screenshot() const
+{
+  GLint viewport[4];
+  glGetIntegerv(GL_VIEWPORT, viewport);
+
+  geom::isize size(viewport[2] / 4 * 4, viewport[3]);
+  surf::SoftwareSurface surface = surf::SoftwareSurface::create(surf::PixelFormat::RGB8, size);
+
+  glPixelStorei(GL_PACK_ALIGNMENT, 1);
+  glReadPixels(0, 0, surface.get_width(), surface.get_height(), GL_RGB, GL_UNSIGNED_BYTE, surface.get_data());
+  assert_gl();
+
+  return surface;
+}
+
 } // namespace wstdisplay
 
 /* EOF */

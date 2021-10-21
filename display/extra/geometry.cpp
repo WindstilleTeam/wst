@@ -9,6 +9,7 @@
 
 #include <geom/quad.hpp>
 #include <geom/io.hpp>
+#include <surf/save.hpp>
 
 #include <wstdisplay/graphics_context.hpp>
 #include <wstdisplay/opengl_window.hpp>
@@ -83,6 +84,15 @@ void run()
 
             case SDLK_ESCAPE:
               quit = true;
+              break;
+
+            case SDLK_s:
+              {
+                surf::SoftwareSurface screenshot = window.screenshot();
+                std::filesystem::path outfile = "/tmp/out.jpg";
+                std::cout << "Saving screenshot to " << outfile << std::endl;
+                surf::save(screenshot, outfile);
+              }
               break;
           }
           break;

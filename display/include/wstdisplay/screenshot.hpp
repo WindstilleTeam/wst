@@ -21,6 +21,7 @@
 
 namespace wstdisplay {
 
+[[deprecated]]
 void save_screenshot(std::filesystem::path const& filename);
 
 } // namespace wstdisplay
