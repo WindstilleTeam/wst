@@ -20,6 +20,8 @@
 
 #include "font/no_font_effect.hpp"
 
+namespace wstdisplay {
+
 void
 NoFontEffect::blit(surf::SoftwareSurface& target, const FT_Bitmap& brush, int x_pos, int y_pos) const
 {
@@ -45,5 +47,7 @@ NoFontEffect::blit(surf::SoftwareSurface& target, const FT_Bitmap& brush, int x_
       target_buf[target_pos + 3] = brush.buffer[brush_pos];
     }
 }
+
+} // namespace wstdisplay
 
 /* EOF */

@@ -25,6 +25,8 @@
 
 #include "font/ttf_font.hpp"
 
+namespace wstdisplay {
+
 class TextDrawable : public wstdisplay::Drawable
 {
 private:
@@ -46,6 +48,8 @@ public:
     gc.pop_matrix();
   }
 };
+
+} // namespace wstdisplay
 
 #endif
 

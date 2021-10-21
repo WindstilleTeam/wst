@@ -21,7 +21,8 @@
 
 #include "font_effect.hpp"
 
-/** */
+namespace wstdisplay {
+
 class BorderFontEffect : public FontEffect
 {
 private:
@@ -53,6 +54,8 @@ public:
      BorderFontEffect& operator= (const BorderFontEffect&);
   */
 };
+
+} // namespace wstdisplay
 
 #endif
 

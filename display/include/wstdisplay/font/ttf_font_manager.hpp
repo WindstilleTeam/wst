@@ -24,6 +24,8 @@
 
 #include <wstdisplay/font/no_font_effect.hpp>
 
+namespace wstdisplay {
+
 class FontEffect;
 class TTFFont;
 
@@ -44,6 +46,8 @@ private:
   TTFFontManager(const TTFFontManager&) = delete;
   TTFFontManager& operator=(const TTFFontManager&) = delete;
 };
+
+} // namespace wstdisplay
 
 #endif
 

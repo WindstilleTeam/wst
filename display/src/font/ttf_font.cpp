@@ -34,6 +34,8 @@
 #include "font/ttf_font.hpp"
 #include "font/ttf_font_manager.hpp"
 
+namespace wstdisplay {
+
 TTFCharacter::TTFCharacter(const geom::irect& pos_,
                            const geom::frect& uv_,
                            int advance_) :
@@ -249,5 +251,7 @@ TTFFont::get_texture() const
 {
   return impl->texture;
 }
+
+} // namespace wstdisplay
 
 /* EOF */

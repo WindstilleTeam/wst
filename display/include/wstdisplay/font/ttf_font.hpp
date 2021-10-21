@@ -31,6 +31,8 @@
 
 #include "no_font_effect.hpp"
 
+namespace wstdisplay {
+
 class FontEffect;
 class TTFFontImpl;
 class TTFFontManager;
@@ -82,6 +84,8 @@ public:
 private:
   std::unique_ptr<TTFFontImpl> impl;
 };
+
+} // namespace wstdisplay
 
 #endif
 

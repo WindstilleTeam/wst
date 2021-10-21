@@ -21,6 +21,8 @@
 
 #include "font_effect.hpp"
 
+namespace wstdisplay {
+
 class NoFontEffect : public FontEffect
 {
 private:
@@ -38,6 +40,8 @@ public:
 
   void blit(surf::SoftwareSurface& target, const FT_Bitmap& brush, int x_pos, int y_pos) const override;
 };
+
+} // namespace wstdisplay
 
 #endif
 

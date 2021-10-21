@@ -22,6 +22,8 @@
 
 #include "font/border_font_effect.hpp"
 
+namespace wstdisplay {
+
 BorderFontEffect::BorderFontEffect(int size_, bool outline_) :
   size(size_),
   outline(outline_)
@@ -122,5 +124,7 @@ BorderFontEffect::blit(surf::SoftwareSurface& target, const FT_Bitmap& brush, in
       }
   }
 }
+
+} // namespace wstdisplay
 
 /* EOF */

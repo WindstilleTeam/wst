@@ -24,7 +24,9 @@
 #include FT_GLYPH_H
 
 #include <surf/software_surface.hpp>
-
+
+namespace wstdisplay {
+
 /**
  *  The FontEffect class manages the blitting from a glyph bitmap to
  *  the SDL_Surface, it allows to apply different kinds of effects to
@@ -48,7 +50,9 @@ public:
 
   virtual void blit(surf::SoftwareSurface& target, const FT_Bitmap& brush, int x_pos, int y_pos) const =0;
 };
-
+
+} // namespace wstdisplay
+
 #endif
 
 /* EOF */

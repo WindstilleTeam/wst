@@ -22,6 +22,8 @@
 
 #include "font/ttf_font.hpp"
 
+namespace wstdisplay {
+
 TTFFontManager::TTFFontManager() :
   m_freetype()
 {
@@ -43,5 +45,7 @@ TTFFontManager::create_font(std::filesystem::path const& filename, int size, con
 {
   return std::make_unique<TTFFont>(*this, filename, size, effect);
 }
+
+} // namespace wstdisplay
 
 /* EOF */
