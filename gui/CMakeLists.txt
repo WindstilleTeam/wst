@@ -25,6 +25,7 @@ include(MaximumWarnings)
 
 find_package(PkgConfig REQUIRED)
 
+pkg_search_module(SDL2 REQUIRED sdl2 IMPORTED_TARGET)
 pkg_search_module(SIGCXX REQUIRED sigc++-2.0 IMPORTED_TARGET)
 
 # Build dependencies
@@ -57,11 +58,26 @@ target_link_libraries(wstgui PUBLIC
   wstdisplay
   wstinput
   wstsound
-  PkgConfig::SIGCXX)
+  PkgConfig::SIGCXX
+  PkgConfig::SDL2)
 
 if(CWIID_LIBRARY)
   target_compile_options(wstgui PUBLIC -DHAVE_CWIID)
   target_link_libraries(wstgui ${CWIID_LIBRARY})
+endif()
+
+if(BUILD_EXTRA)
+  file(GLOB EXTRA_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
+    extra/*.cpp)
+  foreach(SRC ${EXTRA_SOURCES})
+    get_filename_component(SRC_BASENAME ${SRC} NAME_WE)
+    add_executable(${SRC_BASENAME} ${SRC})
+    set_target_properties(${SRC_BASENAME} PROPERTIES
+      CXX_STANDARD 20
+      CXX_STANDARD_REQUIRED ON
+      CXX_EXTENSIONS OFF)
+    target_link_libraries(${SRC_BASENAME} wstgui wstdisplay)
+  endforeach(SRC)
 endif()
 
 install(TARGETS wstgui
