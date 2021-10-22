@@ -55,6 +55,7 @@ class SurfaceManager;
 class SurfaceQuadDrawable;
 class TTFFont;
 class TTFFontManager;
+class TextArea;
 class Texture;
 class TextureManager;
 class TexturePacker;

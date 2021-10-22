@@ -10,3 +10,6 @@
 [submodule "external/logmich"]
 	path = external/logmich
 	url = https://gitlab.com/logmich/logmich.git
+[submodule "external/babyxml"]
+	path = external/babyxml
+	url = https://gitlab.com/grumbel/babyxml.git

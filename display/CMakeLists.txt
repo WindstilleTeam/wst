@@ -52,6 +52,11 @@ pkg_search_module(SDL2 REQUIRED sdl2 IMPORTED_TARGET)
 function(build_dependencies)
   set(BUILD_TESTS OFF)
   set(BUILD_EXTRA OFF)
+
+  if(NOT TARGET babyxml)
+    add_subdirectory(external/babyxml/ EXCLUDE_FROM_ALL)
+  endif()
+
   if(NOT TARGET geomcpp)
     add_subdirectory(external/geomcpp/ EXCLUDE_FROM_ALL)
   endif()
@@ -70,6 +75,7 @@ target_include_directories(wstdisplay PRIVATE src/ include/wstdisplay/)
 target_include_directories(wstdisplay PUBLIC include/)
 target_compile_options(wstdisplay PUBLIC ${WARNINGS_CXX_FLAGS})
 target_link_libraries(wstdisplay PUBLIC
+  babyxml
   geomcpp
   surf
   GLEW::GLEW
