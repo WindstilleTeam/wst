@@ -1,4 +1,3 @@
-#if 0
 /*
 **  Windstille - A Sci-Fi Action-Adventure Game
 **  Copyright (C) 2005 Ingo Ruhnke <grumbel@gmail.com>
@@ -21,14 +20,14 @@
 
 #include <wstinput/controller.hpp>
 
-#include "app/controller_def.hpp"
+#include "controller_def.hpp"
 #include "slider.hpp"
 
 namespace gui {
 
 TextView::TextView(const geom::frect& rect_, Component* component_)
   : Component(rect_, component_),
-    text_area(rect_, false)
+    text_area(parent->get_style().get_font(), rect_, false)
 {
 }
 
@@ -87,4 +86,4 @@ TextView::set_font(wstdisplay::TTFFont* font)
 } // namespace gui
 
 /* EOF */
-#endif
+

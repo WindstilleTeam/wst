@@ -1,4 +1,3 @@
-#if 0
 /*
 **  Windstille - A Sci-Fi Action-Adventure Game
 **  Copyright (C) 2005 Ingo Ruhnke <grumbel@gmail.com>
@@ -20,7 +19,8 @@
 #ifndef HEADER_WINDSTILLE_GUI_TEXT_VIEW_HPP
 #define HEADER_WINDSTILLE_GUI_TEXT_VIEW_HPP
 
-#include "font/text_area.hpp"
+#include <wstdisplay/font/text_area.hpp>
+
 #include "component.hpp"
 
 namespace gui {
@@ -29,7 +29,7 @@ namespace gui {
 class TextView : public Component
 {
 private:
-  TextArea text_area;
+  wstdisplay::TextArea text_area;
 
 public:
   TextView(const geom::frect& rect, Component* component);
@@ -52,4 +52,3 @@ private:
 #endif
 
 /* EOF */
-#endif
