@@ -24,6 +24,9 @@ enum GUIInputEventName
   X_AXIS,
   Y_AXIS,
 
+  X2_AXIS,
+  Y2_AXIS,
+
   OK_BUTTON,
   CANCEL_BUTTON,
   ESCAPE_BUTTON,

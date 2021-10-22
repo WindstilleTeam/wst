@@ -39,7 +39,7 @@ public:
   void update(float delta, const wstinput::Controller& controller);
 
   RootComponent* get_root() const;
-  Style& get_style() const;
+  Style& get_style() const { return m_style; }
 
 private:
   std::unique_ptr<RootComponent> root;
