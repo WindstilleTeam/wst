@@ -1,0 +1,12 @@
+[submodule "external/cmake-modules"]
+	path = external/cmake-modules
+	url = https://gitlab.com/grumbel/cmake-modules.git
+[submodule "external/wstdisplay"]
+	path = external/wstdisplay
+	url = https://gitlab.com/Windstille/wstdisplay.git
+[submodule "external/wstsound"]
+	path = external/wstsound
+	url = https://gitlab.com/Windstille/wstsound.git
+[submodule "external/wstinput"]
+	path = external/wstinput
+	url = https://gitlab.com/Windstille/wstinput.git
