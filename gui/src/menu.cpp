@@ -24,8 +24,7 @@
 #include "menu_component.hpp"
 #include "menu_item.hpp"
 #include "root_component.hpp"
-
-#include "../../../src/screen/screen_manager.hpp"
+#include "screen_manager.hpp"
 
 namespace gui {
 

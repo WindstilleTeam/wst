@@ -30,6 +30,7 @@ class Component;
 class GroupComponent;
 class MenuComponent;
 class EnumMenuItem;
+class RootComponent;
 
 /**
  *  Little helper class around MenuItem and MenuComponent to reduce code clutter.
