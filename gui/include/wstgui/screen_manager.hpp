@@ -64,7 +64,7 @@ public:
   void add_hud(Screen* screen);
   void remove_hud(Screen* screen);
 
-  void bind_key(SDL_KeyCode code, std::function<void()> callback);
+  void bind_key(SDL_Keycode code, std::function<void()> callback);
 
 private:
   void apply_pending_actions();

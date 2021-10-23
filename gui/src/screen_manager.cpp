@@ -288,7 +288,7 @@ ScreenManager::quit()
 }
 
 void
-ScreenManager::bind_key(SDL_KeyCode code, std::function<void()> callback)
+ScreenManager::bind_key(SDL_Keycode code, std::function<void()> callback)
 {
   m_key_bindings[code] = std::move(callback);
 }
