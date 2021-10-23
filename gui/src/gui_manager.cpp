@@ -42,12 +42,8 @@ GUIManager::update(float delta, const Controller& controller)
 {
   root->update(delta, controller);
 
-  if (!root->is_active())
-  {
-    //FIXME: This doesn't work when GUI isn't an overlay
-#ifdef FIXMESCREEN
-    ScreenManager::current()->pop_overlay();
-#endif
+  if (!root->is_active()) {
+    finish();
   }
 }
 

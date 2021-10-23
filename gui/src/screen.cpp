@@ -18,7 +18,8 @@
 
 #include "screen.hpp"
 
-Screen::Screen()
+Screen::Screen() :
+  m_finished(false)
 {
 }
 

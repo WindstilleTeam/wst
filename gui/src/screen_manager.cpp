@@ -176,6 +176,16 @@ ScreenManager::apply_pending_actions()
       break;
   }
   screen_action = NONE;
+
+  while (!overlay_screens.empty() &&
+         overlay_screens.back()->is_finished()) {
+    overlay_screens.pop_back();
+  }
+
+  while (!screens.empty() &&
+         screens.back()->is_finished()) {
+    screens.pop_back();
+  }
 }
 
 void

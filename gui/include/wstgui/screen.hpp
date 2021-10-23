@@ -28,7 +28,6 @@ class Controller;
 
 using Controller = wstinput::Controller;
 
-/** */
 class Screen
 {
 public:
@@ -46,6 +45,13 @@ public:
 
   /** Called once a new SDL_Event arrives */
   virtual void handle_event(const SDL_Event& ) {}
+
+  /** Marks the screen fro removal */
+  virtual void finish() { m_finished = true; }
+  virtual bool is_finished() { return m_finished; }
+
+private:
+  bool m_finished;
 };
 
 #endif
