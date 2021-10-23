@@ -39,7 +39,7 @@ public:
   /** Set the chidren that shall recieve input */
   void set_focus(Component* child);
 
-  void add_child(Component* child);
+  void add_child(std::unique_ptr<Component> child);
 
   Component* get_focus() const { return focus; }
 
@@ -49,10 +49,7 @@ public:
 
 private:
   Component* focus;
-
-  typedef std::vector<Component*> Children;
-  Children children;
-
+  std::vector<std::unique_ptr<Component>> children;
   Style& m_style;
 
 private:

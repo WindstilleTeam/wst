@@ -31,7 +31,7 @@ class MenuItem;
 class MenuComponent : public Component
 {
 private:
-  typedef std::vector<MenuItem* > Items;
+  typedef std::vector<std::unique_ptr<MenuItem>> Items;
   Items items;
 
   int   current_item;
@@ -54,7 +54,7 @@ public:
   MenuComponent(const geom::frect& rect, bool allow_cancel_, Component* parent);
   ~MenuComponent() override;
 
-  void add_item(MenuItem* item);
+  void add_item(std::unique_ptr<MenuItem> item);
   void draw(wstdisplay::GraphicsContext& gc) override;
   void update(float delta, const Controller& controller) override;
 

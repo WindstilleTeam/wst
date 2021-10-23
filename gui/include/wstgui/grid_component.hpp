@@ -19,6 +19,8 @@
 #ifndef HEADER_WINDSTILLE_GUI_GRID_COMPONENT_HPP
 #define HEADER_WINDSTILLE_GUI_GRID_COMPONENT_HPP
 
+#include <memory>
+
 #include <geom/point.hpp>
 
 #include "component.hpp"
@@ -26,24 +28,23 @@
 
 namespace gui {
 
-/** */
 class GridComponent : public Component
 {
 private:
   struct ComponentBox
   {
-    Component* component;
+    std::unique_ptr<Component> component;
     geom::isize  span;
     geom::ipoint parent;
 
     ComponentBox() :
-      component(nullptr),
+      component(),
       span(1, 1),
       parent(-1, -1)
     {}
 
-    ComponentBox(Component* c, const geom::isize& s, const geom::ipoint& parent_ = geom::ipoint(-1, -1)) :
-      component(c),
+    ComponentBox(std::unique_ptr<Component> c, const geom::isize& s, const geom::ipoint& parent_ = geom::ipoint(-1, -1)) :
+      component(std::move(c)),
       span(s),
       parent(parent_)
     {}
@@ -66,7 +67,7 @@ public:
   void draw(wstdisplay::GraphicsContext& gc) override;
   void update(float delta, const Controller& controller) override;
 
-  void pack(Component* component, int x, int y, int colspan = 1, int rowspan = 1);
+  void pack(std::unique_ptr<Component> component, int x, int y, int colspan = 1, int rowspan = 1);
 
   void move_up();
   void move_down();

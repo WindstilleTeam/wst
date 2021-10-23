@@ -246,12 +246,12 @@ ScreenManager::poll_events()
 }
 
 void
-ScreenManager::push_screen(Screen* s)
+ScreenManager::push_screen(std::unique_ptr<Screen> s)
 {
   assert(screen_screen == nullptr);
 
   screen_action = PUSH_SCREEN;
-  screen_screen = std::shared_ptr<Screen>(s);
+  screen_screen = std::shared_ptr<Screen>(std::move(s));
 }
 
 void
@@ -261,12 +261,12 @@ ScreenManager::pop_screen()
 }
 
 void
-ScreenManager::push_overlay(Screen* s)
+ScreenManager::push_overlay(std::unique_ptr<Screen> s)
 {
   assert(!overlay_screen_screen.get());
 
   overlay_screen_action = PUSH_SCREEN;
-  overlay_screen_screen = std::shared_ptr<Screen>(s);
+  overlay_screen_screen = std::shared_ptr<Screen>(std::move(s));
 }
 
 void

@@ -50,9 +50,6 @@ GridComponent::GridComponent(const geom::frect& rect_, int weight, int height, C
 
 GridComponent::~GridComponent()
 {
-  for(Grid::iterator i = grid.begin(); i != grid.end(); ++i)
-    delete i->component;
-  grid.clear();
 }
 
 void
@@ -64,7 +61,7 @@ GridComponent::draw(wstdisplay::GraphicsContext& gc)
   for(int y = 0; y < grid.get_height(); ++y)
     for(int x = 0; x < grid.get_width(); ++x)
     {
-      if (grid(x, y).component && !grid(x, y).has_parent())
+      if (grid(x, y).component)
       {
         if (x == pos.x && y == pos.y)
           gc.fill_rect(grid(x, y).component->get_screen_rect(), surf::Color(1.0f, 1.0f, 1.0f, 0.5f));
@@ -77,7 +74,16 @@ GridComponent::draw(wstdisplay::GraphicsContext& gc)
 void
 GridComponent::update(float delta, const Controller& controller)
 {
-  if (child_active && !grid(pos.x, pos.y).component->is_active())
+  auto get_component = [this]{
+    if (grid(pos.x, pos.y).has_parent()) {
+      geom::ipoint parent_pos = grid(pos.x, pos.y).parent;
+      return grid(parent_pos.x(), parent_pos.y()).component.get();
+    } else {
+      return grid(pos.x, pos.y).component.get();
+    }
+  };
+
+  if (child_active && !get_component()->is_active())
   {
     child_active = false;
   }
@@ -92,7 +98,7 @@ GridComponent::update(float delta, const Controller& controller)
         if (i->button.name == OK_BUTTON)
         {
           child_active = true;
-          grid(pos.x, pos.y).component->set_active(true);
+          get_component()->set_active(true);
         }
         else if (i->button.name == CANCEL_BUTTON)
         {
@@ -130,7 +136,7 @@ GridComponent::update(float delta, const Controller& controller)
   for(int y = 0; y < grid.get_height(); ++y)
     for(int x = 0; x < grid.get_width(); ++x)
     {
-      if (grid(x, y).component && !grid(x, y).has_parent())
+      if (grid(x, y).component)
       {
         // give input to current compontent, empty input to the rest
         if (child_active && pos.x == x && pos.y == y)
@@ -202,41 +208,40 @@ GridComponent::move_right()
 }
 
 void
-GridComponent::pack(Component* component, int x, int y, int colspan, int rowspan)
+GridComponent::pack(std::unique_ptr<Component> component, int x, int y, int colspan, int rowspan)
 {
   assert(x >= 0);
   assert(y >= 0);
   assert(x < grid.get_width());
   assert(y < grid.get_height());
 
-  if (grid(x, y).component)
-  {
+  if (grid(x, y).component || grid(x, y).has_parent()) {
     std::cout << "Warning component already at: " << x << ", " << y << ", ignoring" << std::endl;
-    delete component;
+    return;
+  }
+
+  geom::frect rect_ = get_screen_rect();
+
+  if (colspan == 1 && rowspan == 1)
+  {
+    grid(x, y) = ComponentBox(std::move(component), geom::isize(colspan, rowspan));
   }
   else
   {
-    geom::frect rect_ = get_screen_rect();
-
-    if (colspan == 1 && rowspan == 1)
-    {
-      grid(x, y) = ComponentBox(component, geom::isize(colspan, rowspan));
-    }
-    else
-    {
-      for(int iy = 0; iy < rowspan; ++iy)
-        for(int ix = 0; ix < colspan; ++ix)
-        {
-          grid(x + ix, y + iy) = ComponentBox(component, geom::isize(0, 0), geom::ipoint(x, y));
-        }
-      grid(x, y) = ComponentBox(component, geom::isize(colspan, rowspan));
+    for(int iy = 0; iy < rowspan; ++iy) {
+      for(int ix = 0; ix < colspan; ++ix) {
+        grid(x + ix, y + iy) = ComponentBox({}, geom::isize(0, 0), geom::ipoint(x, y));
+      }
     }
 
-    component->set_screen_rect(geom::frect(glm::vec2(rect_.left() + static_cast<float>(x) * (rect_.width()  / static_cast<float>(grid.get_width()))  + padding,
-                                              rect_.top()  + static_cast<float>(y) * (rect_.height() / static_cast<float>(grid.get_height())) + padding),
-                                     geom::fsize((rect_.width()  / static_cast<float>(grid.get_width()))  * static_cast<float>(colspan) - 2.0f * padding,
-                                           (rect_.height() / static_cast<float>(grid.get_height())) * static_cast<float>(rowspan) - 2.0f * padding)));
+    grid(x, y) = ComponentBox(std::move(component), geom::isize(colspan, rowspan));
   }
+
+  grid(x, y).component->set_screen_rect(
+    geom::frect(glm::vec2(rect_.left() + static_cast<float>(x) * (rect_.width()  / static_cast<float>(grid.get_width()))  + padding,
+                          rect_.top()  + static_cast<float>(y) * (rect_.height() / static_cast<float>(grid.get_height())) + padding),
+                geom::fsize((rect_.width()  / static_cast<float>(grid.get_width()))  * static_cast<float>(colspan) - 2.0f * padding,
+                            (rect_.height() / static_cast<float>(grid.get_height())) * static_cast<float>(rowspan) - 2.0f * padding)));
 }
 
 void

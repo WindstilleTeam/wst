@@ -36,15 +36,12 @@ RootComponent::RootComponent(const geom::frect& rect_, Style& style) :
 
 RootComponent::~RootComponent()
 {
-  for(Children::iterator i = children.begin(); i != children.end(); ++i)
-    delete *i;
-  children.clear();
 }
 
 void
 RootComponent::draw(wstdisplay::GraphicsContext& gc)
 {
-  for(Children::iterator i = children.begin(); i != children.end(); ++i)
+  for (auto i = children.begin(); i != children.end(); ++i)
   {
     (*i)->draw(gc);
   }
@@ -53,9 +50,9 @@ RootComponent::draw(wstdisplay::GraphicsContext& gc)
 void
 RootComponent::update(float delta, const Controller& controller)
 {
-  for(Children::iterator i = children.begin(); i != children.end(); ++i)
+  for (auto i = children.begin(); i != children.end(); ++i)
   {
-    if (*i == focus)
+    if (i->get() == focus)
       (*i)->update(delta, controller);
     else
       (*i)->update(delta, Controller());
@@ -72,16 +69,17 @@ RootComponent::is_active() const
 }
 
 void
-RootComponent::add_child(Component* child)
+RootComponent::add_child(std::unique_ptr<Component> child)
 {
-  focus = child;
-  children.push_back(child);
+  focus = child.get();
+  children.emplace_back(std::move(child));
 }
 
 void
 RootComponent::set_focus(Component* child_)
 {
-  Children::iterator i = std::find(children.begin(), children.end(), child_);
+  auto const i = std::find_if(children.begin(), children.end(),
+                              [child_](std::unique_ptr<Component> const& it){ return it.get() == child_; });
   if (i != children.end())
   {
     focus = child_;

@@ -58,7 +58,7 @@ Menu::add_enum(const std::string& name, int index,
     enum_item->sig_change().connect(callback);
 
   EnumMenuItem& obj = *enum_item;
-  menu->add_item(enum_item.release());
+  menu->add_item(std::move(enum_item));
   return obj;
 }
 
@@ -70,7 +70,7 @@ Menu::add_slider(const std::string& name,
   std::unique_ptr<SliderMenuItem> slider(new SliderMenuItem(menu.get(), name, value, min_value, max_value, step));
   if (callback)
     slider->sig_change().connect(callback);
-  menu->add_item(slider.release());
+  menu->add_item(std::move(slider));
 }
 
 void
@@ -80,7 +80,7 @@ Menu::add_button(const std::string& name,
   std::unique_ptr<ButtonMenuItem> scenario_button(new ButtonMenuItem(menu.get(), name));
   if (callback)
     scenario_button->sig_click().connect(callback);
-  menu->add_item(scenario_button.release());
+  menu->add_item(std::move(scenario_button));
 }
 
 RootComponent*
@@ -114,9 +114,9 @@ Menu::show(ScreenManager& screen_manager)
   }
 
   group->pack(menu.release());
-  manager->get_root()->add_child(group.release());
+  manager->get_root()->add_child(std::move(group));
 
-  screen_manager.push_overlay(manager.release());
+  screen_manager.push_overlay(std::move(manager));
 }
 
 } // namespace gui

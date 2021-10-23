@@ -47,9 +47,9 @@ int main()
   Style style(font.get());
   GUIManager gui_manager(style);
   auto* root = gui_manager.get_root();
-  Label label("Hello World", root);
-  label.set_screen_rect(geom::frect(100, 100, 500, 300));
-  root->add_child(&label);
+  auto label = std::make_unique<Label>("Hello World", root);
+  label->set_screen_rect(geom::frect(100, 100, 500, 300));
+  root->add_child(std::move(label));
 
   bool quit = false;
   while (!quit) {

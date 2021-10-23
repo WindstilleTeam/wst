@@ -41,15 +41,12 @@ MenuComponent::MenuComponent(const geom::frect& rect_, bool allow_cancel_, Compo
 
 MenuComponent::~MenuComponent()
 {
-  for(Items::iterator i = items.begin(); i != items.end(); ++i)
-    delete *i;
-  items.clear();
 }
 
 void
-MenuComponent::add_item(MenuItem* item)
+MenuComponent::add_item(std::unique_ptr<MenuItem> item)
 {
-  items.push_back(item);
+  items.emplace_back(std::move(item));
 
   if (calc_height() >= rect.height())
   {
