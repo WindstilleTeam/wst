@@ -81,11 +81,10 @@ ScreenManager::run()
         screens.back()->update(step, m_input.get_controller());
       }
 
-      m_input.clear();
-
       for(Screen* hud : m_huds) {
-        hud->update(step, Controller());
+        hud->update(step, m_input.get_controller());
       }
+      m_input.clear();
 
       delta -= step;
     }
@@ -218,19 +217,21 @@ ScreenManager::poll_events()
       case SDL_JOYBUTTONDOWN:
       case SDL_TEXTINPUT:
       case SDL_TEXTEDITING:
-        m_input.on_event(event);
-
-        if (!overlay_screens.empty())
+        if (!overlay_screens.empty()) {
           overlay_screens.back()->handle_event(event);
+        }
         break;
 
       default:
-        if (!overlay_screens.empty())
+        if (!overlay_screens.empty()) {
           overlay_screens.back()->handle_event(event);
-        else if (!screens.empty())
+        } else if (!screens.empty()) {
           screens.back()->handle_event(event);
+        }
         break;
     }
+
+    m_input.on_event(event);
   }
 }
 
