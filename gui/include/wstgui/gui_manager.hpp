@@ -24,19 +24,21 @@
 #include <wstdisplay/graphics_context.hpp>
 #include <wstinput/controller.hpp>
 
+#include "screen.hpp"
+
 namespace gui {
 
 class RootComponent;
 class Style;
 
-class GUIManager
+class GUIManager : public Screen
 {
 public:
   GUIManager(Style& style);
-  ~GUIManager();
+  ~GUIManager() override;
 
-  void draw(wstdisplay::GraphicsContext& gc);
-  void update(float delta, const wstinput::Controller& controller);
+  void draw(wstdisplay::GraphicsContext& gc) override;
+  void update(float delta, const wstinput::Controller& controller) override;
 
   RootComponent* get_root() const;
   Style& get_style() const { return m_style; }

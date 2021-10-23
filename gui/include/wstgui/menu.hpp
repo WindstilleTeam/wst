@@ -21,6 +21,8 @@
 
 #include <functional>
 
+class ScreenManager;
+
 namespace gui {
 
 class GUIManager;
@@ -62,7 +64,7 @@ public:
 
   RootComponent*  get_root() const;
 
-  void show();
+  void show(ScreenManager& screen_manager);
 
 private:
   Menu (const Menu&);

@@ -25,6 +25,8 @@
 #include "menu_item.hpp"
 #include "root_component.hpp"
 
+#include "../../../src/screen/screen_manager.hpp"
+
 namespace gui {
 
 Menu::Menu(const std::string& name, const geom::frect& rect, Style& style, bool allow_cancel, Component* parent)
@@ -90,7 +92,7 @@ Menu::get_root() const
 }
 
 void
-Menu::show()
+Menu::show(ScreenManager& screen_manager)
 {
   assert(manager.get());
 
@@ -115,9 +117,7 @@ Menu::show()
   group->pack(menu.release());
   manager->get_root()->add_child(group.release());
 
-#ifdef FIXMESCREEN
-  ScreenManager::current()->push_overlay(manager.release());
-#endif
+  screen_manager.push_overlay(manager.release());
 }
 
 } // namespace gui
