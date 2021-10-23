@@ -39,9 +39,6 @@ ScreenManager::ScreenManager(wstdisplay::OpenGLWindow& window, wstinput::InputMa
   overlay_screen_action(NONE),
   overlay_screen_screen(),
   ticks(0),
-  time_counter(0),
-  frame_counter(0),
-  last_fps(0),
   overlap_delta(0),
   do_quit(false),
   m_key_bindings(),
@@ -74,8 +71,6 @@ ScreenManager::run()
     float delta = static_cast<float>(now - ticks) / 1000.0f + overlap_delta;
     ticks = now;
 
-    time_counter += delta;
-
     while (delta > step)
     {
       m_input.update(delta);
@@ -101,8 +96,6 @@ ScreenManager::run()
 
     draw(m_window.get_gc());
 
-    frame_counter += 1;
-
     poll_events();
 
     apply_pending_actions();
@@ -126,11 +119,6 @@ ScreenManager::draw(wstdisplay::GraphicsContext& gc)
     hud->draw(gc);
   }
 
-#if FIXME
-  if (config.get_bool("show-fps")) {
-    draw_fps(gc);
-  }
-#endif
   m_window.swap_buffers();
 }
 
@@ -245,24 +233,6 @@ ScreenManager::poll_events()
     }
   }
 }
-
-#ifdef FIXME
-void
-ScreenManager::draw_fps(wstdisplay::GraphicsContext& gc)
-{
-  if(time_counter > 1)
-  {
-    last_fps = int(static_cast<float>(frame_counter) / time_counter);
-
-    time_counter  = fmodf(time_counter, 1.0f);
-    frame_counter = 0;
-  }
-
-  std::ostringstream out;
-  out << "FPS: " << last_fps;
-  g_app.fonts().ttffont->draw(gc, glm::vec2(static_cast<float>(gc.size().width()) - 100.0f, 30.0f), out.str());
-}
-#endif
 
 void
 ScreenManager::push_screen(Screen* s)

@@ -90,9 +90,6 @@ private:
 
   unsigned int ticks;
 
-  float time_counter;
-  int   frame_counter;
-  int   last_fps;
   float overlap_delta;
   bool  do_quit;
 
