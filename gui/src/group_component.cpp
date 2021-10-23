@@ -43,8 +43,7 @@ GroupComponent::draw(wstdisplay::GraphicsContext& gc)
 
   if (!title.empty())
   {
-#ifdef FIXMEFONT
-    wstdisplay::TTFFont* font = get_style().get_font().get();
+    wstdisplay::TTFFont* font = get_style().get_font();
     font->draw_center(gc,
                       glm::vec2(rect.left() + rect.width() / 2.0f,
                                 rect.top()  + static_cast<float>(font->get_height()) + 5.0f),
@@ -53,7 +52,6 @@ GroupComponent::draw(wstdisplay::GraphicsContext& gc)
     gc.fill_rect(geom::frect(rect.left()  + 8.0f, rect.top() + static_cast<float>(font->get_height()) + 16.0f,
                              rect.right() - 8.0f, rect.top() + static_cast<float>(font->get_height()) + 18.0f),
                  surf::Color(1.0f, 1.0f, 1.0f, 0.5f));
-#endif
   }
 
   if (child)
