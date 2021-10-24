@@ -55,8 +55,8 @@ GridComponent::~GridComponent()
 void
 GridComponent::draw(wstdisplay::GraphicsContext& gc)
 {
-  gc.fill_rect(rect, surf::Color(0.0f, 0.0f, 0.0f, 0.5f));
-  gc.draw_rect(rect, surf::Color(1.0f, 1.0f, 1.0f, 0.5f));
+  gc.fill_rect(m_rect, surf::Color(0.0f, 0.0f, 0.0f, 0.5f));
+  gc.draw_rect(m_rect, surf::Color(1.0f, 1.0f, 1.0f, 0.5f));
 
   for(int y = 0; y < grid.get_height(); ++y)
     for(int x = 0; x < grid.get_width(); ++x)

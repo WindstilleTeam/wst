@@ -51,11 +51,11 @@ TabComponent::draw(wstdisplay::GraphicsContext& gc)
 {
   if (tabs.empty()) return;
 
-  float tab_width = rect.width() / static_cast<float>(tabs.size());
+  float tab_width = m_rect.width() / static_cast<float>(tabs.size());
   for(int i = 0; i != int(tabs.size()); ++i)
   {
-    geom::frect tab_rect(glm::vec2(rect.left() + tab_width * static_cast<float>(i) + 10.0f,
-                                   rect.top()),
+    geom::frect tab_rect(glm::vec2(m_rect.left() + tab_width * static_cast<float>(i) + 10.0f,
+                                   m_rect.top()),
                          geom::fsize(tab_width - 20.0f, static_cast<float>(get_style().get_font()->get_height()) + 6.0f));
 
     if (i == current_tab)
@@ -66,8 +66,8 @@ TabComponent::draw(wstdisplay::GraphicsContext& gc)
     gc.draw_rounded_rect(tab_rect, 5.0f, surf::Color(1.0f, 1.0f, 1.0f, 0.5f));
 
     get_style().get_font()->draw_center(gc,
-                                      glm::vec2(rect.left() + tab_width * static_cast<float>(i) + tab_width/2,
-                                                rect.top() + static_cast<float>(get_style().get_font()->get_height())),
+                                      glm::vec2(m_rect.left() + tab_width * static_cast<float>(i) + tab_width/2,
+                                                m_rect.top() + static_cast<float>(get_style().get_font()->get_height())),
                                       tabs[i].label,
                                       tabs[current_tab].component->is_active()
                                       ? surf::Color(1.0f, 1.0f, 1.0f, 0.5f)
@@ -144,10 +144,10 @@ TabComponent::pack(const std::string& name, Component* component)
   tabs.push_back(Tab(name, component));
 
   float padding = 6.0f;
-  component->set_screen_rect(geom::frect(rect.left() + padding,
-                                   rect.top()  + padding + static_cast<float>(get_style().get_font()->get_height()) + 10.0f,
-                                   rect.right()  - padding,
-                                   rect.bottom() - padding
+  component->set_screen_rect(geom::frect(m_rect.left() + padding,
+                                   m_rect.top()  + padding + static_cast<float>(get_style().get_font()->get_height()) + 10.0f,
+                                   m_rect.right()  - padding,
+                                   m_rect.bottom() - padding
                                ));
 }
 

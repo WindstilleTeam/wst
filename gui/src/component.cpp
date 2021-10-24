@@ -20,17 +20,17 @@
 
 namespace gui {
 
-Component::Component(Component* parent_)
-  : rect(),
-    parent(parent_),
-    active(false)
+Component::Component(Component* parent) :
+  m_rect(),
+  m_parent(parent),
+  m_active(false)
 {
 }
 
-Component::Component(const geom::frect& rect_, Component* parent_)
-  : rect(rect_),
-    parent(parent_),
-    active(false)
+Component::Component(const geom::frect& rect, Component* parent) :
+  m_rect(rect),
+  m_parent(parent),
+  m_active(false)
 {
 }
 
@@ -38,50 +38,57 @@ Component::~Component()
 {
 }
 
+void
+Component::set_parent(Component* parent)
+{
+  m_parent = parent;
+}
+
 bool
 Component::is_active() const
 {
-  return active;
+  return m_active;
 }
 
 void
-Component::set_active(bool a)
+Component::set_active(bool active)
 {
-  if (!active && a)
+  if (!m_active && active) {
     on_activation();
-  active = a;
+  }
+  m_active = active;
 }
 
 geom::frect
 Component::get_screen_rect() const
 {
-  return rect;
+  return m_rect;
 }
 
 void
-Component::set_screen_rect(const geom::frect& r)
+Component::set_screen_rect(const geom::frect& rect)
 {
-  rect = r;
+  m_rect = rect;
 }
 
 float
 Component::get_prefered_width() const
 {
-  assert(false && "Implement me");
+  log_not_implemented();
   return 100.0f;
 }
 
 float
 Component::get_prefered_height() const
 {
-  assert(false && "Implement me");
+  log_not_implemented();
   return 100.0f;
 }
 
 Style&
 Component::get_style() const
 {
-  return parent->get_style();
+  return m_parent->get_style();
 }
 
 } // namespace gui

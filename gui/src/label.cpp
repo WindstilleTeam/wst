@@ -42,7 +42,8 @@ Label::draw(wstdisplay::GraphicsContext& gc)
 
   get_style().get_small_font()->draw(
     gc,
-    glm::vec2(rect.left() + 5/*+ rect.width()/2*/, rect.top() + rect.height()/2 + 3),
+    glm::vec2(m_rect.left() + 5/*+ rect.width()/2*/,
+              m_rect.top() + m_rect.height()/2 + 3),
     label,
     surf::Color(1.0f, 1.0f, 1.0f, 1.0f));
 }

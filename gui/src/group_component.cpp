@@ -38,19 +38,19 @@ GroupComponent::~GroupComponent()
 void
 GroupComponent::draw(wstdisplay::GraphicsContext& gc)
 {
-  gc.fill_rounded_rect(rect, 5.0f, surf::Color(0.0f, 0.0f, 0.0f, 0.7f));
-  gc.draw_rounded_rect(rect, 5.0f, surf::Color(1.0f, 1.0f, 1.0f, 0.5f));
+  gc.fill_rounded_rect(m_rect, 5.0f, surf::Color(0.0f, 0.0f, 0.0f, 0.7f));
+  gc.draw_rounded_rect(m_rect, 5.0f, surf::Color(1.0f, 1.0f, 1.0f, 0.5f));
 
   if (!title.empty())
   {
     wstdisplay::TTFFont* font = get_style().get_font();
     font->draw_center(gc,
-                      glm::vec2(rect.left() + rect.width() / 2.0f,
-                                rect.top()  + static_cast<float>(font->get_height()) + 5.0f),
+                      glm::vec2(m_rect.left() + m_rect.width() / 2.0f,
+                                m_rect.top()  + static_cast<float>(font->get_height()) + 5.0f),
                       title, surf::Color(1.0f, 1.0f, 1.0f));
 
-    gc.fill_rect(geom::frect(rect.left()  + 8.0f, rect.top() + static_cast<float>(font->get_height()) + 16.0f,
-                             rect.right() - 8.0f, rect.top() + static_cast<float>(font->get_height()) + 18.0f),
+    gc.fill_rect(geom::frect(m_rect.left()  + 8.0f, m_rect.top() + static_cast<float>(font->get_height()) + 16.0f,
+                             m_rect.right() - 8.0f, m_rect.top() + static_cast<float>(font->get_height()) + 18.0f),
                  surf::Color(1.0f, 1.0f, 1.0f, 0.5f));
   }
 
@@ -80,12 +80,12 @@ GroupComponent::get_child_rect() const
 {
   float padding = 6.0f;
 
-  return geom::frect(rect.left()   + padding,
-                     rect.top()    + padding + (title.empty() ?
-                                                0.0f :
-                                                static_cast<float>(get_style().get_font()->get_height()) + 18.0f),
-               rect.right()  - padding,
-               rect.bottom() - padding);
+  return geom::frect(m_rect.left() + padding,
+                     m_rect.top() + padding + (title.empty() ?
+                                               0.0f :
+                                               static_cast<float>(get_style().get_font()->get_height()) + 18.0f),
+                     m_rect.right()  - padding,
+                     m_rect.bottom() - padding);
 }
 
 bool

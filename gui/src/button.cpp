@@ -47,11 +47,12 @@ Button::~Button()
 void
 Button::draw(wstdisplay::GraphicsContext& gc)
 {
-  gc.fill_rect(rect, surf::Color(0.0f, 0.0f, 0.0f, 0.5f));
-  gc.draw_rect(rect, surf::Color(1.0f, 1.0f, 1.0f, 0.5f));
+  gc.fill_rect(m_rect, surf::Color(0.0f, 0.0f, 0.0f, 0.5f));
+  gc.draw_rect(m_rect, surf::Color(1.0f, 1.0f, 1.0f, 0.5f));
   get_style().get_font()->draw_center(
     gc,
-    glm::vec2(rect.left() + rect.width()/2, rect.top() + rect.height()/2),
+    glm::vec2(m_rect.left() + m_rect.width()/2.0f,
+              m_rect.top() + m_rect.height()/2.0f + static_cast<float>(get_style().get_font()->get_height()) / 3.0f),
     label,
     is_active()
     ? surf::Color(1.0f, 1.0f, 1.0f, 1.0f)

@@ -25,9 +25,9 @@
 
 namespace gui {
 
-TextView::TextView(const geom::frect& rect_, Component* component_)
-  : Component(rect_, component_),
-    text_area(parent->get_style().get_font(), rect_, false)
+TextView::TextView(const geom::frect& rect, Component* component)
+  : Component(rect, component),
+    text_area(m_parent->get_style().get_font(), m_rect, false)
 {
 }
 

@@ -34,20 +34,19 @@ namespace gui {
 
 class Component
 {
-protected:
-  geom::frect rect;
-  Component* parent;
-  bool active;
-
 public:
   Component(Component* parent);
   Component(const geom::frect& rect, Component* parent);
   virtual ~Component();
 
+  virtual void set_parent(Component* parent);
+
   virtual bool is_active() const;
   virtual void set_active(bool a);
 
+  /** Called when the Component receives focus */
   virtual void on_activation() {}
+
   virtual void draw(wstdisplay::GraphicsContext& gc) =0;
   virtual void update(float delta, const Controller& controller) =0;
 
@@ -58,6 +57,11 @@ public:
   virtual float get_prefered_height() const;
 
   virtual Style& get_style() const;
+
+protected:
+  geom::frect m_rect;
+  Component* m_parent;
+  bool m_active;
 
 private:
   Component (const Component&);

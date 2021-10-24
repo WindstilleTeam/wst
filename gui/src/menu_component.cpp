@@ -48,11 +48,11 @@ MenuComponent::add_item(std::unique_ptr<MenuItem> item)
 {
   items.emplace_back(std::move(item));
 
-  if (calc_height() >= rect.height())
+  if (calc_height() >= m_rect.height())
   {
     scroll_mode   = true;
     scroll_offset = 0;
-    num_displayable_items = static_cast<int>(rect.height() / item_height());
+    num_displayable_items = static_cast<int>(m_rect.height() / item_height());
   }
 }
 
@@ -66,22 +66,22 @@ MenuComponent::draw(wstdisplay::GraphicsContext& gc)
     for(int i = 0; i < num_displayable_items; ++i)
     {
       items[i+scroll_offset]->draw(gc,
-                                   geom::frect(rect.left(), rect.top() + static_cast<float>(i) * step + 2.0f,
-                                               rect.right() - 32.0f, rect.top() + static_cast<float>(i+1) * step - 2.0f),
+                                   geom::frect(m_rect.left(), m_rect.top() + static_cast<float>(i) * step + 2.0f,
+                                               m_rect.right() - 32.0f, m_rect.top() + static_cast<float>(i+1) * step - 2.0f),
                                    is_active() && (i + scroll_offset == current_item));
     }
 
     // draw scrollbar
-    float scrollbar_height = (rect.height() - 4.0f) * static_cast<float>(num_displayable_items) / static_cast<float>(items.size());
-    float scrollbar_incr   = (rect.height() - 4.0f) * static_cast<float>(scroll_offset) / static_cast<float>(items.size());
+    float scrollbar_height = (m_rect.height() - 4.0f) * static_cast<float>(num_displayable_items) / static_cast<float>(items.size());
+    float scrollbar_incr   = (m_rect.height() - 4.0f) * static_cast<float>(scroll_offset) / static_cast<float>(items.size());
 
-    gc.fill_rounded_rect(geom::frect(rect.right() - 24, rect.top() + 2.0f + scrollbar_incr,
-                                     rect.right() - 2,  rect.top() + 2.0f + scrollbar_incr + scrollbar_height),
+    gc.fill_rounded_rect(geom::frect(m_rect.right() - 24, m_rect.top() + 2.0f + scrollbar_incr,
+                                     m_rect.right() - 2,  m_rect.top() + 2.0f + scrollbar_incr + scrollbar_height),
                                5.0f,
                                surf::Color(0.5f, 0.5f, 0.5f, 0.75f));
 
-    gc.draw_rounded_rect(geom::frect(rect.right() - 24, rect.top() + 2.0f,
-                                     rect.right() - 2,  rect.bottom() - 2.0f),
+    gc.draw_rounded_rect(geom::frect(m_rect.right() - 24, m_rect.top() + 2.0f,
+                                     m_rect.right() - 2,  m_rect.bottom() - 2.0f),
                                5.0f,
                                surf::Color(1.0f, 1.0f, 1.0f, 1.0f));
   }
@@ -90,8 +90,8 @@ MenuComponent::draw(wstdisplay::GraphicsContext& gc)
     for(Items::size_type i = 0; i < items.size(); ++i)
     {
       items[i]->draw(gc,
-                     geom::frect(rect.left(), rect.top() + static_cast<float>(i) * step + 2.0f,
-                                 rect.right(), rect.top() + static_cast<float>(i+1) * step - 2.0f),
+                     geom::frect(m_rect.left(), m_rect.top() + static_cast<float>(i) * step + 2.0f,
+                                 m_rect.right(), m_rect.top() + static_cast<float>(i+1) * step - 2.0f),
                      is_active() && (int(i) == current_item));
     }
   }
@@ -140,7 +140,7 @@ MenuComponent::update(float delta, const Controller& controller)
         current_item = current_item - 1;
         if (current_item < 0)
         {
-          if (dynamic_cast<TabComponent*>(parent))
+          if (dynamic_cast<TabComponent*>(m_parent))
           {
             current_item = 0;
             set_active(false);
@@ -157,7 +157,7 @@ MenuComponent::update(float delta, const Controller& controller)
       {
         // FIXMESOUND: g_app.sound().play(Pathname("sounds/menu_change.wav", Pathname::kDataPath));
 
-        if (dynamic_cast<TabComponent*>(parent))
+        if (dynamic_cast<TabComponent*>(m_parent))
         {
           current_item = std::clamp(current_item + 1, 0, static_cast<int>(items.size()-1));
         }
@@ -198,7 +198,7 @@ MenuComponent::get_prefered_width() const
     {
     width = std::max(get_width())
     }  */
-  return rect.width();
+  return m_rect.width();
 }
 
 float
