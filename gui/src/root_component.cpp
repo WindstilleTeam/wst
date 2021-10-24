@@ -23,7 +23,7 @@
 
 #include "root_component.hpp"
 
-namespace gui {
+namespace wstgui {
 
 RootComponent::RootComponent(const geom::frect& rect_, Style& style) :
   Component(rect_, nullptr),
@@ -97,6 +97,6 @@ RootComponent::get_style() const
   return m_style;
 }
 
-} // namespace gui
+} // namespace wstgui
 
 /* EOF */

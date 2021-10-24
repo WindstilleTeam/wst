@@ -26,7 +26,7 @@
 
 #include "screen.hpp"
 
-namespace gui {
+namespace wstgui {
 
 class RootComponent;
 class Style;
@@ -52,7 +52,7 @@ private:
   GUIManager& operator= (const GUIManager&);
 };
 
-} // namespace gui
+} // namespace wstgui
 
 #endif
 

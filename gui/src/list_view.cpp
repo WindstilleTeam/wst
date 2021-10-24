@@ -24,7 +24,7 @@
 #include "controller_def.hpp"
 #include "style.hpp"
 
-namespace gui {
+namespace wstgui {
 
 ListView::ListView(const geom::frect& rect_, Component* parent_)
   : Component(rect_, parent_),
@@ -138,6 +138,6 @@ ListView::add_item(const Item& item)
   items.push_back(item);
 }
 
-} // namespace gui
+} // namespace wstgui
 
 /* EOF */

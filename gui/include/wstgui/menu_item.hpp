@@ -26,7 +26,7 @@
 #include <wstdisplay/fwd.hpp>
 #include <geom/geom.hpp>
 
-namespace gui {
+namespace wstgui {
 
 class MenuComponent;
 
@@ -117,7 +117,7 @@ public:
   sigc::signal<void ()>& sig_click() { return on_click; }
 };
 
-} // namespace gui
+} // namespace wstgui
 
 #endif
 

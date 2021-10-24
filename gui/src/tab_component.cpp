@@ -25,7 +25,7 @@
 
 #include "controller_def.hpp"
 
-namespace gui {
+namespace wstgui {
 
 TabComponent::TabComponent(Component* parent_)
   : Component(parent_),
@@ -151,6 +151,6 @@ TabComponent::pack(const std::string& name, Component* component)
                                ));
 }
 
-} // namespace gui
+} // namespace wstgui
 
 /* EOF */

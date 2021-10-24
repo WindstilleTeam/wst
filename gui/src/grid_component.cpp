@@ -27,7 +27,7 @@
 
 #include "controller_def.hpp"
 
-namespace gui {
+namespace wstgui {
 
 GridComponent::GridComponent(Component* parent_)
   : Component(parent_),
@@ -256,6 +256,6 @@ GridComponent::on_activation()
   //grid(pos.x, pos.y).component->set_active(true);
 }
 
-} // namespace gui
+} // namespace wstgui
 
 /* EOF */

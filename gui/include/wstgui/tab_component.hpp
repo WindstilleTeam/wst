@@ -21,7 +21,7 @@
 
 #include "component.hpp"
 
-namespace gui {
+namespace wstgui {
 
 /** */
 class TabComponent : public Component
@@ -78,7 +78,7 @@ private:
   TabComponent& operator= (const TabComponent&);
 };
 
-} // namespace gui
+} // namespace wstgui
 
 #endif
 

@@ -26,7 +26,7 @@
 #include "component.hpp"
 #include "util/field.hpp"
 
-namespace gui {
+namespace wstgui {
 
 class GridComponent : public Component
 {
@@ -84,7 +84,7 @@ private:
   GridComponent& operator= (const GridComponent&);
 };
 
-} // namespace gui
+} // namespace wstgui
 
 #endif
 

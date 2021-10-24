@@ -21,7 +21,7 @@
 #include "group_component.hpp"
 #include "style.hpp"
 
-namespace gui {
+namespace wstgui {
 
 GroupComponent::GroupComponent(const geom::frect& rect_, const std::string& title_, Component* parent_)
   : Component(rect_, parent_),
@@ -97,6 +97,6 @@ GroupComponent::is_active() const
     return false;
 }
 
-} // namespace gui
+} // namespace wstgui
 
 /* EOF */

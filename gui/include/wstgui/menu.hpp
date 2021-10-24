@@ -21,17 +21,10 @@
 
 #include <functional>
 
-class ScreenManager;
+#include "fwd.hpp"
 
-namespace gui {
-
-class GUIManager;
-class Component;
-class GroupComponent;
-class MenuComponent;
-class EnumMenuItem;
-class RootComponent;
-
+namespace wstgui {
+
 /**
  *  Little helper class around MenuItem and MenuComponent to reduce code clutter.
  */
@@ -71,8 +64,8 @@ private:
   Menu (const Menu&);
   Menu& operator= (const Menu&);
 };
-
-} // namespace gui
+
+} // namespace wstgui
 
 #endif
 

@@ -22,7 +22,7 @@
 
 #include "style.hpp"
 
-namespace gui {
+namespace wstgui {
 
 Label::Label(const std::string& label_, Component* parent_)
   : Component(geom::frect(), parent_),
@@ -54,6 +54,6 @@ Label::update(float /*delta*/, const Controller& /*controller*/)
   set_active(false);
 }
 
-} // namespace gui
+} // namespace wstgui
 
 /* EOF */

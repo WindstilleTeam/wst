@@ -21,10 +21,9 @@
 
 #include <SDL.h>
 #include <wstdisplay/fwd.hpp>
+#include <wstinput/fwd.hpp>
 
-namespace wstinput {
-class Controller;
-} // namespace wstinput
+namespace wstgui {
 
 using Controller = wstinput::Controller;
 
@@ -53,6 +52,8 @@ public:
 private:
   bool m_finished;
 };
+
+} // namespace wstgui
 
 #endif
 

@@ -23,7 +23,7 @@
 
 #include "component.hpp"
 
-namespace gui {
+namespace wstgui {
 
 /** */
 class TextView : public Component
@@ -47,7 +47,7 @@ private:
   TextView& operator= (const TextView&);
 };
 
-} // namespace gui
+} // namespace wstgui
 
 #endif
 

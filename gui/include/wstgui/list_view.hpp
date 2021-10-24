@@ -21,7 +21,7 @@
 
 #include "component.hpp"
 
-namespace gui {
+namespace wstgui {
 
 /** */
 class ListView : public Component
@@ -75,7 +75,7 @@ private:
   ListView& operator= (const ListView&);
 };
 
-} // namespace gui
+} // namespace wstgui
 
 #endif
 

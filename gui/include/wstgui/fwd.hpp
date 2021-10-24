@@ -19,31 +19,30 @@
 #ifndef HEADER_WSTGUI_FWD_HPP
 #define HEADER_WSTGUI_FWD_HPP
 
-class Screen;
-//class ScreenManager;
+namespace wstgui {
 
-namespace gui {
-
-class ButtonMenuItem;
 class Button;
+class ButtonMenuItem;
 class Component;
 class EnumMenuItem;
+class GUIManager;
 class GridComponent;
 class GroupComponent;
-class GUIManager;
 class Label;
 class ListView;
 class Menu;
 class MenuComponent;
 class MenuItem;
 class RootComponent;
-class SliderMenuItem;
+class Screen;
+class ScreenManager;
 class Slider;
+class SliderMenuItem;
 class Style;
 class TabComponent;
 class TextView;
 
-} // namespace gui
+} // namespace wstgui
 
 #endif
 

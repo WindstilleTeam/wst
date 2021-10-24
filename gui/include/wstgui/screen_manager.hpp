@@ -31,6 +31,8 @@
 #include <wstinput/fwd.hpp>
 #include <wstsound/fwd.hpp>
 
+namespace wstgui {
+
 /**
  *  The ScreenManager handles overlays like Option Menus, Main Menus
  *  and such
@@ -100,6 +102,8 @@ public:
   ScreenManager (const ScreenManager&) = delete;
   ScreenManager& operator= (const ScreenManager&) = delete;
 };
+
+} // namespace wstgui
 
 #endif
 

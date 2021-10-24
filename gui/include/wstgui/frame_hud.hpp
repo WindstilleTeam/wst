@@ -22,7 +22,7 @@
 #include "screen.hpp"
 #include "style.hpp"
 
-namespace gui {
+namespace wstgui {
 
 class FrameHud : public Screen
 {
@@ -44,7 +44,7 @@ private:
   FrameHud& operator=(const FrameHud&) = delete;
 };
 
-} // namespace gui
+} // namespace wstgui
 
 #endif
 

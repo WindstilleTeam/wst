@@ -21,7 +21,7 @@
 
 #include <wstdisplay/font/ttf_font.hpp>
 
-namespace gui {
+namespace wstgui {
 
 class Style
 {
@@ -40,7 +40,7 @@ private:
   Style& operator=(const Style&) = delete;
 };
 
-} // namespace gui
+} // namespace wstgui
 
 #endif
 

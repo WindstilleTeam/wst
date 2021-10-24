@@ -25,7 +25,7 @@
 #include "component.hpp"
 #include "style.hpp"
 
-namespace gui {
+namespace wstgui {
 
 class RootComponent : public Component
 {
@@ -57,7 +57,7 @@ private:
   RootComponent& operator= (const RootComponent&) = delete;
 };
 
-} // namespace gui
+} // namespace wstgui
 
 #endif
 

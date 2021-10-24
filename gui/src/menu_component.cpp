@@ -25,7 +25,7 @@
 #include "menu_item.hpp"
 #include "tab_component.hpp"
 
-namespace gui {
+namespace wstgui {
 
 MenuComponent::MenuComponent(const geom::frect& rect_, bool allow_cancel_, Component* parent_)
   : Component(rect_, parent_),
@@ -256,6 +256,6 @@ MenuComponent::set_screen_rect(const geom::frect& rect_)
   Component::set_screen_rect(rect_);
 }
 
-} // namespace gui
+} // namespace wstgui
 
 /* EOF */

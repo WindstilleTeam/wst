@@ -19,7 +19,7 @@
 #include "gui_manager.hpp"
 #include "root_component.hpp"
 
-namespace gui {
+namespace wstgui {
 
 GUIManager::GUIManager(Style& style) :
   root(new RootComponent(geom::frect(0,0,800,600), style)),
@@ -53,6 +53,6 @@ GUIManager::get_root() const
   return root.get();
 }
 
-} // namespace gui
+} // namespace wstgui
 
 /* EOF */

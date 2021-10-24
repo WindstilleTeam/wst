@@ -21,9 +21,8 @@
 
 #include "component.hpp"
 
-namespace gui {
+namespace wstgui {
 
-/** */
 class Button : public Component
 {
 private:
@@ -42,7 +41,7 @@ private:
   Button& operator= (const Button&);
 };
 
-} // namespace gui
+} // namespace wstgui
 
 #endif
 

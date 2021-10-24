@@ -22,7 +22,7 @@
 
 #include <wstdisplay/graphics_context.hpp>
 
-namespace gui {
+namespace wstgui {
 
 FrameHud::FrameHud(Style& style) :
   m_style(style),
@@ -58,6 +58,6 @@ FrameHud::update(float delta, const Controller& controller)
   m_time_counter += delta;
 }
 
-} // namespace gui
+} // namespace wstgui
 
 /* EOF */

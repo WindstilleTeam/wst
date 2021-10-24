@@ -30,7 +30,7 @@ class FileReader;
 
 using Controller = wstinput::Controller;
 
-namespace gui {
+namespace wstgui {
 
 class Component
 {
@@ -68,7 +68,7 @@ private:
   Component& operator= (const Component&);
 };
 
-} // namespace gui
+} // namespace wstgui
 
 #endif
 

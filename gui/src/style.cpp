@@ -18,7 +18,7 @@
 
 #include "style.hpp"
 
-namespace gui {
+namespace wstgui {
 
 Style::Style(wstdisplay::TTFFont* font) :
   m_font(font)
@@ -41,6 +41,6 @@ Style::get_small_font() const
   return m_font;
 }
 
-} // namespace gui
+} // namespace wstgui
 
 /* EOF */

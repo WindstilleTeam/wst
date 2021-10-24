@@ -18,6 +18,8 @@
 
 #include "screen.hpp"
 
+namespace wstgui {
+
 Screen::Screen() :
   m_finished(false)
 {
@@ -26,5 +28,7 @@ Screen::Screen() :
 Screen::~Screen()
 {
 }
+
+} // namespace wstgui
 
 /* EOF */

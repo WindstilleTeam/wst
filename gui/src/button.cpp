@@ -25,7 +25,7 @@
 #include "controller_def.hpp"
 #include "tab_component.hpp"
 
-namespace gui {
+namespace wstgui {
 
 Button::Button(Component* parent_)
   : Component(parent_),
@@ -79,6 +79,6 @@ Button::update(float , const Controller& controller)
   }
 }
 
-} // namespace gui
+} // namespace wstgui
 
 /* EOF */

@@ -25,7 +25,7 @@
 #include "controller_def.hpp"
 #include "list_view.hpp"
 
-namespace gui {
+namespace wstgui {
 
 Slider::Slider(Component* parent_)
   : Component(parent_),
@@ -136,6 +136,6 @@ Slider::set_pos(int pos_)
   pos = pos_;
 }
 
-} // namespace gui
+} // namespace wstgui
 
 /* EOF */

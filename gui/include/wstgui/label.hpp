@@ -21,7 +21,7 @@
 
 #include "component.hpp"
 
-namespace gui {
+namespace wstgui {
 
 /** */
 class Label : public Component
@@ -41,7 +41,7 @@ private:
   Label& operator= (const Label&);
 };
 
-} // namespace gui
+} // namespace wstgui
 
 #endif
 

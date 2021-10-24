@@ -21,7 +21,7 @@
 
 #include "component.hpp"
 
-namespace gui {
+namespace wstgui {
 
 /** */
 class Slider : public Component
@@ -53,7 +53,7 @@ private:
   Slider& operator= (const Slider&);
 };
 
-} // namespace gui
+} // namespace wstgui
 
 #endif
 

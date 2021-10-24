@@ -26,8 +26,8 @@
 #include "root_component.hpp"
 #include "screen_manager.hpp"
 
-namespace gui {
-
+namespace wstgui {
+
 Menu::Menu(const std::string& name, const geom::frect& rect, Style& style, bool allow_cancel, Component* parent)
   : manager(),
     group(),
@@ -118,7 +118,7 @@ Menu::show(ScreenManager& screen_manager)
 
   screen_manager.push_overlay(std::move(manager));
 }
-
-} // namespace gui
+
+} // namespace wstgui
 
 /* EOF */

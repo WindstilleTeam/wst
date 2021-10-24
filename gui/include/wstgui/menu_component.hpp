@@ -23,7 +23,7 @@
 
 #include "component.hpp"
 
-namespace gui {
+namespace wstgui {
 
 class MenuItem;
 
@@ -71,7 +71,7 @@ private:
   MenuComponent& operator= (const MenuComponent&);
 };
 
-} // namespace gui
+} // namespace wstgui
 
 #endif
 

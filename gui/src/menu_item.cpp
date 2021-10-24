@@ -23,7 +23,7 @@
 #include "menu_component.hpp"
 #include "style.hpp"
 
-namespace gui {
+namespace wstgui {
 
 MenuItem::MenuItem(MenuComponent* parent_, const std::string& label_)
   : parent(parent_),
@@ -221,6 +221,6 @@ ButtonMenuItem::draw(wstdisplay::GraphicsContext& gc, const geom::frect& rect, b
   MenuItem::draw(gc, rect, is_active);
 }
 
-} // namespace gui
+} // namespace wstgui
 
 /* EOF */

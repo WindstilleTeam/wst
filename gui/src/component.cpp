@@ -18,7 +18,7 @@
 
 #include "component.hpp"
 
-namespace gui {
+namespace wstgui {
 
 Component::Component(Component* parent) :
   m_rect(),
@@ -91,6 +91,6 @@ Component::get_style() const
   return m_parent->get_style();
 }
 
-} // namespace gui
+} // namespace wstgui
 
 /* EOF */

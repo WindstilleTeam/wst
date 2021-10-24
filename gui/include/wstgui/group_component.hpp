@@ -23,7 +23,7 @@
 
 #include "component.hpp"
 
-namespace gui {
+namespace wstgui {
 
 /** */
 class GroupComponent : public Component
@@ -52,7 +52,7 @@ private:
   GroupComponent& operator= (const GroupComponent&);
 };
 
-} // namespace gui
+} // namespace wstgui
 
 #endif
 

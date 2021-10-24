@@ -28,6 +28,8 @@
 #include <wstgui/screen.hpp>
 #include <wstsound/sound_manager.hpp>
 
+namespace wstgui {
+
 ScreenManager::ScreenManager(wstdisplay::OpenGLWindow& window, wstinput::InputManagerSDL& input, wstsound::SoundManager& sound) :
   m_window(window),
   m_input(input),
@@ -304,5 +306,7 @@ ScreenManager::remove_hud(Screen* screen)
 {
   std::erase(m_huds, screen);
 }
+
+} // namespace wstgui
 
 /* EOF */

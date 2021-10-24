@@ -23,7 +23,7 @@
 #include "controller_def.hpp"
 #include "slider.hpp"
 
-namespace gui {
+namespace wstgui {
 
 TextView::TextView(const geom::frect& rect, Component* component)
   : Component(rect, component),
@@ -83,7 +83,7 @@ TextView::set_font(wstdisplay::TTFFont* font)
   text_area.set_font(font);
 }
 
-} // namespace gui
+} // namespace wstgui
 
 /* EOF */
 
