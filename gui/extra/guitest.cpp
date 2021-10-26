@@ -24,6 +24,7 @@
 #include <wstgui/button.hpp>
 #include <wstgui/gui_manager.hpp>
 #include <wstgui/label.hpp>
+#include <wstgui/layout_builder.hpp>
 #include <wstgui/menu.hpp>
 #include <wstgui/root_component.hpp>
 #include <wstgui/style.hpp>
@@ -56,7 +57,7 @@ int main()
   label->set_screen_rect(geom::frect(20, 20, 100, 50));
   root->add_child(std::move(label));
 
-  auto textview = std::make_unique<TextView>(geom::frect(20, 50, 620, 400), root);
+  auto textview = std::make_unique<TextView>(geom::frect(20, 50, 620, 200), root);
   textview->set_font(smallfont.get());
   textview->set_text(
     "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi in "
@@ -105,6 +106,50 @@ int main()
   menu->add_slider("Sound Volume", 100, 0, 100, 10, {});
   menu->add_slider("Voice Volume", 50, 0, 100, 10, {});
   //root->add_child(std::move(menu));
+
+  LayoutBuilder builder;
+
+  auto button1 = std::make_unique<Button>("Button1", root);
+  auto button2 = std::make_unique<Button>("Button2", root);
+  auto button3 = std::make_unique<Button>("Button3", root);
+  auto button4 = std::make_unique<Button>("Button4", root);
+  auto button5 = std::make_unique<Button>("Button5", root);
+  auto button6 = std::make_unique<Button>("Button6", root);
+
+  builder.begin_vcut(50);
+  {
+    builder.begin_hcut(350);
+    builder.pack(button3.get());
+    builder.pack(button2.get());
+    builder.end();
+
+    builder.next();
+    builder.begin_hcut(50);
+    {
+      builder.pack(button1.get());
+      builder.next();
+      builder.begin_hcut(50);
+      {
+        builder.pack(button5.get());
+        builder.next();
+        builder.pack(button4.get());
+      }
+      builder.end();
+    }
+    builder.end();
+  }
+  builder.end();
+
+  root->add_child(std::move(button1));
+  root->add_child(std::move(button2));
+  root->add_child(std::move(button3));
+  root->add_child(std::move(button4));
+  root->add_child(std::move(button5));
+  root->add_child(std::move(button6));
+
+  std::unique_ptr<ILayoutable> layout = builder.finalize();
+
+  layout->set_geometry(geom::frect(50, 200, 500, 400));
 
   //ScreenManager screen_manager;
   //screen_manager.run();
