@@ -25,6 +25,8 @@
 #include <wstgui/gui_manager.hpp>
 #include <wstgui/label.hpp>
 #include <wstgui/layout_builder.hpp>
+#include <wstgui/ilayoutable.hpp>
+#include <wstgui/box_layoutable.hpp>
 #include <wstgui/menu.hpp>
 #include <wstgui/root_component.hpp>
 #include <wstgui/style.hpp>
@@ -107,8 +109,6 @@ int main()
   menu->add_slider("Voice Volume", 50, 0, 100, 10, {});
   //root->add_child(std::move(menu));
 
-  LayoutBuilder builder;
-
   auto button1 = std::make_unique<Button>("Button1", root);
   auto button2 = std::make_unique<Button>("Button2", root);
   auto button3 = std::make_unique<Button>("Button3", root);
@@ -116,29 +116,20 @@ int main()
   auto button5 = std::make_unique<Button>("Button5", root);
   auto button6 = std::make_unique<Button>("Button6", root);
 
-  builder.begin_vcut(50);
-  {
-    builder.begin_hcut(350);
-    builder.pack(button3.get());
-    builder.pack(button2.get());
-    builder.end();
-
-    builder.next();
-    builder.begin_hcut(50);
-    {
-      builder.pack(button1.get());
-      builder.next();
-      builder.begin_hcut(50);
-      {
-        builder.pack(button5.get());
-        builder.next();
-        builder.pack(button4.get());
-      }
-      builder.end();
-    }
-    builder.end();
-  }
-  builder.end();
+  auto vbox = std::make_unique<wstgui::VBox>();
+  auto hbox = std::make_unique<wstgui::HBox>();
+  vbox->pack(button1.get());
+  vbox->pack_spacer(5.0f);
+  hbox->pack(button2.get());
+  hbox->pack_spacer(5.0f);
+  hbox->pack(button3.get());
+  hbox->pack_stretcher();
+  hbox->pack(button4.get());
+  hbox->pack_stretcher();
+  hbox->pack(button5.get());
+  hbox->pack(button6.get());
+  vbox->pack(std::move(hbox));
+  vbox->set_geometry({50, 200, 500, 400});
 
   root->add_child(std::move(button1));
   root->add_child(std::move(button2));
@@ -146,10 +137,6 @@ int main()
   root->add_child(std::move(button4));
   root->add_child(std::move(button5));
   root->add_child(std::move(button6));
-
-  std::unique_ptr<ILayoutable> layout = builder.finalize();
-
-  layout->set_geometry(geom::frect(50, 200, 500, 400));
 
   //ScreenManager screen_manager;
   //screen_manager.run();

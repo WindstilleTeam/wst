@@ -30,7 +30,21 @@ class ILayoutable
 public:
   virtual ~ILayoutable() {}
 
-  virtual void set_geometry(geom::frect const& rect) = 0;
+  virtual void set_geometry(geom::frect const& rect) {}
+  virtual std::optional<geom::fsize> get_size_hint() const { return std::nullopt; }
+};
+
+class SpacerLayoutable : public ILayoutable
+{
+public:
+  SpacerLayoutable(geom::fsize const& size_hint) :
+    m_size_hint(size_hint)
+  {}
+
+  std::optional<geom::fsize> get_size_hint() const override { return m_size_hint; }
+
+private:
+  geom::fsize m_size_hint;
 };
 
 class LayoutableComponent : public ILayoutable
