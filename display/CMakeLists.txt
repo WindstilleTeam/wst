@@ -47,6 +47,7 @@ find_package(GLEW REQUIRED)
 find_package(PkgConfig REQUIRED)
 
 pkg_search_module(SDL2 REQUIRED sdl2 IMPORTED_TARGET)
+pkg_search_module(SIGCXX REQUIRED sigc++-2.0 IMPORTED_TARGET)
 
 # Build dependencies
 function(build_dependencies)
@@ -71,7 +72,7 @@ file(GLOB WSTDISPLAY_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
   src/font/*.?pp
   src/scenegraph/*.cpp)
 add_library(wstdisplay STATIC ${WSTDISPLAY_SOURCES})
-target_include_directories(wstdisplay PRIVATE src/ include/wstdisplay/)
+target_include_directories(wstdisplay PRIVATE src/ include/wstdisplay include/wstsystem/)
 target_include_directories(wstdisplay PUBLIC include/)
 target_compile_options(wstdisplay PUBLIC ${WARNINGS_CXX_FLAGS})
 target_link_libraries(wstdisplay PUBLIC
@@ -85,6 +86,7 @@ target_link_libraries(wstdisplay PUBLIC
   PNG::PNG
   Freetype::Freetype
   PkgConfig::SDL2
+    PkgConfig::SIGCXX
   Threads::Threads)
 
 if(BUILD_TESTS)

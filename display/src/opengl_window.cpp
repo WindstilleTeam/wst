@@ -42,7 +42,9 @@ std::string get_gl_string(GLenum name)
 
 namespace wstdisplay {
 
-OpenGLWindow::OpenGLWindow() :
+OpenGLWindow::OpenGLWindow(wstsys::System& system) :
+  sig_resized(),
+  m_system(system),
   m_title(),
   m_window(nullptr),
   m_gl_context(nullptr),
@@ -55,9 +57,12 @@ OpenGLWindow::OpenGLWindow() :
 {
 }
 
-OpenGLWindow::OpenGLWindow(const std::string& title,
+OpenGLWindow::OpenGLWindow(wstsys::System& system,
+                           const std::string& title,
                            const geom::isize& size, const geom::isize& aspect,
                            bool fullscreen, int anti_aliasing) :
+  sig_resized(),
+  m_system(system),
   m_title(title),
   m_window(nullptr),
   m_gl_context(nullptr),
@@ -69,6 +74,17 @@ OpenGLWindow::OpenGLWindow(const std::string& title,
   m_gc()
 {
   show();
+}
+
+OpenGLWindow::~OpenGLWindow()
+{
+  if (m_gl_context != nullptr) {
+    SDL_GL_DeleteContext(m_gl_context);
+  }
+
+  if (m_window != nullptr) {
+    SDL_DestroyWindow(m_window);
+  }
 }
 
 void
@@ -166,12 +182,6 @@ OpenGLWindow::show()
   }
 
   assert_gl();
-}
-
-OpenGLWindow::~OpenGLWindow()
-{
-  SDL_GL_DeleteContext(m_gl_context);
-  SDL_DestroyWindow(m_window);
 }
 
 void
@@ -307,6 +317,69 @@ OpenGLWindow::screenshot() const
   assert_gl();
 
   return surface;
+}
+
+uint32_t
+OpenGLWindow::get_id() const
+{
+  return SDL_GetWindowID(m_window);
+}
+
+void
+OpenGLWindow::handle_event(SDL_WindowEvent window)
+{
+  switch (window.event)
+  {
+    case SDL_WINDOWEVENT_SHOWN:
+      break;
+
+    case SDL_WINDOWEVENT_HIDDEN:
+      break;
+
+    case SDL_WINDOWEVENT_EXPOSED:
+      break;
+
+    case SDL_WINDOWEVENT_MOVED:
+      break;
+
+    case SDL_WINDOWEVENT_RESIZED:
+      m_size = geom::isize(window.data1, window.data2);
+      sig_resized(m_size);
+      break;
+
+    case SDL_WINDOWEVENT_SIZE_CHANGED:
+      break;
+
+    case SDL_WINDOWEVENT_MINIMIZED:
+      break;
+
+    case SDL_WINDOWEVENT_MAXIMIZED:
+      break;
+
+    case SDL_WINDOWEVENT_RESTORED:
+      break;
+
+    case SDL_WINDOWEVENT_ENTER:
+      break;
+
+    case SDL_WINDOWEVENT_LEAVE:
+      break;
+
+    case SDL_WINDOWEVENT_FOCUS_GAINED:
+      break;
+
+    case SDL_WINDOWEVENT_FOCUS_LOST:
+      break;
+
+    case SDL_WINDOWEVENT_CLOSE:
+      break;
+
+    case SDL_WINDOWEVENT_TAKE_FOCUS:
+      break;
+
+    case SDL_WINDOWEVENT_HIT_TEST:
+      break;
+  }
 }
 
 } // namespace wstdisplay

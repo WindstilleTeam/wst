@@ -20,10 +20,12 @@
 #include <filesystem>
 #include <memory>
 
+#include <sigc++/signal.h>
 #include <SDL.h>
 
 #include <geom/size.hpp>
 #include <surf/fwd.hpp>
+#include <wstsystem/fwd.hpp>
 
 namespace wstdisplay {
 
@@ -33,8 +35,9 @@ class OpenGLWindowImpl;
 class OpenGLWindow final
 {
 public:
-  OpenGLWindow();
-  OpenGLWindow(const std::string& title,
+  OpenGLWindow(wstsys::System& system);
+  OpenGLWindow(wstsys::System& system,
+               const std::string& title,
                const geom::isize& size, const geom::isize& aspect,
                bool fullscreen = false, int anti_aliasing = 0);
   ~OpenGLWindow();
@@ -58,7 +61,15 @@ public:
 
   surf::SoftwareSurface screenshot() const;
 
+  uint32_t get_id() const;
+
+  void handle_event(SDL_WindowEvent ev);
+
+public:
+  sigc::signal<void(geom::isize const&)> sig_resized;
+
 private:
+  wstsys::System& m_system;
   std::string m_title;
   SDL_Window* m_window;
   SDL_GLContext m_gl_context;

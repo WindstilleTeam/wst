@@ -17,6 +17,7 @@
 #include <wstdisplay/surface_manager.hpp>
 #include <wstdisplay/font/ttf_font_manager.hpp>
 #include <wstdisplay/font/ttf_font.hpp>
+#include <wstsystem/system.hpp>
 
 using namespace wstdisplay;
 
@@ -24,32 +25,15 @@ namespace {
 
 void run()
 {
-  if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-    std::ostringstream msg;
-    msg << "Couldn't initialize SDL: " << SDL_GetError();
-    throw std::runtime_error(msg.str());
-  }
-  atexit(SDL_Quit);
+  wstsys::System system;
 
-  std::random_device rd;
-  std::mt19937 gen(rd());
-
-  std::uniform_real_distribution<float> rand_x(0.0f, 1280.0f);
-  std::uniform_real_distribution<float> rand_y(0.0f, 720.0f);
-  std::uniform_real_distribution<float> rand_color(0.0f, 1.0f);
-  std::uniform_real_distribution<float> rand_radius(0.0f, 256.0f);
-  std::uniform_real_distribution<float> rand_rounded_radius(0.0f, 64.0f);
-  std::uniform_real_distribution<float> rand_angle(0.0f, 360.0f);
-  std::uniform_real_distribution<float> rand_scale(0.01f, 5.0f);
-
-  OpenGLWindow window;
-  window.set_title("Geometry Test");
-  window.set_size(geom::isize(1280, 720));
-  window.set_aspect(geom::isize(1280, 720));
-  window.set_fullscreen(false);
-  window.set_resizable(true);
-  window.set_anti_aliasing(0);
-  window.show();
+  std::unique_ptr<OpenGLWindow> window = system.create_window("Geometry Test",
+                                                              geom::isize(1280, 720));
+  window->set_aspect(geom::isize(1280, 720));
+  window->set_fullscreen(false);
+  window->set_resizable(true);
+  window->set_anti_aliasing(0);
+  //window->show();
 
   GraphicsContext gc;
   gc.set_aspect_size(geom::isize(1280, 720));
@@ -70,52 +54,60 @@ void run()
   // vsync
   // SDL_GL_SetSwapInterval(0);
 
+  std::random_device rd;
+  std::mt19937 gen(rd());
+
+  std::uniform_real_distribution<float> rand_x(0.0f, 1280.0f);
+  std::uniform_real_distribution<float> rand_y(0.0f, 720.0f);
+  std::uniform_real_distribution<float> rand_color(0.0f, 1.0f);
+  std::uniform_real_distribution<float> rand_radius(0.0f, 256.0f);
+  std::uniform_real_distribution<float> rand_rounded_radius(0.0f, 64.0f);
+  std::uniform_real_distribution<float> rand_angle(0.0f, 360.0f);
+  std::uniform_real_distribution<float> rand_scale(0.01f, 5.0f);
+
   int mode = 0;
 
   bool quit = false;
-  while (!quit) {
-    // process input
-    SDL_Event event;
-    while (SDL_PollEvent(&event)) {
-      switch(event.type)
+
+  system.sig_keyboard_event.connect([&](SDL_KeyboardEvent const& key){
+    if (key.state == SDL_PRESSED)
+    {
+      switch (key.keysym.sym)
       {
-        case SDL_QUIT:
-          // FIXME: This should be a bit more gentle, but will do for now
-          std::cout << "Ctrl-c or Window-close pressed, game is going to quit" << std::endl;
+        case SDLK_SPACE:
+          mode += 1;
+          break;
+
+        case SDLK_ESCAPE:
           quit = true;
           break;
 
-        case SDL_KEYDOWN:
-          switch (event.key.keysym.sym)
+        case SDLK_s:
           {
-            case SDLK_SPACE:
-              mode += 1;
-              break;
-
-            case SDLK_ESCAPE:
-              quit = true;
-              break;
-
-            case SDLK_s:
-              {
-                surf::SoftwareSurface screenshot = window.screenshot();
-                std::filesystem::path outfile = "/tmp/out.jpg";
-                std::cout << "Saving screenshot to " << outfile << std::endl;
-                surf::save(screenshot, outfile);
-              }
-              break;
+            surf::SoftwareSurface screenshot = window->screenshot();
+            std::filesystem::path outfile = "/tmp/out.jpg";
+            std::cout << "Saving screenshot to " << outfile << std::endl;
+            surf::save(screenshot, outfile);
           }
           break;
       }
     }
+  });
 
+  window->sig_resized.connect([&](geom::isize const& size){
+    rand_x = std::uniform_real_distribution<float>(0.0f, 1280.0f);
+    rand_y = std::uniform_real_distribution<float>(0.0f, 720.0f);
+  });
+
+  while (!quit)
+  {
     // render
     { // render to framebuffer
       gc.push_framebuffer(fb);
       gc.push_matrix();
       gc.mult_matrix(glm::ortho(0.0f,
-                                static_cast<float>(1280),
-                                static_cast<float>(720),
+                                static_cast<float>(gc.size().width()),
+                                static_cast<float>(gc.size().height()),
                                 0.0f,
                                 1000.0f,
                                 -1000.0f));
@@ -199,7 +191,8 @@ void run()
                GL_COLOR_BUFFER_BIT, GL_NEAREST);
     }
 
-    window.swap_buffers();
+    window->swap_buffers();
+    system.update();
   }
 }
 
