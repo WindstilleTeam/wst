@@ -18,7 +18,6 @@
 
 #include <iostream>
 #include <GL/glew.h>
-#include <SDL.h>
 
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
@@ -43,31 +42,39 @@ std::string get_gl_string(GLenum name)
 
 namespace wstdisplay {
 
-class OpenGLWindowImpl
+OpenGLWindow::OpenGLWindow() :
+  m_title(),
+  m_window(nullptr),
+  m_gl_context(nullptr),
+  m_size(640, 480),
+  m_aspect(m_size),
+  m_fullscreen(false),
+  m_resizable(false),
+  m_anti_aliasing(0),
+  m_gc()
 {
-public:
-  SDL_Window*   m_window;
-  SDL_GLContext m_gl_context;
-  geom::isize m_size;
-  std::unique_ptr<GraphicsContext> m_gc;
-
-  OpenGLWindowImpl() :
-    m_window(nullptr),
-    m_gl_context(nullptr),
-    m_size(),
-    m_gc()
-  {}
-
-private:
-  OpenGLWindowImpl(const OpenGLWindowImpl&) = delete;
-  OpenGLWindowImpl& operator=(const OpenGLWindowImpl&) = delete;
-};
+}
 
 OpenGLWindow::OpenGLWindow(const std::string& title,
-                           const geom::isize& size, const geom::isize& aspect, bool fullscreen, int anti_aliasing) :
-  m_impl(new OpenGLWindowImpl)
+                           const geom::isize& size, const geom::isize& aspect,
+                           bool fullscreen, int anti_aliasing) :
+  m_title(title),
+  m_window(nullptr),
+  m_gl_context(nullptr),
+  m_size(size),
+  m_aspect(aspect),
+  m_fullscreen(fullscreen),
+  m_resizable(false),
+  m_anti_aliasing(anti_aliasing),
+  m_gc()
 {
-  m_impl->m_size = size;
+  show();
+}
+
+void
+OpenGLWindow::show()
+{
+  assert(m_window == nullptr);
 
   //SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, 1); // vsync
   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
@@ -81,76 +88,81 @@ OpenGLWindow::OpenGLWindow(const std::string& title,
 
   SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 
-  if (anti_aliasing)
+  if (m_anti_aliasing != 0)
   {
     SDL_GL_SetAttribute( SDL_GL_MULTISAMPLEBUFFERS, 1 ); // boolean value, either it's enabled or not
-    SDL_GL_SetAttribute( SDL_GL_MULTISAMPLESAMPLES, anti_aliasing ); // 0, 2, or 4 for number of samples
+    SDL_GL_SetAttribute( SDL_GL_MULTISAMPLESAMPLES, m_anti_aliasing ); // 0, 2, or 4 for number of samples
   }
 
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
 
-  m_impl->m_window = SDL_CreateWindow(title.c_str(),
-                                      SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-                                      size.width(), size.height(),
-                                      SDL_WINDOW_OPENGL | (fullscreen ? SDL_WINDOW_FULLSCREEN : 0));
-  if (!m_impl->m_window)
-  {
+  uint32_t flags = SDL_WINDOW_OPENGL;
+
+  if (m_fullscreen) {
+    flags |= SDL_WINDOW_FULLSCREEN;
+  }
+
+  if (m_resizable) {
+    flags |= SDL_WINDOW_RESIZABLE;
+  }
+
+  m_window = SDL_CreateWindow(m_title.c_str(),
+                              SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
+                              m_size.width(), m_size.height(),
+                              flags);
+  if (m_window == nullptr) {
     throw std::runtime_error("Display:: Couldn't create window");
   }
-  else
+
+  m_gl_context = SDL_GL_CreateContext(m_window);
+  if (m_gl_context == nullptr) {
+    throw std::runtime_error("Display:: failed to create GLContext");
+  }
+
+  GLenum err = glewInit();
+  if (err != GLEW_OK)
   {
-    m_impl->m_gl_context = SDL_GL_CreateContext(m_impl->m_window);
-    if (!m_impl->m_gl_context)
-    {
-      throw std::runtime_error("Display:: failed to create GLContext");
-    }
+    std::ostringstream msg;
+    msg << "Display:: Couldn't initialize glew: " << glewGetString(err);
+    throw std::runtime_error(msg.str());
+  }
 
-    GLenum err = glewInit();
-    if (err != GLEW_OK)
-    {
-      std::ostringstream msg;
-      msg << "Display:: Couldn't initialize glew: " << glewGetString(err);
-      throw std::runtime_error(msg.str());
-    }
-    else
-    {
-      std::cout << "glewInit() successfull: " << glewGetString(GLEW_VERSION) << std::endl;
-      std::cout << "OpenGL 3.2: " << GL_VERSION_3_2 << std::endl;
-      std::cout << "GL_VERSION_3_0: " << GL_VERSION_3_0 << std::endl;
-      std::cout << "GL_VENDOR: " << get_gl_string(GL_VENDOR) << std::endl;
-      std::cout << "GL_RENDERER: " << get_gl_string(GL_RENDERER) << std::endl;
-      std::cout << "GL_VERSION: " << get_gl_string(GL_VERSION) << std::endl;
-      std::cout << "GL_SHADING_LANGUAGE_VERSION: " << get_gl_string(GL_SHADING_LANGUAGE_VERSION) << std::endl;
-      // std::cout << "GL_EXTENSIONS: " << get_gl_string(GL_EXTENSIONS) << std::endl;
+  std::cout << "glewInit() successfull: " << glewGetString(GLEW_VERSION) << std::endl;
+  std::cout << "OpenGL 3.2: " << GL_VERSION_3_2 << std::endl;
+  std::cout << "GL_VERSION_3_0: " << GL_VERSION_3_0 << std::endl;
+  std::cout << "GL_VENDOR: " << get_gl_string(GL_VENDOR) << std::endl;
+  std::cout << "GL_RENDERER: " << get_gl_string(GL_RENDERER) << std::endl;
+  std::cout << "GL_VERSION: " << get_gl_string(GL_VERSION) << std::endl;
+  std::cout << "GL_SHADING_LANGUAGE_VERSION: " << get_gl_string(GL_SHADING_LANGUAGE_VERSION) << std::endl;
+  // std::cout << "GL_EXTENSIONS: " << get_gl_string(GL_EXTENSIONS) << std::endl;
 
-      if (anti_aliasing)
-        glEnable(GL_MULTISAMPLE);
+  if (m_anti_aliasing) {
+    glEnable(GL_MULTISAMPLE);
+  }
 
-      assert_gl();
+  assert_gl();
 
-      OpenGLState::init();
-      m_impl->m_gc = std::make_unique<GraphicsContext>();
+  OpenGLState::init();
+  m_gc = std::make_unique<GraphicsContext>();
 
-      glViewport(0, 0, m_impl->m_size.width(), m_impl->m_size.height());
+  glViewport(0, 0, m_size.width(), m_size.height());
 
-      m_impl->m_gc->set_aspect_size(aspect);
+  m_gc->set_aspect_size(m_aspect);
 
-      m_impl->m_gc->set_projection(
-        glm::ortho(0.0f,
-                   static_cast<float>(m_impl->m_gc->size().width()),
-                   static_cast<float>(m_impl->m_gc->size().height()),
-                   0.0f,
-                   1000.0f,
-                   -1000.0f));
+  m_gc->set_projection(
+    glm::ortho(0.0f,
+               static_cast<float>(m_gc->size().width()),
+               static_cast<float>(m_gc->size().height()),
+               0.0f,
+               1000.0f,
+               -1000.0f));
 
-      if ((false)) // disabled for the moment, as it seems to do more harm then good
-      { // Magic pixel center constant, without that textures drawn in
-        // pixel coordinates might end up blurry
-        m_impl->m_gc->translate(0.375f, 0.375f, 0.0f);
-      }
-    }
+  if ((false)) // disabled for the moment, as it seems to do more harm then good
+  { // Magic pixel center constant, without that textures drawn in
+    // pixel coordinates might end up blurry
+    m_gc->translate(0.375f, 0.375f, 0.0f);
   }
 
   assert_gl();
@@ -158,19 +170,24 @@ OpenGLWindow::OpenGLWindow(const std::string& title,
 
 OpenGLWindow::~OpenGLWindow()
 {
-  SDL_GL_DeleteContext(m_impl->m_gl_context);
-  SDL_DestroyWindow(m_impl->m_window);
+  SDL_GL_DeleteContext(m_gl_context);
+  SDL_DestroyWindow(m_window);
 }
 
 void
 OpenGLWindow::set_title(std::string const& title)
 {
-  SDL_SetWindowTitle(m_impl->m_window, title.c_str());
+  m_title = title;
+  if (m_window != nullptr) {
+    SDL_SetWindowTitle(m_window, title.c_str());
+  }
 }
 
 void
 OpenGLWindow::set_icon(std::filesystem::path const& filename)
 {
+  assert(m_window != nullptr);
+
   surf::SoftwareSurface const pixeldata = surf::SoftwareSurface::from_file(filename);
 
   SDL_Surface* sdl_surface;
@@ -196,67 +213,89 @@ OpenGLWindow::set_icon(std::filesystem::path const& filename)
                                            pixeldata.get_format() == surf::PixelFormat::RGB8 ? 0x00000000 : 0xff000000);
   }
 
-  SDL_SetWindowIcon(m_impl->m_window, sdl_surface);
+  SDL_SetWindowIcon(m_window, sdl_surface);
 
   SDL_FreeSurface(sdl_surface);
 }
 
-int
-OpenGLWindow::get_width()  const
+void
+OpenGLWindow::set_size(geom::isize const& size)
 {
-  return m_impl->m_size.width();
+  m_size = size;
 }
 
-int
-OpenGLWindow::get_height() const
+void
+OpenGLWindow::set_aspect(geom::isize const& aspect)
 {
-  return m_impl->m_size.height();
+  m_aspect = aspect;
 }
 
 geom::isize
 OpenGLWindow::get_size() const
 {
-  return m_impl->m_size;
+  if (m_window != nullptr) {
+    int w, h;
+    SDL_GetWindowSize(m_window, &w, &h);
+    return geom::isize(w, h);
+  } else {
+    return m_size;
+  }
+}
+
+void
+OpenGLWindow::set_anti_aliasing(int anti_aliasing)
+{
+  m_anti_aliasing = anti_aliasing;
 }
 
 void
 OpenGLWindow::set_fullscreen(bool fullscreen)
 {
-  if (fullscreen)
-  {
-    SDL_SetWindowFullscreen(m_impl->m_window, SDL_WINDOW_FULLSCREEN);
+  m_fullscreen = fullscreen;
+
+  if (m_window != nullptr) {
+    SDL_SetWindowFullscreen(m_window, m_fullscreen ? SDL_WINDOW_FULLSCREEN : 0);
   }
-  else
-  {
-    SDL_SetWindowFullscreen(m_impl->m_window, 0);
-  }
+}
+
+void
+OpenGLWindow::set_resizable(bool resizable)
+{
+  m_resizable = resizable;
 }
 
 void
 OpenGLWindow::set_gamma(float r, float g, float b)
 {
-  if (SDL_SetWindowBrightness(m_impl->m_window, (r+g+b)/3.0f) == -1)
-  {
-    // Couldn't set gamma
+  if (m_window != nullptr) {
+    if (SDL_SetWindowBrightness(m_window, (r+g+b)/3.0f) == -1)
+    {
+      // Couldn't set gamma
+    }
   }
 }
 
 GraphicsContext&
 OpenGLWindow::get_gc() const
 {
-  assert(m_impl->m_gc);
-  return *m_impl->m_gc;
+  assert(m_gc != nullptr);
+
+  return *m_gc;
 }
 
 void
 OpenGLWindow::swap_buffers()
 {
-  SDL_GL_SwapWindow(m_impl->m_window);
+  assert(m_window != nullptr);
+
+  SDL_GL_SwapWindow(m_window);
 }
 
 surf::SoftwareSurface
 OpenGLWindow::screenshot() const
 {
+  assert(m_gc != nullptr);
+
   GLint viewport[4];
   glGetIntegerv(GL_VIEWPORT, viewport);
 

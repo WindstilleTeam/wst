@@ -42,8 +42,14 @@ void run()
   std::uniform_real_distribution<float> rand_angle(0.0f, 360.0f);
   std::uniform_real_distribution<float> rand_scale(0.01f, 5.0f);
 
-  OpenGLWindow window("Geometry Test", geom::isize(1280, 720), geom::isize(1280, 720),
-                      false, 0);
+  OpenGLWindow window;
+  window.set_title("Geometry Test");
+  window.set_size(geom::isize(1280, 720));
+  window.set_aspect(geom::isize(1280, 720));
+  window.set_fullscreen(false);
+  window.set_resizable(true);
+  window.set_anti_aliasing(0);
+  window.show();
 
   GraphicsContext gc;
   gc.set_aspect_size(geom::isize(1280, 720));

@@ -20,6 +20,8 @@
 #include <filesystem>
 #include <memory>
 
+#include <SDL.h>
+
 #include <geom/size.hpp>
 #include <surf/fwd.hpp>
 
@@ -31,6 +33,7 @@ class OpenGLWindowImpl;
 class OpenGLWindow final
 {
 public:
+  OpenGLWindow();
   OpenGLWindow(const std::string& title,
                const geom::isize& size, const geom::isize& aspect,
                bool fullscreen = false, int anti_aliasing = 0);
@@ -38,13 +41,16 @@ public:
 
   void set_title(std::string const& title);
   void set_icon(std::filesystem::path const& filename);
-
-  int  get_width() const;
-  int  get_height() const;
-  geom::isize get_size() const;
-
+  void set_size(geom::isize const& size);
+  void set_aspect(geom::isize const& aspect);
   void set_fullscreen(bool fullscreen);
+  void set_resizable(bool resizable);
+  void set_anti_aliasing(int anti_aliasing);
   void set_gamma(float r, float g, float b);
+
+  void show();
+
+  geom::isize get_size() const;
 
   GraphicsContext& get_gc() const;
 
@@ -53,7 +59,16 @@ public:
   surf::SoftwareSurface screenshot() const;
 
 private:
-  std::unique_ptr<OpenGLWindowImpl> m_impl;
+  std::string m_title;
+  SDL_Window* m_window;
+  SDL_GLContext m_gl_context;
+  geom::isize m_size;
+  geom::isize m_aspect;
+  bool m_fullscreen;
+  bool m_resizable;
+  int m_anti_aliasing;
+
+  std::unique_ptr<GraphicsContext> m_gc;
 
 private:
   OpenGLWindow(const OpenGLWindow&);
