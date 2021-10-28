@@ -60,7 +60,7 @@ System::create_window(const std::string& title,
   window->set_title(title);
   window->set_size(size);
   window->set_aspect(size);
-  window->set_fullscreen(false);
+  window->set_mode(wstdisplay::OpenGLWindow::Mode::Window);
   window->set_resizable(true);
   window->set_anti_aliasing(0);
   window->show();

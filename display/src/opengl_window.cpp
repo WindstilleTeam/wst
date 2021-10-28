@@ -50,7 +50,7 @@ OpenGLWindow::OpenGLWindow(wstsys::System& system) :
   m_gl_context(nullptr),
   m_size(640, 480),
   m_aspect(m_size),
-  m_fullscreen(false),
+  m_mode(Mode::Window),
   m_resizable(false),
   m_anti_aliasing(0),
   m_gc()
@@ -60,7 +60,7 @@ OpenGLWindow::OpenGLWindow(wstsys::System& system) :
 OpenGLWindow::OpenGLWindow(wstsys::System& system,
                            const std::string& title,
                            const geom::isize& size, const geom::isize& aspect,
-                           bool fullscreen, int anti_aliasing) :
+                           Mode mode, int anti_aliasing) :
   sig_resized(),
   m_system(system),
   m_title(title),
@@ -68,7 +68,7 @@ OpenGLWindow::OpenGLWindow(wstsys::System& system,
   m_gl_context(nullptr),
   m_size(size),
   m_aspect(aspect),
-  m_fullscreen(fullscreen),
+  m_mode(mode),
   m_resizable(false),
   m_anti_aliasing(anti_aliasing),
   m_gc()
@@ -116,7 +116,9 @@ OpenGLWindow::show()
 
   uint32_t flags = SDL_WINDOW_OPENGL;
 
-  if (m_fullscreen) {
+  if (m_mode == Mode::Fullscreen) {
+    flags |= SDL_WINDOW_FULLSCREEN;
+  } else if (m_mode == Mode::FullscreenDesktop) {
     flags |= SDL_WINDOW_FULLSCREEN;
   }
 
@@ -259,13 +261,32 @@ OpenGLWindow::set_anti_aliasing(int anti_aliasing)
 }
 
 void
-OpenGLWindow::set_fullscreen(bool fullscreen)
+OpenGLWindow::set_mode(Mode mode)
 {
-  m_fullscreen = fullscreen;
+  m_mode = mode;
 
   if (m_window != nullptr) {
-    SDL_SetWindowFullscreen(m_window, m_fullscreen ? SDL_WINDOW_FULLSCREEN : 0);
+    switch (m_mode)
+    {
+      case Mode::FullscreenDesktop:
+        SDL_SetWindowFullscreen(m_window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+        break;
+
+      case Mode::Fullscreen:
+        SDL_SetWindowFullscreen(m_window, SDL_WINDOW_FULLSCREEN);
+        break;
+
+      case Mode::Window:
+        SDL_SetWindowFullscreen(m_window, 0);
+        break;
+    }
   }
+}
+
+OpenGLWindow::Mode
+OpenGLWindow::get_mode() const
+{
+  return m_mode;
 }
 
 void

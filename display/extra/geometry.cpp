@@ -30,7 +30,7 @@ void run()
   std::unique_ptr<OpenGLWindow> window = system.create_window("Geometry Test",
                                                               geom::isize(1280, 720));
   window->set_aspect(geom::isize(1280, 720));
-  window->set_fullscreen(false);
+  window->set_mode(OpenGLWindow::Mode::Window);
   window->set_resizable(true);
   window->set_anti_aliasing(0);
   //window->show();
@@ -80,6 +80,18 @@ void run()
 
         case SDLK_ESCAPE:
           quit = true;
+          break;
+
+        case SDLK_f:
+          if (window->get_mode() == OpenGLWindow::Mode::Window) {
+            if (key.keysym.mod & KMOD_SHIFT) {
+              window->set_mode(OpenGLWindow::Mode::Fullscreen);
+            } else {
+              window->set_mode(OpenGLWindow::Mode::FullscreenDesktop);
+            }
+          } else {
+            window->set_mode(OpenGLWindow::Mode::Window);
+          }
           break;
 
         case SDLK_s:
