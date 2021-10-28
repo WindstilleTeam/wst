@@ -95,8 +95,17 @@ void run()
   });
 
   window->sig_resized.connect([&](geom::isize const& size){
-    rand_x = std::uniform_real_distribution<float>(0.0f, 1280.0f);
-    rand_y = std::uniform_real_distribution<float>(0.0f, 720.0f);
+    log_fatal("on_resize: {}", size);
+    rand_x = std::uniform_real_distribution<float>(0.0f, static_cast<float>(size.width()));
+    rand_y = std::uniform_real_distribution<float>(0.0f, static_cast<float>(size.height()));
+    gc.set_aspect_size(size);
+    fb = Framebuffer::create(size);
+
+    // FIXME: workaround, as framebuffer are full of crap
+    gc.push_framebuffer(fb);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    gc.pop_framebuffer();
   });
 
   while (!quit)
@@ -187,8 +196,7 @@ void run()
       glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-      fb->blit(geom::irect(0, 0, 1280, 720), geom::irect(0, 0, 1280, 720),
-               GL_COLOR_BUFFER_BIT, GL_NEAREST);
+      fb->blit(fb->get_size(), fb->get_size(), GL_COLOR_BUFFER_BIT, GL_NEAREST);
     }
 
     window->swap_buffers();

@@ -344,6 +344,7 @@ OpenGLWindow::handle_event(SDL_WindowEvent window)
 
     case SDL_WINDOWEVENT_RESIZED:
       m_size = geom::isize(window.data1, window.data2);
+      glViewport(0, 0, m_size.width(), m_size.height());
       sig_resized(m_size);
       break;
 
