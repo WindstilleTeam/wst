@@ -94,6 +94,17 @@ void run()
           }
           break;
 
+        case SDLK_1: mode = 0; break;
+        case SDLK_2: mode = 1; break;
+        case SDLK_3: mode = 2; break;
+        case SDLK_4: mode = 3; break;
+        case SDLK_5: mode = 4; break;
+        case SDLK_6: mode = 5; break;
+        case SDLK_7: mode = 6; break;
+        case SDLK_8: mode = 7; break;
+        case SDLK_9: mode = 8; break;
+        case SDLK_0: mode = 9; break;
+
         case SDLK_s:
           {
             surf::SoftwareSurface screenshot = window->screenshot();
