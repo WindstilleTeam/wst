@@ -35,8 +35,7 @@ public:
   System();
   ~System();
 
-  std::unique_ptr<wstdisplay::OpenGLWindow> create_window(std::string const& title,
-                                                          geom::isize const& size);
+  std::unique_ptr<wstdisplay::OpenGLWindow> create_window(wstdisplay::OpenGLWindow::Params const& params);
 
   void run();
   void update();

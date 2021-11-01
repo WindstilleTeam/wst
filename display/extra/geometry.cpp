@@ -27,13 +27,14 @@ void run()
 {
   wstsys::System system;
 
-  std::unique_ptr<OpenGLWindow> window = system.create_window("Geometry Test",
-                                                              geom::isize(1280, 720));
-  window->set_aspect(geom::isize(1280, 720));
-  window->set_mode(OpenGLWindow::Mode::Window);
-  window->set_resizable(true);
-  window->set_anti_aliasing(0);
-  //window->show();
+  std::unique_ptr<OpenGLWindow> window = system.create_window({
+      .title = "Geometry Test",
+      .icon = {},
+      .size = geom::isize(1280, 720),
+      .mode = wstdisplay::OpenGLWindow::Mode::Window,
+      .resizable = true,
+      .anti_aliasing = 0
+    });
 
   GraphicsContext gc;
   gc.set_aspect_size(geom::isize(1280, 720));
@@ -118,13 +119,12 @@ void run()
   });
 
   window->sig_resized.connect([&](geom::isize const& size){
-    log_fatal("on_resize: {}", size);
     rand_x = std::uniform_real_distribution<float>(0.0f, static_cast<float>(size.width()));
     rand_y = std::uniform_real_distribution<float>(0.0f, static_cast<float>(size.height()));
     gc.set_aspect_size(size);
     fb = Framebuffer::create(size);
 
-    // FIXME: workaround, as framebuffer are full of crap
+    // FIXME: workaround, as framebuffer don't clear their memory
     gc.push_framebuffer(fb);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

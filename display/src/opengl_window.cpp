@@ -42,53 +42,17 @@ std::string get_gl_string(GLenum name)
 
 namespace wstdisplay {
 
-OpenGLWindow::OpenGLWindow(wstsys::System& system) :
-  sig_resized(),
-  m_system(system),
-  m_title(),
-  m_window(nullptr),
-  m_gl_context(nullptr),
-  m_size(640, 480),
-  m_aspect(m_size),
-  m_mode(Mode::Window),
-  m_resizable(false),
-  m_anti_aliasing(0),
-  m_gc()
-{
-}
-
 OpenGLWindow::OpenGLWindow(wstsys::System& system,
-                           const std::string& title,
-                           const geom::isize& size, const geom::isize& aspect,
-                           Mode mode, int anti_aliasing) :
+                           Params const& params) :
   sig_resized(),
   m_system(system),
-  m_title(title),
   m_window(nullptr),
   m_gl_context(nullptr),
-  m_size(size),
-  m_aspect(aspect),
-  m_mode(mode),
-  m_resizable(false),
-  m_anti_aliasing(anti_aliasing),
+  m_size(params.size),
+  m_mode(params.mode),
+  m_resizable(params.resizable),
+  m_anti_aliasing(params.anti_aliasing),
   m_gc()
-{
-  show();
-}
-
-OpenGLWindow::~OpenGLWindow()
-{
-  if (m_gl_context != nullptr) {
-    SDL_GL_DeleteContext(m_gl_context);
-  }
-
-  if (m_window != nullptr) {
-    SDL_DestroyWindow(m_window);
-  }
-}
-
-void
-OpenGLWindow::show()
 {
   assert(m_window == nullptr);
 
@@ -126,7 +90,7 @@ OpenGLWindow::show()
     flags |= SDL_WINDOW_RESIZABLE;
   }
 
-  m_window = SDL_CreateWindow(m_title.c_str(),
+  m_window = SDL_CreateWindow(params.title.c_str(),
                               SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
                               m_size.width(), m_size.height(),
                               flags);
@@ -167,7 +131,7 @@ OpenGLWindow::show()
 
   glViewport(0, 0, m_size.width(), m_size.height());
 
-  m_gc->set_aspect_size(m_aspect);
+  //m_gc->set_aspect_size(params.aspect);
 
   m_gc->set_projection(
     glm::ortho(0.0f,
@@ -186,10 +150,20 @@ OpenGLWindow::show()
   assert_gl();
 }
 
+OpenGLWindow::~OpenGLWindow()
+{
+  if (m_gl_context != nullptr) {
+    SDL_GL_DeleteContext(m_gl_context);
+  }
+
+  if (m_window != nullptr) {
+    SDL_DestroyWindow(m_window);
+  }
+}
+
 void
 OpenGLWindow::set_title(std::string const& title)
 {
-  m_title = title;
   if (m_window != nullptr) {
     SDL_SetWindowTitle(m_window, title.c_str());
   }
@@ -236,12 +210,6 @@ OpenGLWindow::set_size(geom::isize const& size)
   m_size = size;
 }
 
-void
-OpenGLWindow::set_aspect(geom::isize const& aspect)
-{
-  m_aspect = aspect;
-}
-
 geom::isize
 OpenGLWindow::get_size() const
 {
@@ -252,12 +220,6 @@ OpenGLWindow::get_size() const
   } else {
     return m_size;
   }
-}
-
-void
-OpenGLWindow::set_anti_aliasing(int anti_aliasing)
-{
-  m_anti_aliasing = anti_aliasing;
 }
 
 void
@@ -287,12 +249,6 @@ OpenGLWindow::Mode
 OpenGLWindow::get_mode() const
 {
   return m_mode;
-}
-
-void
-OpenGLWindow::set_resizable(bool resizable)
-{
-  m_resizable = resizable;
 }
 
 void

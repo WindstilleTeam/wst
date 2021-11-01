@@ -53,17 +53,9 @@ System::~System()
 }
 
 std::unique_ptr<wstdisplay::OpenGLWindow>
-System::create_window(const std::string& title,
-                      const geom::isize& size)
+System::create_window(wstdisplay::OpenGLWindow::Params const& params)
 {
-  auto window = std::make_unique<wstdisplay::OpenGLWindow>(*this);
-  window->set_title(title);
-  window->set_size(size);
-  window->set_aspect(size);
-  window->set_mode(wstdisplay::OpenGLWindow::Mode::Window);
-  window->set_resizable(true);
-  window->set_anti_aliasing(0);
-  window->show();
+  auto window = std::make_unique<wstdisplay::OpenGLWindow>(*this, params);
 
   m_windows[window->get_id()] = window.get();
   return window;

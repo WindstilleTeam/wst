@@ -37,25 +37,26 @@ class OpenGLWindow final
 public:
   enum class Mode { Fullscreen, FullscreenDesktop, Window };
 
+  struct Params
+  {
+    std::string title = {};
+    std::filesystem::path icon;
+    geom::isize size = geom::isize(640, 480);
+    Mode mode = Mode::Window;
+    bool resizable = false;
+    int anti_aliasing = 0;
+  };
+
 public:
-  OpenGLWindow(wstsys::System& system);
-  OpenGLWindow(wstsys::System& system,
-               const std::string& title,
-               const geom::isize& size, const geom::isize& aspect,
-               Mode mode = Mode::Window, int anti_aliasing = 0);
+  OpenGLWindow(wstsys::System& system, Params const& params);
   ~OpenGLWindow();
 
   void set_title(std::string const& title);
   void set_icon(std::filesystem::path const& filename);
   void set_size(geom::isize const& size);
-  void set_aspect(geom::isize const& aspect);
   void set_mode(Mode mode);
   Mode get_mode() const;
-  void set_resizable(bool resizable);
-  void set_anti_aliasing(int anti_aliasing);
   void set_gamma(float r, float g, float b);
-
-  void show();
 
   geom::isize get_size() const;
 
@@ -74,11 +75,9 @@ public:
 
 private:
   wstsys::System& m_system;
-  std::string m_title;
   SDL_Window* m_window;
   SDL_GLContext m_gl_context;
   geom::isize m_size;
-  geom::isize m_aspect;
   Mode m_mode;
   bool m_resizable;
   int m_anti_aliasing;
