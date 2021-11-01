@@ -127,19 +127,10 @@ OpenGLWindow::OpenGLWindow(wstsys::System& system,
   assert_gl();
 
   OpenGLState::init();
-  m_gc = std::make_unique<GraphicsContext>();
-
   glViewport(0, 0, m_size.width(), m_size.height());
 
-  //m_gc->set_aspect_size(params.aspect);
-
-  m_gc->set_projection(
-    glm::ortho(0.0f,
-               static_cast<float>(m_gc->size().width()),
-               static_cast<float>(m_gc->size().height()),
-               0.0f,
-               1000.0f,
-               -1000.0f));
+  m_gc = std::make_unique<GraphicsContext>();
+  m_gc->set_ortho(m_size);
 
   if ((false)) // disabled for the moment, as it seems to do more harm then good
   { // Magic pixel center constant, without that textures drawn in

@@ -78,7 +78,7 @@ void main()
 } // namespace
 
 GraphicsContext::GraphicsContext() :
-  m_aspect_size(),
+  m_size(640, 480),
   m_cliprects(),
   m_default_shader(),
   m_white_texture(),
@@ -513,22 +513,22 @@ GraphicsContext::draw_grid(const geom::fpoint& offset, const geom::fsize& size, 
   float start_x = fmodf(offset.x(), size.width());
   float start_y = fmodf(offset.y(), size.height());
 
-  for(float x = start_x; x < static_cast<float>(m_aspect_size.width()); x += size.width())
+  for(float x = start_x; x < static_cast<float>(m_size.width()); x += size.width())
   {
     va.color(rgba);
     va.vertex(x, 0.0f);
 
     va.color(rgba);
-    va.vertex(x, static_cast<float>(m_aspect_size.height()));
+    va.vertex(x, static_cast<float>(m_size.height()));
   }
 
-  for(float y = start_y; y < static_cast<float>(m_aspect_size.height()); y += size.height())
+  for(float y = start_y; y < static_cast<float>(m_size.height()); y += size.height())
   {
     va.color(rgba);
     va.vertex(0.0f, y);
 
     va.color(rgba);
-    va.vertex(static_cast<float>(m_aspect_size.width()), y);
+    va.vertex(static_cast<float>(m_size.width()), y);
   }
 
   va.render(*this);
@@ -582,16 +582,10 @@ GraphicsContext::pop_cliprect()
   assert_gl();
 }
 
-void
-GraphicsContext::set_aspect_size(geom::isize const& aspect_size)
-{
-  m_aspect_size = aspect_size;
-}
-
 geom::isize
 GraphicsContext::size() const
 {
-  return m_aspect_size;
+  return m_size;
 }
 
 void
@@ -637,6 +631,20 @@ GraphicsContext::get_framebuffer()
     return FramebufferPtr();
   else
     return framebuffers.back();
+}
+
+void
+GraphicsContext::set_ortho(geom::isize const& size)
+{
+  m_size = size;
+
+  set_projection(
+    glm::ortho(0.0f,
+               static_cast<float>(size.width()),
+               static_cast<float>(size.height()),
+               0.0f,
+               1000.0f,
+               -1000.0f));
 }
 
 void

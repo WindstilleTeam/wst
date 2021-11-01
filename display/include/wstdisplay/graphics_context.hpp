@@ -71,9 +71,10 @@ public:
   void pop_framebuffer();
   FramebufferPtr get_framebuffer();
 
-  void set_aspect_size(geom::isize const& aspect_size);
+  /** Only valid with ortho projection */
   geom::isize size() const;
 
+  void set_ortho(geom::isize const& size);
   void set_projection(glm::mat4 const& mat);
   glm::mat4 const& get_projection() const { return m_projection; }
 
@@ -92,7 +93,7 @@ public:
   TexturePtr get_white_texture() const { return m_white_texture; }
 
 private:
-  geom::isize m_aspect_size;
+  geom::isize m_size;
   std::vector<geom::irect> m_cliprects;
 
   ShaderProgramPtr m_default_shader;

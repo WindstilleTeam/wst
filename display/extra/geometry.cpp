@@ -37,7 +37,7 @@ void run()
     });
 
   GraphicsContext gc;
-  gc.set_aspect_size(geom::isize(1280, 720));
+  gc.set_ortho(geom::isize(1280, 720));
 
   SurfaceManager surface_manager;
   TTFFontManager font_manager;
@@ -121,7 +121,7 @@ void run()
   window->sig_resized.connect([&](geom::isize const& size){
     rand_x = std::uniform_real_distribution<float>(0.0f, static_cast<float>(size.width()));
     rand_y = std::uniform_real_distribution<float>(0.0f, static_cast<float>(size.height()));
-    gc.set_aspect_size(size);
+    gc.set_ortho(size);
     fb = Framebuffer::create(size);
 
     // FIXME: workaround, as framebuffer don't clear their memory
