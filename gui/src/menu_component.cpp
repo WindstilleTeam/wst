@@ -189,8 +189,8 @@ MenuComponent::get_font()
   return font;
 }
 
-float
-MenuComponent::get_prefered_width() const
+geom::fsize
+MenuComponent::get_prefered_size() const
 {
   /*
     float width = 0;
@@ -198,13 +198,8 @@ MenuComponent::get_prefered_width() const
     {
     width = std::max(get_width())
     }  */
-  return m_rect.width();
-}
-
-float
-MenuComponent::get_prefered_height() const
-{
-  return item_height() * static_cast<float>(std::min(10, int(items.size()))) + 12.0f;
+  return geom::fsize(m_rect.width(),
+                     item_height() * static_cast<float>(std::min(10, int(items.size()))) + 12.0f);
 }
 
 float

@@ -53,14 +53,19 @@ public:
   virtual geom::frect get_screen_rect() const;
   virtual void  set_screen_rect(const geom::frect& rect);
 
-  virtual float get_prefered_width() const;
-  virtual float get_prefered_height() const;
+  virtual geom::fsize get_prefered_size() const;
 
   virtual Style& get_style() const;
 
 protected:
-  geom::frect m_rect;
   Component* m_parent;
+
+  /** Rectangle on the screen allocated for the Component */
+  geom::frect m_rect;
+
+  /** Size prefered by the widget */
+  geom::fsize m_prefered_size;
+
   bool m_active;
 
 private:

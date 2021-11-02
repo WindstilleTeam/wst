@@ -58,8 +58,7 @@ public:
   void draw(wstdisplay::GraphicsContext& gc) override;
   void update(float delta, const Controller& controller) override;
 
-  float get_prefered_width() const override;
-  float get_prefered_height() const override;
+  geom::fsize get_prefered_size() const override;
 
   void     set_font(wstdisplay::TTFFont* font_);
   wstdisplay::TTFFont* get_font();

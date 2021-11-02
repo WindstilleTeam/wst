@@ -99,16 +99,16 @@ Menu::show(ScreenManager& screen_manager)
     geom::frect rect = group->get_screen_rect();
 
     glm::vec2 center((rect.left() + rect.right()) / 2.0f,
-                    (rect.top() + rect.bottom()) / 2.0f);
+                     (rect.top() + rect.bottom()) / 2.0f);
 
-    geom::fsize size(menu->get_prefered_width(),
-               menu->get_prefered_height() + (group->has_title() ?
-                                              static_cast<float>(manager->get_style().get_font()->get_height()) + 18.0f :
-                                              0.0f));
+    geom::fsize size(menu->get_prefered_size().width(),
+                     group->has_title() ?
+                     static_cast<float>(manager->get_style().get_font()->get_height()) + 18.0f :
+                     0.0f);
 
     group->set_screen_rect(geom::frect(glm::vec2(center.x - size.width()/2.0f,
-                                          center.y - size.height()/2.0f),
-                                 size));
+                                                 center.y - size.height()/2.0f),
+                                       size));
 
     menu->set_screen_rect(group->get_child_rect());
   }

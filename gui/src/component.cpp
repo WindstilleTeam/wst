@@ -21,15 +21,17 @@
 namespace wstgui {
 
 Component::Component(Component* parent) :
-  m_rect(),
   m_parent(parent),
+  m_rect(),
+  m_prefered_size(),
   m_active(false)
 {
 }
 
 Component::Component(const geom::frect& rect, Component* parent) :
-  m_rect(rect),
   m_parent(parent),
+  m_rect(rect),
+  m_prefered_size(),
   m_active(false)
 {
 }
@@ -71,18 +73,10 @@ Component::set_screen_rect(const geom::frect& rect)
   m_rect = rect;
 }
 
-float
-Component::get_prefered_width() const
+geom::fsize
+Component::get_prefered_size() const
 {
-  log_not_implemented();
-  return 100.0f;
-}
-
-float
-Component::get_prefered_height() const
-{
-  log_not_implemented();
-  return 100.0f;
+  return m_prefered_size;
 }
 
 Style&
