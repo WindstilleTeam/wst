@@ -115,7 +115,7 @@ Menu::show(ScreenManager& screen_manager)
     menu->set_screen_rect(group->get_child_rect());
   }
 
-  group->pack(menu.release());
+  group->pack(std::move(menu));
   manager->get_root()->add_child(std::move(group));
 
   screen_manager.push_overlay(std::move(manager));

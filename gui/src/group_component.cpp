@@ -66,10 +66,9 @@ GroupComponent::update(float delta, const Controller& controller)
 }
 
 void
-GroupComponent::pack(Component* component)
+GroupComponent::pack(std::unique_ptr<Component> component)
 {
-  assert(!child);
-  child.reset(component);
+  child = std::move(component);
 
   child->set_screen_rect(get_child_rect());
   child->set_active(true);
