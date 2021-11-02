@@ -18,20 +18,25 @@
 
 #include <SDL.h>
 
+#include <glm/glm.hpp>
+#include <glm/ext.hpp>
+#include <geom/io.hpp>
 #include <surf/palette.hpp>
 #include <wstdisplay/font/ttf_font_manager.hpp>
 #include <wstdisplay/opengl_window.hpp>
+#include <wstgui/anchor_layoutable.hpp>
+#include <wstgui/box_layoutable.hpp>
 #include <wstgui/button.hpp>
 #include <wstgui/gui_manager.hpp>
+#include <wstgui/ilayoutable.hpp>
 #include <wstgui/label.hpp>
 #include <wstgui/layout_builder.hpp>
-#include <wstgui/ilayoutable.hpp>
-#include <wstgui/box_layoutable.hpp>
 #include <wstgui/menu.hpp>
 #include <wstgui/root_component.hpp>
 #include <wstgui/style.hpp>
 #include <wstgui/text_view.hpp>
 #include <wstinput/controller.hpp>
+#include <wstsystem/system.hpp>
 
 using namespace wstinput;
 using namespace wstdisplay;
@@ -39,14 +44,14 @@ using namespace wstgui;
 
 int main()
 {
-  if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-    std::ostringstream msg;
-    msg << "Couldn't initialize SDL: " << SDL_GetError();
-    throw std::runtime_error(msg.str());
-  }
-  atexit(SDL_Quit);
+  wstsys::System system;
 
-  OpenGLWindow window("my window", geom::isize(640, 480), geom::isize(640, 480));
+  auto window = system.create_window({
+      .title = "GUI Test",
+      .icon = {},
+      .size = geom::isize(640, 480),
+      .resizable = true
+    });
 
   TTFFontManager ttf_font_manager;
   std::unique_ptr<TTFFont> font = ttf_font_manager.create_font("external/wstdisplay/extra/Vera.ttf", 20);
@@ -126,8 +131,8 @@ int main()
   hbox->pack_stretcher();
   hbox->pack(button4.get());
   hbox->pack_stretcher();
-  hbox->pack(button5.get());
-  hbox->pack(button6.get());
+  hbox->pack(button5.get(), false);
+  hbox->pack(button6.get(), false);
   vbox->pack(std::move(hbox));
   vbox->set_geometry({50, 200, 500, 400});
 
@@ -138,39 +143,81 @@ int main()
   root->add_child(std::move(button5));
   root->add_child(std::move(button6));
 
-  //ScreenManager screen_manager;
-  //screen_manager.run();
+  auto btn1 = std::make_unique<Button>("Button1", root);
+  auto btn2 = std::make_unique<Button>("Button2", root);
+  auto btn3 = std::make_unique<Button>("Button3", root);
+  auto btn4 = std::make_unique<Button>("Button4", root);
+  auto btn5 = std::make_unique<Button>("Button5", root);
+  auto btn6 = std::make_unique<Button>("Button6", root);
+  auto btn7 = std::make_unique<Button>("Button7", root);
+
+  auto anchor = std::make_unique<AnchorLayoutable>();
+
+  anchor->place(btn1.get(),
+                rfloat::relative(0.0f), rfloat::relative(0.0f),
+                rfloat::absolute(150.0f), rfloat::absolute(100.0f),
+                geom::origin::TOP_LEFT);
+  anchor->place(btn2.get(),
+                rfloat::relative(1.0f), rfloat::relative(0.0f),
+                rfloat::absolute(150.0f), rfloat::absolute(100.0f),
+                geom::origin::TOP_RIGHT);
+  anchor->place(btn3.get(),
+                rfloat::relative(0.5f), rfloat::relative(0.5f),
+                rfloat::absolute(150.0f), rfloat::absolute(100.0f),
+                geom::origin::CENTER);
+  anchor->place(btn4.get(),
+                rfloat::relative(0.0f), rfloat::relative(1.0f),
+                rfloat::relative(0.25f), rfloat::absolute(100.0f),
+                geom::origin::BOTTOM_LEFT);
+  anchor->place(btn5.get(),
+                rfloat::relative(1.0f), rfloat::relative(1.0f),
+                rfloat::relative(0.25f), rfloat::absolute(100.0f),
+                geom::origin::BOTTOM_RIGHT);
+  anchor->place(btn6.get(),
+                rfloat::relative(0.5f), rfloat::relative(0.5f),
+                rfloat::relative(0.25f), rfloat::relative(0.25f),
+                geom::origin::CENTER);
+  anchor->place(btn7.get(), geom::frect(300, 300, 350, 330));
+
+  root->add_child(std::move(btn1));
+  root->add_child(std::move(btn2));
+  root->add_child(std::move(btn3));
+  root->add_child(std::move(btn4));
+  root->add_child(std::move(btn5));
+  root->add_child(std::move(btn6));
+  root->add_child(std::move(btn7));
+
+  anchor->set_geometry(geom::frect(geom::fsize(window->get_size())));
+
+  window->sig_resized.connect([&](geom::isize const& size){
+    vbox->set_geometry(geom::grow(geom::frect(geom::fpoint(0.0f, 0.0f),
+                                              geom::fsize(size)), -100.0f));
+    anchor->set_geometry(geom::frect(geom::fsize(size)));
+    glViewport(0, 0, size.width(), size.height());
+    auto& gc = window->get_gc();
+    gc.set_ortho(size);
+  });
 
   bool quit = false;
   while (!quit) {
-    // process input
-    SDL_Event event;
-    while (SDL_PollEvent(&event)) {
-      switch(event.type)
+    system.update();
+    system.sig_keyboard_event.connect([&](SDL_KeyboardEvent const& key){
+      if (key.state == SDL_PRESSED)
       {
-        case SDL_QUIT:
-          // FIXME: This should be a bit more gentle, but will do for now
-          std::cout << "Ctrl-c or Window-close pressed, game is going to quit" << std::endl;
-          quit = true;
-          break;
-
-        case SDL_KEYDOWN:
-          switch (event.key.keysym.sym)
-          {
-            case SDLK_ESCAPE:
-              quit = true;
-              break;
-          }
-          break;
+        switch (key.keysym.sym)
+        {
+          case SDLK_ESCAPE:
+            quit = true;
+            break;
+        }
       }
-    }
+    });
 
-    auto& gc = window.get_gc();
-
+    auto& gc = window->get_gc();
     gc.clear(surf::palette::black);
     gui_manager.draw(gc);
     menu->get_root()->draw(gc);
-    window.swap_buffers();
+    window->swap_buffers();
 
     gui_manager.update(1.0f / 60, Controller());
   }
