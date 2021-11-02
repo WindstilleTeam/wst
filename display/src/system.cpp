@@ -37,7 +37,8 @@ System::System() :
   sig_mouse_motion_event(),
   sig_mouse_wheel_event(),
   m_quit(false),
-  m_windows()
+  m_windows(),
+  m_sig_event()
 {
   if (SDL_Init(SDL_INIT_VIDEO) < 0) {
     std::ostringstream os;
@@ -65,7 +66,7 @@ void
 System::run()
 {
   m_quit = false;
-  while (m_quit)
+  while (!m_quit)
   {
     update();
   }
@@ -77,6 +78,8 @@ System::update()
   SDL_Event event;
   while (SDL_PollEvent(&event))
   {
+    m_sig_event(event);
+
     // https://wiki.libsdl.org/SDL_EventType
     switch(event.type)
     {
@@ -111,6 +114,9 @@ System::update()
 
       case SDL_TEXTINPUT:
         sig_text_input_event(event.text);
+        break;
+
+      case SDL_KEYMAPCHANGED:
         break;
 
       case SDL_MOUSEMOTION:
@@ -164,6 +170,12 @@ System::update()
         break;
     }
   }
+}
+
+int
+System::get_ticks()
+{
+  return SDL_GetTicks();
 }
 
 void

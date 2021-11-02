@@ -26,6 +26,7 @@
 #include <geom/rect.hpp>
 #include <geom/size.hpp>
 #include <wstdisplay/fwd.hpp>
+#include <wstdisplay/opengl_window.hpp>
 
 namespace wstsys {
 
@@ -39,8 +40,11 @@ public:
 
   void run();
   void update();
+  int get_ticks();
   void delay(int msec);
   void quit();
+
+  sigc::signal<void(SDL_Event const&)>& sig_event() { return m_sig_event; }
 
 public:
   sigc::signal<void(SDL_KeyboardEvent const&)> sig_keyboard_event;
@@ -53,6 +57,7 @@ public:
 private:
   bool m_quit;
   std::unordered_map<uint32_t, wstdisplay::OpenGLWindow*> m_windows;
+  sigc::signal<void(SDL_Event const&)> m_sig_event;
 
 private:
   System(const System&) = delete;
