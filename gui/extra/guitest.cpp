@@ -20,6 +20,7 @@
 
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
+
 #include <geom/io.hpp>
 #include <surf/palette.hpp>
 #include <wstdisplay/font/ttf_font_manager.hpp>
@@ -33,9 +34,12 @@
 #include <wstgui/layout_builder.hpp>
 #include <wstgui/menu.hpp>
 #include <wstgui/root_component.hpp>
+#include <wstgui/screen_manager.hpp>
 #include <wstgui/style.hpp>
 #include <wstgui/text_view.hpp>
 #include <wstinput/controller.hpp>
+#include <wstinput/controller_description.hpp>
+#include <wstinput/input_manager.hpp>
 #include <wstsystem/system.hpp>
 
 using namespace wstinput;
@@ -53,12 +57,18 @@ int main()
       .resizable = true
     });
 
+  ControllerDescription controller_description;
+  controller_description.add_pointer("pointer-x", 0);
+  controller_description.add_pointer("pointer-y", 1);
+  InputManagerSDL input(controller_description);
+  ScreenManager screen(system, *window, input);
+
   TTFFontManager ttf_font_manager;
   std::unique_ptr<TTFFont> font = ttf_font_manager.create_font("external/wstdisplay/extra/Vera.ttf", 20);
   std::unique_ptr<TTFFont> smallfont = ttf_font_manager.create_font("external/wstdisplay/extra/Vera.ttf", 16);
   Style style(font.get());
-  GUIManager gui_manager(style);
-  auto* root = gui_manager.get_root();
+  auto gui_manager = std::make_unique<GUIManager>(style);
+  auto* root = gui_manager->get_root();
 
   auto label = std::make_unique<Label>("GUI Test", root);
   label->set_screen_rect(geom::frect(20, 20, 100, 50));
@@ -198,29 +208,31 @@ int main()
     gc.set_ortho(size);
   });
 
+  screen.push_screen(std::move(gui_manager));
+
+  screen.bind_key(SDLK_ESCAPE, [&]{
+    screen.quit();
+  });
+
+  screen.sig_draw_begin().connect([](wstdisplay::GraphicsContext& gc){
+    gc.clear(surf::palette::black);
+  });
+  screen.run();
+
+#if 0
   bool quit = false;
   while (!quit) {
     system.update();
-    system.sig_keyboard_event.connect([&](SDL_KeyboardEvent const& key){
-      if (key.state == SDL_PRESSED)
-      {
-        switch (key.keysym.sym)
-        {
-          case SDLK_ESCAPE:
-            quit = true;
-            break;
-        }
-      }
-    });
 
     auto& gc = window->get_gc();
     gc.clear(surf::palette::black);
-    gui_manager.draw(gc);
+    gui_manager->draw(gc);
     menu->get_root()->draw(gc);
     window->swap_buffers();
 
-    gui_manager.update(1.0f / 60, Controller());
+    gui_manager->update(1.0f / 60, Controller());
   }
+#endif
 
   return 0;
 }

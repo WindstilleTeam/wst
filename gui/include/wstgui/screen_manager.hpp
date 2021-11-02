@@ -29,6 +29,7 @@
 
 #include <wstdisplay/fwd.hpp>
 #include <wstgui/fwd.hpp>
+#include <wstsystem/system.hpp>
 #include <wstinput/fwd.hpp>
 
 namespace wstgui {
@@ -40,7 +41,7 @@ namespace wstgui {
 class ScreenManager
 {
 public:
-  ScreenManager(wstdisplay::OpenGLWindow& window, wstinput::InputManagerSDL& input);
+  ScreenManager(wstsys::System& system, wstdisplay::OpenGLWindow& window, wstinput::InputManagerSDL& input);
   ~ScreenManager();
 
   /** Displays the previously set screen in until quit() is called */
@@ -69,16 +70,19 @@ public:
   void bind_key(SDL_Keycode code, std::function<void()> callback);
 
   sigc::signal<void (float)>& sig_update() { return m_sig_update; };
+  sigc::signal<void (wstdisplay::GraphicsContext&)>& sig_draw_begin() { return m_sig_draw_begin; };
+  sigc::signal<void (wstdisplay::GraphicsContext&)>& sig_draw_end() { return m_sig_draw_end; };
 
 private:
   void apply_pending_actions();
   void draw(wstdisplay::GraphicsContext& gc);
-  void poll_events();
+  void handle_event(const SDL_Event& event);
 
 private:
   enum class ScreenAction { NONE, POP_SCREEN, PUSH_SCREEN, CLEAR_SCREENS };
 
 private:
+  wstsys::System& m_system;
   wstdisplay::OpenGLWindow& m_window;
   wstinput::InputManagerSDL& m_input;
 
@@ -99,6 +103,8 @@ private:
   std::vector<Screen*> m_huds;
 
   sigc::signal<void (float)> m_sig_update;
+  sigc::signal<void (wstdisplay::GraphicsContext&)> m_sig_draw_begin;
+  sigc::signal<void (wstdisplay::GraphicsContext&)> m_sig_draw_end;
 
 public:
   ScreenManager (const ScreenManager&) = delete;

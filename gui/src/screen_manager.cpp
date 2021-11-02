@@ -30,7 +30,8 @@
 
 namespace wstgui {
 
-ScreenManager::ScreenManager(wstdisplay::OpenGLWindow& window, wstinput::InputManagerSDL& input) :
+ScreenManager::ScreenManager(wstsys::System& system, wstdisplay::OpenGLWindow& window, wstinput::InputManagerSDL& input) :
+  m_system(system),
   m_window(window),
   m_input(input),
   m_screens(),
@@ -44,8 +45,11 @@ ScreenManager::ScreenManager(wstdisplay::OpenGLWindow& window, wstinput::InputMa
   m_do_quit(false),
   m_key_bindings(),
   m_huds(),
-  m_sig_update()
+  m_sig_update(),
+  m_sig_draw_begin(),
+  m_sig_draw_end()
 {
+  m_system.sig_event().connect([this](SDL_Event const& ev){ handle_event(ev); });
 }
 
 ScreenManager::~ScreenManager()
@@ -59,7 +63,7 @@ ScreenManager::run()
 {
   m_do_quit = false;
 
-  m_ticks = SDL_GetTicks();
+  m_ticks = m_system.get_ticks();
 
   apply_pending_actions();
 
@@ -69,7 +73,7 @@ ScreenManager::run()
     /// independed of the number of frames and always constant
     static const float step = 0.001f;
 
-    Uint32 const now = SDL_GetTicks();
+    Uint32 const now = m_system.get_ticks();
     float delta = static_cast<float>(now - m_ticks) / 1000.0f + m_overlap_delta;
     m_ticks = now;
 
@@ -94,20 +98,21 @@ ScreenManager::run()
     m_overlap_delta = delta;
 
     m_sig_update(delta);
+    m_system.update();
 
     draw(m_window.get_gc());
 
-    poll_events();
-
     apply_pending_actions();
 
-    SDL_Delay(5);
+    m_system.delay(5);
   }
 }
 
 void
 ScreenManager::draw(wstdisplay::GraphicsContext& gc)
 {
+  m_sig_draw_begin(gc);
+
   if (!m_screens.empty()) {
     m_screens.back()->draw(gc);
   }
@@ -119,6 +124,8 @@ ScreenManager::draw(wstdisplay::GraphicsContext& gc)
   for(Screen* hud : m_huds) {
     hud->draw(gc);
   }
+
+  m_sig_draw_end(gc);
 
   m_window.swap_buffers();
 }
@@ -192,60 +199,56 @@ ScreenManager::apply_pending_actions()
 }
 
 void
-ScreenManager::poll_events()
+ScreenManager::handle_event(const SDL_Event& event)
 {
-  SDL_Event event;
-  while(SDL_PollEvent(&event))
+  switch(event.type)
   {
-    switch(event.type)
-    {
-      case SDL_QUIT:
-        // FIXME: This should be a bit more gentle, but will do for now
-        log_info("Ctrl-c or Window-close pressed, game is going to quit");
-        quit();
-        break;
+    case SDL_QUIT:
+      // FIXME: This should be a bit more gentle, but will do for now
+      log_info("Ctrl-c or Window-close pressed, game is going to quit");
+      quit();
+      break;
 
-      case SDL_KEYDOWN:
-      case SDL_KEYUP:
-        if (event.key.state) {
-          if (auto binding = m_key_bindings.find(event.key.keysym.sym); binding != m_key_bindings.end()) {
-            binding->second();
-          } else {
-            if (!m_overlay_screens.empty()) {
-              m_overlay_screens.back()->handle_event(event);
-            } else if (!m_screens.empty()) {
-              m_screens.back()->handle_event(event);
-            }
+    case SDL_KEYDOWN:
+    case SDL_KEYUP:
+      if (event.key.state) {
+        if (auto binding = m_key_bindings.find(event.key.keysym.sym); binding != m_key_bindings.end()) {
+          binding->second();
+        } else {
+          if (!m_overlay_screens.empty()) {
+            m_overlay_screens.back()->handle_event(event);
+          } else if (!m_screens.empty()) {
+            m_screens.back()->handle_event(event);
           }
         }
-        break;
+      }
+      break;
 
-      case SDL_MOUSEBUTTONUP:
-      case SDL_MOUSEBUTTONDOWN:
-      case SDL_MOUSEMOTION:
-      case SDL_JOYAXISMOTION:
-      case SDL_JOYBALLMOTION:
-      case SDL_JOYHATMOTION:
-      case SDL_JOYBUTTONUP:
-      case SDL_JOYBUTTONDOWN:
-      case SDL_TEXTINPUT:
-      case SDL_TEXTEDITING:
-        if (!m_overlay_screens.empty()) {
-          m_overlay_screens.back()->handle_event(event);
-        }
-        break;
+    case SDL_MOUSEBUTTONUP:
+    case SDL_MOUSEBUTTONDOWN:
+    case SDL_MOUSEMOTION:
+    case SDL_JOYAXISMOTION:
+    case SDL_JOYBALLMOTION:
+    case SDL_JOYHATMOTION:
+    case SDL_JOYBUTTONUP:
+    case SDL_JOYBUTTONDOWN:
+    case SDL_TEXTINPUT:
+    case SDL_TEXTEDITING:
+      if (!m_overlay_screens.empty()) {
+        m_overlay_screens.back()->handle_event(event);
+      }
+      break;
 
-      default:
-        if (!m_overlay_screens.empty()) {
-          m_overlay_screens.back()->handle_event(event);
-        } else if (!m_screens.empty()) {
-          m_screens.back()->handle_event(event);
-        }
-        break;
-    }
-
-    m_input.on_event(event);
+    default:
+      if (!m_overlay_screens.empty()) {
+        m_overlay_screens.back()->handle_event(event);
+      } else if (!m_screens.empty()) {
+        m_screens.back()->handle_event(event);
+      }
+      break;
   }
+
+  m_input.on_event(event);
 }
 
 void
