@@ -28,6 +28,7 @@
 
 namespace wstgui {
 
+class Component;
 class RootComponent;
 class Style;
 
@@ -44,8 +45,9 @@ public:
   Style& get_style() const { return m_style; }
 
 private:
-  std::unique_ptr<RootComponent> root;
+  std::unique_ptr<RootComponent> m_root;
   Style& m_style;
+  Component* m_focus_component;
 
 private:
   GUIManager (const GUIManager&);

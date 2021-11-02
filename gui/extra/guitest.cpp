@@ -60,7 +60,11 @@ int main()
   ControllerDescription controller_description;
   controller_description.add_pointer("pointer-x", 0);
   controller_description.add_pointer("pointer-y", 1);
+
   InputManagerSDL input(controller_description);
+  input.bindings().bind_mouse_motion(0, 0, 0);
+  input.bindings().bind_mouse_motion(1, 0, 1);
+
   ScreenManager screen(system, *window, input);
 
   TTFFontManager ttf_font_manager;

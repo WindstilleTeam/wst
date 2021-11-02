@@ -17,13 +17,17 @@
 */
 
 #include "gui_manager.hpp"
+
+#include <logmich/log.hpp>
+
 #include "root_component.hpp"
 
 namespace wstgui {
 
 GUIManager::GUIManager(Style& style) :
-  root(new RootComponent(geom::frect(0,0,800,600), style)),
-  m_style(style)
+  m_root(new RootComponent(geom::frect(0,0,800,600), style)),
+  m_style(style),
+  m_focus_component()
 {
 }
 
@@ -34,15 +38,22 @@ GUIManager::~GUIManager()
 void
 GUIManager::draw(wstdisplay::GraphicsContext& gc)
 {
-  root->draw(gc);
+  m_root->draw(gc);
+
+  if (m_focus_component) {
+    gc.fill_rect(m_focus_component->get_screen_rect(), surf::Color(1.0f, 0.0f, 0.0f, 0.5f));
+  }
 }
 
 void
 GUIManager::update(float delta, const Controller& controller)
 {
-  root->update(delta, controller);
+  m_root->update(delta, controller);
 
-  if (!root->is_active()) {
+  geom::fpoint mouse_pos(controller.get_pointer_state(0), controller.get_pointer_state(1));
+  m_focus_component = m_root->query(mouse_pos);
+
+  if (!m_root->is_active()) {
     finish();
   }
 }
@@ -50,7 +61,7 @@ GUIManager::update(float delta, const Controller& controller)
 RootComponent*
 GUIManager::get_root() const
 {
-  return root.get();
+  return m_root.get();
 }
 
 } // namespace wstgui

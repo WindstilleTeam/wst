@@ -41,15 +41,17 @@ public:
 
   void add_child(std::unique_ptr<Component> child);
 
-  Component* get_focus() const { return focus; }
+  Component* get_focus() const { return m_focus; }
+
+  Component* query(geom::fpoint const& pos) const;
 
   bool is_active() const override;
 
   Style& get_style() const override;
 
 private:
-  Component* focus;
-  std::vector<std::unique_ptr<Component>> children;
+  Component* m_focus;
+  std::vector<std::unique_ptr<Component>> m_children;
   Style& m_style;
 
 private:
