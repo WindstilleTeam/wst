@@ -19,17 +19,17 @@
 #ifndef HEADER_WINDSTILLE_SCREEN_SCREEN_MANAGER_HPP
 #define HEADER_WINDSTILLE_SCREEN_SCREEN_MANAGER_HPP
 
-#include <SDL.h>
-
 #include <functional>
 #include <memory>
 #include <unordered_map>
 #include <vector>
 
+#include <SDL.h>
+#include <sigc++/signal.h>
+
 #include <wstdisplay/fwd.hpp>
 #include <wstgui/fwd.hpp>
 #include <wstinput/fwd.hpp>
-#include <wstsound/fwd.hpp>
 
 namespace wstgui {
 
@@ -40,7 +40,7 @@ namespace wstgui {
 class ScreenManager
 {
 public:
-  ScreenManager(wstdisplay::OpenGLWindow& window, wstinput::InputManagerSDL& input, wstsound::SoundManager& sound);
+  ScreenManager(wstdisplay::OpenGLWindow& window, wstinput::InputManagerSDL& input);
   ~ScreenManager();
 
   /** Displays the previously set screen in until quit() is called */
@@ -68,6 +68,8 @@ public:
 
   void bind_key(SDL_Keycode code, std::function<void()> callback);
 
+  sigc::signal<void (float)>& sig_update() { return m_sig_update; };
+
 private:
   void apply_pending_actions();
   void draw(wstdisplay::GraphicsContext& gc);
@@ -79,7 +81,6 @@ private:
 private:
   wstdisplay::OpenGLWindow& m_window;
   wstinput::InputManagerSDL& m_input;
-  wstsound::SoundManager& m_sound;
 
   typedef std::vector<std::shared_ptr<Screen> > Screens;
   Screens screens;
@@ -97,6 +98,8 @@ private:
 
   std::unordered_map<SDL_Keycode, std::function<void()>> m_key_bindings;
   std::vector<Screen*> m_huds;
+
+  sigc::signal<void (float)> m_sig_update;
 
 public:
   ScreenManager (const ScreenManager&) = delete;

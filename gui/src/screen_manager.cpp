@@ -30,10 +30,9 @@
 
 namespace wstgui {
 
-ScreenManager::ScreenManager(wstdisplay::OpenGLWindow& window, wstinput::InputManagerSDL& input, wstsound::SoundManager& sound) :
+ScreenManager::ScreenManager(wstdisplay::OpenGLWindow& window, wstinput::InputManagerSDL& input) :
   m_window(window),
   m_input(input),
-  m_sound(sound),
   screens(),
   screen_action(NONE),
   screen_screen(),
@@ -44,7 +43,8 @@ ScreenManager::ScreenManager(wstdisplay::OpenGLWindow& window, wstinput::InputMa
   overlap_delta(0),
   do_quit(false),
   m_key_bindings(),
-  m_huds()
+  m_huds(),
+  m_sig_update()
 {
 }
 
@@ -93,7 +93,7 @@ ScreenManager::run()
 
     overlap_delta = delta;
 
-    m_sound.update(delta);
+    m_sig_update(delta);
 
     draw(m_window.get_gc());
 
