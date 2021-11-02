@@ -27,15 +27,15 @@
 
 namespace wstgui {
 
-MenuComponent::MenuComponent(bool allow_cancel_, Component* parent_)
-  : Component(parent_),
-    items(),
-    current_item(0),
-    font(get_style().get_font()),
-    allow_cancel(allow_cancel_),
-    scroll_mode(false),
-    scroll_offset(0),
-    num_displayable_items(-1)
+MenuComponent::MenuComponent(bool allow_cancel_, Component* parent_) :
+  Component(parent_),
+  m_items(),
+  m_current_item(0),
+  m_font(get_style().get_font()),
+  m_allow_cancel(allow_cancel_),
+  m_scroll_mode(false),
+  m_scroll_offset(0),
+  m_num_displayable_items(-1)
 {
 }
 
@@ -46,13 +46,13 @@ MenuComponent::~MenuComponent()
 void
 MenuComponent::add_item(std::unique_ptr<MenuItem> item)
 {
-  items.emplace_back(std::move(item));
+  m_items.emplace_back(std::move(item));
 
   if (calc_height() >= m_rect.height())
   {
-    scroll_mode   = true;
-    scroll_offset = 0;
-    num_displayable_items = static_cast<int>(m_rect.height() / item_height());
+    m_scroll_mode   = true;
+    m_scroll_offset = 0;
+    m_num_displayable_items = static_cast<int>(m_rect.height() / item_height());
   }
 }
 
@@ -61,38 +61,38 @@ MenuComponent::draw(wstdisplay::GraphicsContext& gc)
 {
   float step = item_height();
 
-  if (scroll_mode)
+  if (m_scroll_mode)
   { // we can only display a subset of items and have to scroll
-    for(int i = 0; i < num_displayable_items; ++i)
+    for(int i = 0; i < m_num_displayable_items; ++i)
     {
-      items[i+scroll_offset]->draw(gc,
-                                   geom::frect(m_rect.left(), m_rect.top() + static_cast<float>(i) * step + 2.0f,
-                                               m_rect.right() - 32.0f, m_rect.top() + static_cast<float>(i+1) * step - 2.0f),
-                                   is_active() && (i + scroll_offset == current_item));
+      m_items[i + m_scroll_offset]->draw(gc,
+                                         geom::frect(m_rect.left(), m_rect.top() + static_cast<float>(i) * step + 2.0f,
+                                                     m_rect.right() - 32.0f, m_rect.top() + static_cast<float>(i+1) * step - 2.0f),
+                                         is_active() && (i + m_scroll_offset == m_current_item));
     }
 
     // draw scrollbar
-    float scrollbar_height = (m_rect.height() - 4.0f) * static_cast<float>(num_displayable_items) / static_cast<float>(items.size());
-    float scrollbar_incr   = (m_rect.height() - 4.0f) * static_cast<float>(scroll_offset) / static_cast<float>(items.size());
+    float scrollbar_height = (m_rect.height() - 4.0f) * static_cast<float>(m_num_displayable_items) / static_cast<float>(m_items.size());
+    float scrollbar_incr   = (m_rect.height() - 4.0f) * static_cast<float>(m_scroll_offset) / static_cast<float>(m_items.size());
 
     gc.fill_rounded_rect(geom::frect(m_rect.right() - 24, m_rect.top() + 2.0f + scrollbar_incr,
                                      m_rect.right() - 2,  m_rect.top() + 2.0f + scrollbar_incr + scrollbar_height),
-                               5.0f,
-                               surf::Color(0.5f, 0.5f, 0.5f, 0.75f));
+                         5.0f,
+                         surf::Color(0.5f, 0.5f, 0.5f, 0.75f));
 
     gc.draw_rounded_rect(geom::frect(m_rect.right() - 24, m_rect.top() + 2.0f,
                                      m_rect.right() - 2,  m_rect.bottom() - 2.0f),
-                               5.0f,
-                               surf::Color(1.0f, 1.0f, 1.0f, 1.0f));
+                         5.0f,
+                         surf::Color(1.0f, 1.0f, 1.0f, 1.0f));
   }
   else
   { // all items fit on the screen
-    for(Items::size_type i = 0; i < items.size(); ++i)
+    for(size_t i = 0; i < m_items.size(); ++i)
     {
-      items[i]->draw(gc,
-                     geom::frect(m_rect.left(), m_rect.top() + static_cast<float>(i) * step + 2.0f,
-                                 m_rect.right(), m_rect.top() + static_cast<float>(i+1) * step - 2.0f),
-                     is_active() && (int(i) == current_item));
+      m_items[i]->draw(gc,
+                       geom::frect(m_rect.left(), m_rect.top() + static_cast<float>(i) * step + 2.0f,
+                                   m_rect.right(), m_rect.top() + static_cast<float>(i+1) * step - 2.0f),
+                       is_active() && (int(i) == m_current_item));
     }
   }
 }
@@ -100,9 +100,9 @@ MenuComponent::draw(wstdisplay::GraphicsContext& gc)
 void
 MenuComponent::update(float delta, const Controller& controller)
 {
-  for(Items::size_type i = 0; i < items.size(); ++i)
+  for(size_t i = 0; i < m_items.size(); ++i)
   {
-    items[i]->update(delta);
+    m_items[i]->update(delta);
   }
 
   for(auto i = controller.get_events().begin();
@@ -113,13 +113,13 @@ MenuComponent::update(float delta, const Controller& controller)
     {
       if (i->button.name == OK_BUTTON || i->button.name == ENTER_BUTTON)
       {
-        items[current_item]->click();
+        m_items[m_current_item]->click();
       }
       else if (i->button.name == CANCEL_BUTTON ||
                i->button.name == ESCAPE_BUTTON ||
                i->button.name == PAUSE_BUTTON)
       {
-        if (allow_cancel) // FIXME: Could use a signal instead
+        if (m_allow_cancel) // FIXME: Could use a signal instead
         {
             // FIXMESOUND: g_app.sound().play(Pathname("sounds/menu_click.wav", Pathname::kDataPath));
           set_active(false);
@@ -127,27 +127,27 @@ MenuComponent::update(float delta, const Controller& controller)
       }
       else if (i->button.name == MENU_LEFT_BUTTON)
       {
-        items[current_item]->incr();
+        m_items[m_current_item]->incr();
       }
       else if (i->button.name == MENU_RIGHT_BUTTON)
       {
-        items[current_item]->decr();
+        m_items[m_current_item]->decr();
       }
       else if (i->button.name == MENU_UP_BUTTON)
       {
         // FIXMESOUND: g_app.sound().play(Pathname("sounds/menu_change.wav", Pathname::kDataPath));
 
-        current_item = current_item - 1;
-        if (current_item < 0)
+        m_current_item = m_current_item - 1;
+        if (m_current_item < 0)
         {
           if (dynamic_cast<TabComponent*>(m_parent))
           {
-            current_item = 0;
+            m_current_item = 0;
             set_active(false);
           }
           else
           {
-            current_item = static_cast<int>(items.size())-1;
+            m_current_item = static_cast<int>(m_items.size())-1;
           }
         }
 
@@ -159,14 +159,14 @@ MenuComponent::update(float delta, const Controller& controller)
 
         if (dynamic_cast<TabComponent*>(m_parent))
         {
-          current_item = std::clamp(current_item + 1, 0, static_cast<int>(items.size()-1));
+          m_current_item = std::clamp(m_current_item + 1, 0, static_cast<int>(m_items.size()-1));
         }
         else
         {
-          current_item += 1;
-          if (current_item >= static_cast<int>(items.size()))
+          m_current_item += 1;
+          if (m_current_item >= static_cast<int>(m_items.size()))
           {
-            current_item = 0;
+            m_current_item = 0;
           }
 
         }
@@ -180,13 +180,13 @@ MenuComponent::update(float delta, const Controller& controller)
 void
 MenuComponent::set_font(wstdisplay::TTFFont* font_)
 {
-  font = font_;
+  m_font = font_;
 }
 
 wstdisplay::TTFFont*
 MenuComponent::get_font()
 {
-  return font;
+  return m_font;
 }
 
 geom::fsize
@@ -199,34 +199,34 @@ MenuComponent::get_prefered_size() const
     width = std::max(get_width())
     }  */
   return geom::fsize(m_rect.width(),
-                     item_height() * static_cast<float>(std::min(10, int(items.size()))) + 12.0f);
+                     item_height() * static_cast<float>(std::min(10, int(m_items.size()))) + 12.0f);
 }
 
 float
 MenuComponent::calc_height()
 {
-  return static_cast<float>(items.size()) * item_height();
+  return static_cast<float>(m_items.size()) * item_height();
 }
 
 float
 MenuComponent::item_height() const
 {
   float spacing = 10.0f;
-  return static_cast<float>(font->get_height()) + spacing * 2.0f;
+  return static_cast<float>(m_font->get_height()) + spacing * 2.0f;
 }
 
 void
 MenuComponent::adjust_scroll_offset()
 {
-  if (scroll_mode)
+  if (m_scroll_mode)
   {
-    if (current_item - scroll_offset >= num_displayable_items)
+    if (m_current_item - m_scroll_offset >= m_num_displayable_items)
     { // scrolling down
-      scroll_offset = current_item - (num_displayable_items-1);
+      m_scroll_offset = m_current_item - (m_num_displayable_items - 1);
     }
-    else if (current_item < scroll_offset)
+    else if (m_current_item < m_scroll_offset)
     { // scrolling up
-      scroll_offset = current_item;
+      m_scroll_offset = m_current_item;
     }
   }
 }
@@ -234,19 +234,18 @@ MenuComponent::adjust_scroll_offset()
 void
 MenuComponent::set_screen_rect(const geom::frect& rect_)
 {
-  num_displayable_items = static_cast<int>(rect_.height() / item_height());
+  m_num_displayable_items = static_cast<int>(rect_.height() / item_height());
 
-  if (num_displayable_items < int(items.size()))
+  if (m_num_displayable_items < int(m_items.size()))
   {
-    scroll_mode   = true;
-    scroll_offset = 0;
+    m_scroll_mode   = true;
+    m_scroll_offset = 0;
   }
   else
   {
-    scroll_mode   = false;
-    scroll_offset = 0;
+    m_scroll_mode   = false;
+    m_scroll_offset = 0;
   }
-
 
   Component::set_screen_rect(rect_);
 }

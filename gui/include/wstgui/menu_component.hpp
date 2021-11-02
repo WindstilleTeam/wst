@@ -27,29 +27,8 @@ namespace wstgui {
 
 class MenuItem;
 
-/** */
 class MenuComponent : public Component
 {
-private:
-  typedef std::vector<std::unique_ptr<MenuItem>> Items;
-  Items items;
-
-  int   current_item;
-  wstdisplay::TTFFont* font;
-  bool allow_cancel;
-
-  bool scroll_mode;
-  int  scroll_offset;
-  int  num_displayable_items;
-
-  /** Calculate how much height will be needed for the menu */
-  float calc_height();
-
-  /** Return the height of a single item */
-  float item_height() const;
-
-  void adjust_scroll_offset();
-
 public:
   MenuComponent(bool allow_cancel_, Component* parent);
   ~MenuComponent() override;
@@ -60,10 +39,30 @@ public:
 
   geom::fsize get_prefered_size() const override;
 
-  void     set_font(wstdisplay::TTFFont* font_);
+  void set_font(wstdisplay::TTFFont* font_);
   wstdisplay::TTFFont* get_font();
 
   void set_screen_rect(const geom::frect& rect) override;
+
+private:
+  /** Calculate how much height will be needed for the menu */
+  float calc_height();
+
+  /** Return the height of a single item */
+  float item_height() const;
+
+  void adjust_scroll_offset();
+
+private:
+  std::vector<std::unique_ptr<MenuItem>> m_items;
+
+  int m_current_item;
+  wstdisplay::TTFFont* m_font;
+  bool m_allow_cancel;
+
+  bool m_scroll_mode;
+  int m_scroll_offset;
+  int m_num_displayable_items;
 
 private:
   MenuComponent (const MenuComponent&);
