@@ -25,9 +25,9 @@
 
 namespace wstgui {
 
-TextView::TextView(const geom::frect& rect, Component* component)
-  : Component(rect, component),
-    text_area(m_parent->get_style().get_font(), m_rect, false)
+TextView::TextView(Component* component) :
+  Component(component),
+  text_area(m_parent->get_style().get_font(), geom::frect(), false)
 {
 }
 

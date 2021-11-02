@@ -60,8 +60,7 @@ private:
   float padding;
 
 public:
-  GridComponent(Component* parent);
-  GridComponent(const geom::frect& rect, int weight, int height, Component* parent);
+  GridComponent(int weight, int height, Component* parent);
   ~GridComponent() override;
 
   void draw(wstdisplay::GraphicsContext& gc) override;

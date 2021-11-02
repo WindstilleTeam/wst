@@ -65,7 +65,6 @@ private:
 
 public:
   TabComponent(Component* parent);
-  TabComponent(const geom::frect& rect, Component* parent);
   ~TabComponent() override;
 
   void draw(wstdisplay::GraphicsContext& gc) override;

@@ -78,7 +78,8 @@ int main()
   label->set_screen_rect(geom::frect(20, 20, 100, 50));
   root->add_child(std::move(label));
 
-  auto textview = std::make_unique<TextView>(geom::frect(20, 50, 620, 200), root);
+  auto textview = std::make_unique<TextView>(root);
+  textview->set_screen_rect(geom::frect(20, 50, 620, 200));
   textview->set_font(smallfont.get());
   textview->set_text(
     "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi in "

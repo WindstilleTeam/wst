@@ -33,7 +33,7 @@ private:
   std::unique_ptr<Component> child;
 
 public:
-  GroupComponent(const geom::frect& rect, const std::string& title_, Component* parent);
+  GroupComponent(const std::string& title_, Component* parent);
   ~GroupComponent() override;
 
   void draw(wstdisplay::GraphicsContext& gc) override;

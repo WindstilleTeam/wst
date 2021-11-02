@@ -30,7 +30,7 @@ namespace wstgui {
 class RootComponent : public Component
 {
 public:
-  RootComponent(const geom::frect& rect, Style& style);
+  RootComponent(Style& style);
   ~RootComponent() override;
 
   void draw(wstdisplay::GraphicsContext& gc) override;

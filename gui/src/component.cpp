@@ -28,14 +28,6 @@ Component::Component(Component* parent) :
 {
 }
 
-Component::Component(const geom::frect& rect, Component* parent) :
-  m_parent(parent),
-  m_rect(rect),
-  m_prefered_size(),
-  m_active(false)
-{
-}
-
 Component::~Component()
 {
 }

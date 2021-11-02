@@ -27,16 +27,9 @@
 
 namespace wstgui {
 
-Button::Button(Component* parent_)
-  : Component(parent_),
-    label()
-{
-  log_error("implement me");
-}
-
-Button::Button(const std::string& label_, Component* parent_)
-  : Component(geom::frect(), parent_),
-    label(label_)
+Button::Button(const std::string& label_, Component* parent_) :
+  Component(parent_),
+  label(label_)
 {
 }
 

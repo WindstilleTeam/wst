@@ -26,8 +26,8 @@
 
 namespace wstgui {
 
-ListView::ListView(const geom::frect& rect_, Component* parent_)
-  : Component(rect_, parent_),
+ListView::ListView(Component* parent_)
+  : Component(parent_),
     columns(),
     items(),
     current_item(0)

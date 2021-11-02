@@ -32,7 +32,7 @@ private:
   wstdisplay::TextArea text_area;
 
 public:
-  TextView(const geom::frect& rect, Component* component);
+  TextView(Component* component);
   ~TextView() override;
 
   void draw(wstdisplay::GraphicsContext& gc) override;

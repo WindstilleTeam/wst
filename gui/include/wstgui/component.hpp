@@ -36,7 +36,6 @@ class Component
 {
 public:
   Component(Component* parent);
-  Component(const geom::frect& rect, Component* parent);
   virtual ~Component();
 
   virtual void set_parent(Component* parent);

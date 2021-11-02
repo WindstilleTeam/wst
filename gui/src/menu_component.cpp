@@ -27,8 +27,8 @@
 
 namespace wstgui {
 
-MenuComponent::MenuComponent(const geom::frect& rect_, bool allow_cancel_, Component* parent_)
-  : Component(rect_, parent_),
+MenuComponent::MenuComponent(bool allow_cancel_, Component* parent_)
+  : Component(parent_),
     items(),
     current_item(0),
     font(get_style().get_font()),

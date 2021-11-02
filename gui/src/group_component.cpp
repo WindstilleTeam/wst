@@ -23,8 +23,8 @@
 
 namespace wstgui {
 
-GroupComponent::GroupComponent(const geom::frect& rect_, const std::string& title_, Component* parent_)
-  : Component(rect_, parent_),
+GroupComponent::GroupComponent(const std::string& title_, Component* parent_)
+  : Component(parent_),
     title(title_),
     child()
 {

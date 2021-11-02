@@ -32,14 +32,6 @@ TabComponent::TabComponent(Component* parent_)
     tabs(),
     current_tab(0)
 {
-  log_error("not implemented");
-}
-
-TabComponent::TabComponent(const geom::frect& rect_, Component* parent_)
-  : Component(rect_, parent_),
-    tabs(),
-    current_tab(0)
-{
 }
 
 TabComponent::~TabComponent()

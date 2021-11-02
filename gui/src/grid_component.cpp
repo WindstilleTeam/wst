@@ -29,18 +29,8 @@
 
 namespace wstgui {
 
-GridComponent::GridComponent(Component* parent_)
+GridComponent::GridComponent(int weight, int height, Component* parent_)
   : Component(parent_),
-    grid(),
-    pos(0, 0),
-    child_active(),
-    padding()
-{
-  log_error("not implemented");
-}
-
-GridComponent::GridComponent(const geom::frect& rect_, int weight, int height, Component* parent_)
-  : Component(rect_, parent_),
     grid(weight, height),
     pos(0, 0),
     child_active(false),

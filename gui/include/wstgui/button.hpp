@@ -29,7 +29,6 @@ private:
   std::string label;
 
 public:
-  Button(Component* parent);
   Button(const std::string& label, Component* parent);
   ~Button() override;
 

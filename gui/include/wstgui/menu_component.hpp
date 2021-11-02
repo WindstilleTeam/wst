@@ -51,7 +51,7 @@ private:
   void adjust_scroll_offset();
 
 public:
-  MenuComponent(const geom::frect& rect, bool allow_cancel_, Component* parent);
+  MenuComponent(bool allow_cancel_, Component* parent);
   ~MenuComponent() override;
 
   void add_item(std::unique_ptr<MenuItem> item);

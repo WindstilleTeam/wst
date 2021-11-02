@@ -25,7 +25,7 @@
 namespace wstgui {
 
 GUIManager::GUIManager(Style& style) :
-  m_root(new RootComponent(geom::frect(0,0,800,600), style)),
+  m_root(new RootComponent(style)),
   m_style(style),
   m_focus_component()
 {

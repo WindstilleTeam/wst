@@ -25,8 +25,8 @@
 
 namespace wstgui {
 
-RootComponent::RootComponent(const geom::frect& rect_, Style& style) :
-  Component(rect_, nullptr),
+RootComponent::RootComponent(Style& style) :
+  Component(nullptr),
   m_focus(nullptr),
   m_children(),
   m_style(style)
