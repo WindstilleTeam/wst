@@ -33,15 +33,15 @@ namespace wstgui {
 ScreenManager::ScreenManager(wstdisplay::OpenGLWindow& window, wstinput::InputManagerSDL& input) :
   m_window(window),
   m_input(input),
-  screens(),
-  screen_action(NONE),
-  screen_screen(),
-  overlay_screens(),
-  overlay_screen_action(NONE),
-  overlay_screen_screen(),
-  ticks(0),
-  overlap_delta(0),
-  do_quit(false),
+  m_screens(),
+  m_screen_action(ScreenAction::NONE),
+  m_screen_screen(),
+  m_overlay_screens(),
+  m_overlay_screen_action(ScreenAction::NONE),
+  m_overlay_screen_screen(),
+  m_ticks(0),
+  m_overlap_delta(0),
+  m_do_quit(false),
   m_key_bindings(),
   m_huds(),
   m_sig_update()
@@ -50,37 +50,37 @@ ScreenManager::ScreenManager(wstdisplay::OpenGLWindow& window, wstinput::InputMa
 
 ScreenManager::~ScreenManager()
 {
-  screens.clear();
-  overlay_screens.clear();
+  m_screens.clear();
+  m_overlay_screens.clear();
 }
 
 void
 ScreenManager::run()
 {
-  do_quit = false;
+  m_do_quit = false;
 
-  ticks = SDL_GetTicks();
+  m_ticks = SDL_GetTicks();
 
   apply_pending_actions();
 
-  while (!do_quit && !screens.empty())
+  while (!m_do_quit && !m_screens.empty())
   {
     /// Amount of time the world moves forward each update(), this is
     /// independed of the number of frames and always constant
     static const float step = 0.001f;
 
-    Uint32 now = SDL_GetTicks();
-    float delta = static_cast<float>(now - ticks) / 1000.0f + overlap_delta;
-    ticks = now;
+    Uint32 const now = SDL_GetTicks();
+    float delta = static_cast<float>(now - m_ticks) / 1000.0f + m_overlap_delta;
+    m_ticks = now;
 
     while (delta > step)
     {
       m_input.update(delta);
 
-      if (!overlay_screens.empty()) {
-        overlay_screens.back()->update(step, m_input.get_controller());
-      } else if (!screens.empty()) {
-        screens.back()->update(step, m_input.get_controller());
+      if (!m_overlay_screens.empty()) {
+        m_overlay_screens.back()->update(step, m_input.get_controller());
+      } else if (!m_screens.empty()) {
+        m_screens.back()->update(step, m_input.get_controller());
       }
 
       for(Screen* hud : m_huds) {
@@ -91,7 +91,7 @@ ScreenManager::run()
       delta -= step;
     }
 
-    overlap_delta = delta;
+    m_overlap_delta = delta;
 
     m_sig_update(delta);
 
@@ -108,12 +108,12 @@ ScreenManager::run()
 void
 ScreenManager::draw(wstdisplay::GraphicsContext& gc)
 {
-  if (!screens.empty()) {
-    screens.back()->draw(gc);
+  if (!m_screens.empty()) {
+    m_screens.back()->draw(gc);
   }
 
-  if (!overlay_screens.empty()) {
-    overlay_screens.back()->draw(gc);
+  if (!m_overlay_screens.empty()) {
+    m_overlay_screens.back()->draw(gc);
   }
 
   for(Screen* hud : m_huds) {
@@ -127,66 +127,67 @@ void
 ScreenManager::apply_pending_actions()
 {
   // Commit any pending screen actions
-  switch(overlay_screen_action)
+  switch (m_overlay_screen_action)
   {
-    case PUSH_SCREEN:
-      overlay_screens.push_back(overlay_screen_screen);
-      overlay_screen_screen = std::shared_ptr<Screen>();
+    case ScreenAction::PUSH_SCREEN:
+      m_overlay_screens.push_back(m_overlay_screen_screen);
+      m_overlay_screen_screen = std::shared_ptr<Screen>();
       break;
 
-    case POP_SCREEN:
-      if (overlay_screens.empty())
+    case ScreenAction::POP_SCREEN:
+      if (m_overlay_screens.empty())
       {
         log_error("ScreenManager: trying to pop_overlay with empty stack");
       }
       else
       {
-        overlay_screens.pop_back();
+        m_overlay_screens.pop_back();
       }
       break;
 
-    case CLEAR_SCREENS:
-      overlay_screens.clear();
+    case ScreenAction::CLEAR_SCREENS:
+      m_overlay_screens.clear();
       break;
 
-    case NONE:
+    case ScreenAction::NONE:
       // nothing
       break;
   }
-  overlay_screen_action = NONE;
 
-  switch(screen_action)
+  m_overlay_screen_action = ScreenAction::NONE;
+
+  switch (m_screen_action)
   {
-    case PUSH_SCREEN:
-      screens.push_back(screen_screen);
-      screen_screen = std::shared_ptr<Screen>();
-      screens.back()->on_startup();
+    case ScreenAction::PUSH_SCREEN:
+      m_screens.push_back(m_screen_screen);
+      m_screen_screen = std::shared_ptr<Screen>();
+      m_screens.back()->on_startup();
       break;
 
-    case POP_SCREEN:
-      screens.pop_back();
-      if (!screens.empty())
-        screens.back()->on_startup();
+    case ScreenAction::POP_SCREEN:
+      m_screens.pop_back();
+      if (!m_screens.empty())
+        m_screens.back()->on_startup();
       break;
 
-    case CLEAR_SCREENS:
-      screens.clear();
+    case ScreenAction::CLEAR_SCREENS:
+      m_screens.clear();
       break;
 
-    case NONE:
+    case ScreenAction::NONE:
       // nothing
       break;
   }
-  screen_action = NONE;
+  m_screen_action = ScreenAction::NONE;
 
-  while (!overlay_screens.empty() &&
-         overlay_screens.back()->is_finished()) {
-    overlay_screens.pop_back();
+  while (!m_overlay_screens.empty() &&
+         m_overlay_screens.back()->is_finished()) {
+    m_overlay_screens.pop_back();
   }
 
-  while (!screens.empty() &&
-         screens.back()->is_finished()) {
-    screens.pop_back();
+  while (!m_screens.empty() &&
+         m_screens.back()->is_finished()) {
+    m_screens.pop_back();
   }
 }
 
@@ -210,10 +211,10 @@ ScreenManager::poll_events()
           if (auto binding = m_key_bindings.find(event.key.keysym.sym); binding != m_key_bindings.end()) {
             binding->second();
           } else {
-            if (!overlay_screens.empty()) {
-              overlay_screens.back()->handle_event(event);
-            } else if (!screens.empty()) {
-              screens.back()->handle_event(event);
+            if (!m_overlay_screens.empty()) {
+              m_overlay_screens.back()->handle_event(event);
+            } else if (!m_screens.empty()) {
+              m_screens.back()->handle_event(event);
             }
           }
         }
@@ -229,16 +230,16 @@ ScreenManager::poll_events()
       case SDL_JOYBUTTONDOWN:
       case SDL_TEXTINPUT:
       case SDL_TEXTEDITING:
-        if (!overlay_screens.empty()) {
-          overlay_screens.back()->handle_event(event);
+        if (!m_overlay_screens.empty()) {
+          m_overlay_screens.back()->handle_event(event);
         }
         break;
 
       default:
-        if (!overlay_screens.empty()) {
-          overlay_screens.back()->handle_event(event);
-        } else if (!screens.empty()) {
-          screens.back()->handle_event(event);
+        if (!m_overlay_screens.empty()) {
+          m_overlay_screens.back()->handle_event(event);
+        } else if (!m_screens.empty()) {
+          m_screens.back()->handle_event(event);
         }
         break;
     }
@@ -250,43 +251,43 @@ ScreenManager::poll_events()
 void
 ScreenManager::push_screen(std::unique_ptr<Screen> s)
 {
-  assert(screen_screen == nullptr);
+  assert(m_screen_screen == nullptr);
 
-  screen_action = PUSH_SCREEN;
-  screen_screen = std::shared_ptr<Screen>(std::move(s));
+  m_screen_action = ScreenAction::PUSH_SCREEN;
+  m_screen_screen = std::shared_ptr<Screen>(std::move(s));
 }
 
 void
 ScreenManager::pop_screen()
 {
-  screen_action = POP_SCREEN;
+  m_screen_action = ScreenAction::POP_SCREEN;
 }
 
 void
 ScreenManager::push_overlay(std::unique_ptr<Screen> s)
 {
-  assert(!overlay_screen_screen.get());
+  assert(!m_overlay_screen_screen.get());
 
-  overlay_screen_action = PUSH_SCREEN;
-  overlay_screen_screen = std::shared_ptr<Screen>(std::move(s));
+  m_overlay_screen_action = ScreenAction::PUSH_SCREEN;
+  m_overlay_screen_screen = std::shared_ptr<Screen>(std::move(s));
 }
 
 void
 ScreenManager::pop_overlay()
 {
-  overlay_screen_action = POP_SCREEN;
+  m_overlay_screen_action = ScreenAction::POP_SCREEN;
 }
 
 void
 ScreenManager::clear_overlay()
 {
-  overlay_screen_action = CLEAR_SCREENS;
+  m_overlay_screen_action = ScreenAction::CLEAR_SCREENS;
 }
 
 void
 ScreenManager::quit()
 {
-  do_quit = true;
+  m_do_quit = true;
 }
 
 void

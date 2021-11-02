@@ -76,25 +76,24 @@ private:
   void poll_events();
 
 private:
-  enum ScreenAction { NONE, POP_SCREEN, PUSH_SCREEN, CLEAR_SCREENS };
+  enum class ScreenAction { NONE, POP_SCREEN, PUSH_SCREEN, CLEAR_SCREENS };
 
 private:
   wstdisplay::OpenGLWindow& m_window;
   wstinput::InputManagerSDL& m_input;
 
-  typedef std::vector<std::shared_ptr<Screen> > Screens;
-  Screens screens;
-  ScreenAction screen_action;
-  std::shared_ptr<Screen> screen_screen;
+  std::vector<std::shared_ptr<Screen>> m_screens;
+  ScreenAction m_screen_action;
+  std::shared_ptr<Screen> m_screen_screen;
 
-  Screens overlay_screens;
-  ScreenAction overlay_screen_action;
-  std::shared_ptr<Screen> overlay_screen_screen;
+  std::vector<std::shared_ptr<Screen>>  m_overlay_screens;
+  ScreenAction m_overlay_screen_action;
+  std::shared_ptr<Screen> m_overlay_screen_screen;
 
-  unsigned int ticks;
+  unsigned int m_ticks;
 
-  float overlap_delta;
-  bool  do_quit;
+  float m_overlap_delta;
+  bool  m_do_quit;
 
   std::unordered_map<SDL_Keycode, std::function<void()>> m_key_bindings;
   std::vector<Screen*> m_huds;
