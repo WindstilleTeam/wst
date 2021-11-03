@@ -28,22 +28,22 @@
 
 namespace wstgui {
 
-Menu::Menu(const std::string& name, const geom::frect& rect, Style& style, bool allow_cancel, Component* parent)
-  : manager(),
-    group(),
-    menu()
+Menu::Menu(const std::string& name, const geom::frect& rect, Style& style, bool allow_cancel, Component* parent) :
+  m_manager(),
+  m_group(),
+  m_menu()
 {
   if (!parent)
   {
-    manager.reset(new GUIManager(style));
-    parent = manager->get_root();
+    m_manager.reset(new GUIManager(style));
+    parent = m_manager->get_root();
   }
 
-  group.reset(new GroupComponent(name, parent));
-  group->set_screen_rect(rect);
-  menu.reset(new MenuComponent(allow_cancel, group.get()));
-  menu->set_screen_rect(group->get_child_rect());
-  menu->set_font(style.get_font());
+  m_group.reset(new GroupComponent(name, parent));
+  m_group->set_screen_rect(rect);
+  m_menu.reset(new MenuComponent(allow_cancel, m_group.get()));
+  m_menu->set_screen_rect(m_group->get_child_rect());
+  m_menu->set_font(style.get_font());
 }
 
 Menu::~Menu()
@@ -54,13 +54,13 @@ EnumMenuItem&
 Menu::add_enum(const std::string& name, int index,
                const std::function<void (int)>& callback)
 {
-  std::unique_ptr<EnumMenuItem> enum_item(new EnumMenuItem(menu.get(), name, index));
+  std::unique_ptr<EnumMenuItem> enum_item(new EnumMenuItem(m_menu.get(), name, index));
 
   if (callback)
     enum_item->sig_change().connect(callback);
 
   EnumMenuItem& obj = *enum_item;
-  menu->add_item(std::move(enum_item));
+  m_menu->add_item(std::move(enum_item));
   return obj;
 }
 
@@ -69,56 +69,56 @@ Menu::add_slider(const std::string& name,
                  int value, int min_value, int max_value, int step,
                  const std::function<void (int)>& callback)
 {
-  std::unique_ptr<SliderMenuItem> slider(new SliderMenuItem(menu.get(), name, value, min_value, max_value, step));
+  std::unique_ptr<SliderMenuItem> slider(new SliderMenuItem(m_menu.get(), name, value, min_value, max_value, step));
   if (callback)
     slider->sig_change().connect(callback);
-  menu->add_item(std::move(slider));
+  m_menu->add_item(std::move(slider));
 }
 
 void
 Menu::add_button(const std::string& name,
                  const std::function<void ()>& callback)
 {
-  std::unique_ptr<ButtonMenuItem> scenario_button(new ButtonMenuItem(menu.get(), name));
+  std::unique_ptr<ButtonMenuItem> scenario_button(new ButtonMenuItem(m_menu.get(), name));
   if (callback)
     scenario_button->sig_click().connect(callback);
-  menu->add_item(std::move(scenario_button));
+  m_menu->add_item(std::move(scenario_button));
 }
 
 RootComponent*
 Menu::get_root() const
 {
-  assert(manager.get());
-  return manager->get_root();
+  assert(m_manager.get());
+  return m_manager->get_root();
 }
 
 void
 Menu::show(ScreenManager& screen_manager)
 {
-  assert(manager.get());
+  assert(m_manager.get());
 
   {
-    geom::frect rect = group->get_screen_rect();
+    geom::frect rect = m_group->get_screen_rect();
 
     glm::vec2 center((rect.left() + rect.right()) / 2.0f,
                      (rect.top() + rect.bottom()) / 2.0f);
 
-    geom::fsize size(menu->get_prefered_size().width(),
-                     group->has_title() ?
-                     static_cast<float>(manager->get_style().get_font()->get_height()) + 18.0f :
-                     0.0f);
+    geom::fsize size(m_menu->get_prefered_size().width(),
+                     m_menu->get_prefered_size().height() +
+                     (m_group->has_title() ?
+                      static_cast<float>(m_manager->get_style().get_font()->get_height()) + 18.0f :
+                      0.0f));
 
-    group->set_screen_rect(geom::frect(glm::vec2(center.x - size.width()/2.0f,
-                                                 center.y - size.height()/2.0f),
-                                       size));
+    m_group->set_screen_rect(geom::frect(glm::vec2(center.x - size.width()/2.0f,
+                                                   center.y - size.height()/2.0f),
+                                         size));
 
-    menu->set_screen_rect(group->get_child_rect());
+    m_menu->set_screen_rect(m_group->get_child_rect());
   }
 
-  group->pack(std::move(menu));
-  manager->get_root()->add_child(std::move(group));
-
-  screen_manager.push_overlay(std::move(manager));
+  m_group->pack(std::move(m_menu));
+  m_manager->get_root()->add_child(std::move(m_group));
+  screen_manager.push_overlay(std::move(m_manager));
 }
 
 } // namespace wstgui

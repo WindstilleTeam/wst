@@ -52,7 +52,6 @@ MenuComponent::add_item(std::unique_ptr<MenuItem> item)
   {
     m_scroll_mode   = true;
     m_scroll_offset = 0;
-    m_num_displayable_items = static_cast<int>(m_rect.height() / item_height());
   }
 }
 
@@ -232,9 +231,9 @@ MenuComponent::adjust_scroll_offset()
 }
 
 void
-MenuComponent::set_screen_rect(const geom::frect& rect_)
+MenuComponent::set_screen_rect(const geom::frect& rect)
 {
-  m_num_displayable_items = static_cast<int>(rect_.height() / item_height());
+  m_num_displayable_items = static_cast<int>(rect.height() / item_height());
 
   if (m_num_displayable_items < int(m_items.size()))
   {
@@ -247,7 +246,7 @@ MenuComponent::set_screen_rect(const geom::frect& rect_)
     m_scroll_offset = 0;
   }
 
-  Component::set_screen_rect(rect_);
+  Component::set_screen_rect(rect);
 }
 
 } // namespace wstgui

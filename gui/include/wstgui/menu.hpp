@@ -30,11 +30,6 @@ namespace wstgui {
  */
 class Menu
 {
-private:
-  std::unique_ptr<GUIManager>     manager;
-  std::unique_ptr<GroupComponent> group;
-  std::unique_ptr<MenuComponent>  menu;
-
 public:
   /**
    *  Construct a Menu, if \a parent is given no GUIManager will be
@@ -49,16 +44,21 @@ public:
                          int index,
                          const std::function<void (int)>& callback = std::function<void (int)>());
 
-  void  add_slider(const std::string& name,
-                   int value, int mix_value, int max_value, int step,
-                   const std::function<void (int)>& callback = std::function<void (int)>());
+  void add_slider(const std::string& name,
+                  int value, int mix_value, int max_value, int step,
+                  const std::function<void (int)>& callback = std::function<void (int)>());
 
-  void  add_button(const std::string& name,
-                   const std::function<void ()>& callback = std::function<void ()>());
+  void add_button(const std::string& name,
+                  const std::function<void ()>& callback = std::function<void ()>());
 
   RootComponent*  get_root() const;
 
   void show(ScreenManager& screen_manager);
+
+private:
+  std::unique_ptr<GUIManager> m_manager;
+  std::unique_ptr<GroupComponent> m_group;
+  std::unique_ptr<MenuComponent> m_menu;
 
 private:
   Menu (const Menu&);

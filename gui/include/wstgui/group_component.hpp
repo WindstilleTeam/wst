@@ -28,11 +28,12 @@ namespace wstgui {
 class GroupComponent : public Component
 {
 public:
-  GroupComponent(const std::string& title_, Component* parent);
+  GroupComponent(const std::string& title, Component* parent);
   ~GroupComponent() override;
 
   void draw(wstdisplay::GraphicsContext& gc) override;
   void update(float delta, const Controller& controller) override;
+  void set_screen_rect(geom::frect const& rect) override;
 
   void pack(std::unique_ptr<Component> component);
 
@@ -40,11 +41,11 @@ public:
 
   geom::frect get_child_rect() const;
 
-  bool has_title() const { return !title.empty(); }
+  bool has_title() const { return !m_title.empty(); }
 
 private:
-  std::string title;
-  std::unique_ptr<Component> child;
+  std::string m_title;
+  std::unique_ptr<Component> m_child;
 
 private:
   GroupComponent (const GroupComponent&);
