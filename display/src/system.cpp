@@ -62,6 +62,17 @@ System::create_window(wstdisplay::OpenGLWindow::Params const& params)
   return window;
 }
 
+std::unique_ptr<wstdisplay::OpenGLWindow>
+System::create_window(std::string title, geom::isize const& size)
+{
+  return create_window({
+      .title = std::move(title),
+      .icon = {},
+      .size = size,
+      .resizable = true
+   });
+}
+
 void
 System::run()
 {
