@@ -40,7 +40,7 @@ public:
   struct Params
   {
     std::string title = {};
-    std::filesystem::path icon;
+    std::filesystem::path icon = {};
     geom::isize size = geom::isize(640, 480);
     Mode mode = Mode::Window;
     bool resizable = false;
