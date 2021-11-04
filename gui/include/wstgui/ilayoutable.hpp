@@ -19,6 +19,8 @@
 #ifndef HEADER_WSTGUI_LAYOUTABLE_HPP
 #define HEADER_WSTGUI_LAYOUTABLE_HPP
 
+#include <optional>
+
 #include <geom/rect.hpp>
 
 namespace wstgui {
