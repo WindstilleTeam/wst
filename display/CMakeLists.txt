@@ -15,7 +15,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 cmake_minimum_required(VERSION 3.15)
-project(windstille VERSION 0.3.0)
+project(wstdisplay VERSION 0.3.0)
 
 set(TINYCMMC_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/external/cmake-modules/modules/")
 find_package(tinycmmc CONFIG)
@@ -55,27 +55,43 @@ function(build_dependencies)
   set(BUILD_TESTS OFF)
   set(BUILD_EXTRA OFF)
 
+  find_package(babyxml QUIET)
   if(NOT TARGET babyxml)
     add_subdirectory(external/babyxml/ EXCLUDE_FROM_ALL)
   endif()
 
+  find_package(geomcpp QUIET)
   if(NOT TARGET geomcpp)
     add_subdirectory(external/geomcpp/ EXCLUDE_FROM_ALL)
   endif()
+
+  find_package(surfcpp QUIET)
   if(NOT TARGET surf)
     add_subdirectory(external/surfcpp/ EXCLUDE_FROM_ALL)
   endif()
 endfunction()
 build_dependencies()
 
+# file(GLOB WSTDISPLAY_HEADERS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
+#   include/wstdisplay/*.hpp
+#   include/wstdisplay/font/*.hpp
+#   include/wstdisplay/scenegraph/*.hpp
+#   include/wstsystem/*.hpp
+#   )
 file(GLOB WSTDISPLAY_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
   src/*.cpp
   src/font/*.?pp
-  src/scenegraph/*.cpp)
+  src/scenegraph/*.cpp
+  )
 add_library(wstdisplay STATIC ${WSTDISPLAY_SOURCES})
+#set_target_properties(wstdisplay PROPERTIES
+#  PUBLIC_HEADER "${WSTDISPLAY_HEADERS}")
 target_include_directories(wstdisplay PRIVATE src/ include/wstdisplay include/wstsystem/)
-target_include_directories(wstdisplay PUBLIC include/)
-target_compile_options(wstdisplay PUBLIC ${WARNINGS_CXX_FLAGS})
+target_include_directories(wstdisplay PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+  )
+target_compile_options(wstdisplay PRIVATE ${WARNINGS_CXX_FLAGS})
 target_link_libraries(wstdisplay PUBLIC
   babyxml
   geomcpp
@@ -85,8 +101,33 @@ target_link_libraries(wstdisplay PUBLIC
   OpenGL::GLU
   Freetype::Freetype
   PkgConfig::SDL2
-    PkgConfig::SIGCXX
+  PkgConfig::SIGCXX
   Threads::Threads)
+
+install(TARGETS wstdisplay
+  EXPORT wstdisplay-targets
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  # PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}"
+  )
+
+install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/"
+  DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/"
+  FILES_MATCHING
+  PATTERN "*.hpp"
+  )
+
+# CMake integration
+configure_file(wstdisplay-config.cmake.in
+  "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/wstdisplay-config.cmake" @ONLY)
+install(FILES
+  "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/wstdisplay-config.cmake"
+  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/wstdisplay/")
+export(TARGETS wstdisplay
+  FILE "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/wstdisplay-targets.cmake")
+export(PACKAGE wstdisplay)
+install(EXPORT wstdisplay-targets
+  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/wstdisplay/")
 
 if(BUILD_TESTS)
   file(GLOB TEST_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
@@ -94,7 +135,7 @@ if(BUILD_TESTS)
   foreach(SRC ${TEST_SOURCES})
     get_filename_component(SRC_BASENAME ${SRC} NAME_WE)
     add_executable(${SRC_BASENAME} ${SRC})
-    target_link_libraries(${SRC_BASENAME} wstdisplay)
+    target_link_libraries(${SRC_BASENAME} PRIVATE wstdisplay)
   endforeach(SRC)
 endif()
 
@@ -104,7 +145,9 @@ if(BUILD_EXTRA)
   foreach(SRC ${EXTRA_SOURCES})
     get_filename_component(SRC_BASENAME ${SRC} NAME_WE)
     add_executable(${SRC_BASENAME} ${SRC})
-    target_link_libraries(${SRC_BASENAME} wstdisplay)
+    target_link_libraries(${SRC_BASENAME} PRIVATE wstdisplay)
+    install(TARGETS ${SRC_BASENAME}
+      RUNTIME DESTINATION ${CMAKE_INSTALL_FULL_BINDIR})
   endforeach(SRC)
 endif()
 
