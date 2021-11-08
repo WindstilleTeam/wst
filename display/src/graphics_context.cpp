@@ -26,9 +26,9 @@
 #include <geom/rect.hpp>
 #include <geom/line.hpp>
 #include <geom/quad.hpp>
+#include <surf/color.hpp>
 #include <surf/palette.hpp>
 
-#include "color.hpp"
 #include "assert_gl.hpp"
 
 #include "scenegraph/vertex_array_drawable.hpp"

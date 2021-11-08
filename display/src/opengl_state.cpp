@@ -20,8 +20,9 @@
 #include <iostream>
 #include <map>
 
+#include <surf/color.hpp>
+
 #include "texture.hpp"
-#include "color.hpp"
 #include "assert_gl.hpp"
 
 #define MAX_TEXTURE_UNITS 4

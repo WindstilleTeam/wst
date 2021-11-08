@@ -19,7 +19,7 @@
 
 #include <GL/glew.h>
 
-#include "color.hpp"
+#include <surf/color.hpp>
 
 namespace wstdisplay {
 

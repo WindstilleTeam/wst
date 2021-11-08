@@ -22,9 +22,8 @@
 
 #include <geom/size.hpp>
 #include <geom/rect.hpp>
+#include <surf/color.hpp>
 #include <surf/software_surface.hpp>
-
-#include "color.hpp"
 
 namespace wstdisplay {
 
