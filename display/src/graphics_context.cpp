@@ -19,8 +19,6 @@
 #include <iostream>
 #include <errno.h>
 #include <fstream>
-#include <jpeglib.h>
-#include <png.h>
 #include <sstream>
 #include <stdexcept>
 #include <string.h>
