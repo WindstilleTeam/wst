@@ -3,16 +3,38 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs";
+    nix.inputs.nixpkgs.follows = "nixpkgs";
     flake-utils.url = "github:numtide/flake-utils";
+
     tinycmmc.url = "gitlab:grumbel/cmake-modules";
-    # babyxml.url = "gitlab:grumbel/babyxml";
-    # geomcpp.url = "gitlab:grumbel/geomcpp";
-    # logmich.url = "gitlab:grumbel/logmich";
-    # surfcpp.url = "gitlab:grumbel/surfcpp";
-    babyxml.url = "git+file:///home/ingo/projects/babyxml/trunk/babyxml";
-    geomcpp.url = "git+file:///home/ingo/projects/geomcpp/trunk";
-    logmich.url = "git+file:///home/ingo/projects/logmich/trunk";
-    surfcpp.url = "git+file:///home/ingo/projects/surfcpp/trunk";
+    tinycmmc.inputs.nixpkgs.follows = "nixpkgs";
+    tinycmmc.inputs.flake-utils.follows = "flake-utils";
+
+    babyxml.url = "gitlab:grumbel/babyxml";
+    babyxml.inputs.nix.follows = "nix";
+    babyxml.inputs.nixpkgs.follows = "nixpkgs";
+    babyxml.inputs.flake-utils.follows = "flake-utils";
+    babyxml.inputs.tinycmmc.follows = "tinycmmc";
+
+    logmich.url = "gitlab:logmich/logmich";
+    logmich.inputs.nix.follows = "nix";
+    logmich.inputs.nixpkgs.follows = "nixpkgs";
+    logmich.inputs.flake-utils.follows = "flake-utils";
+    logmich.inputs.tinycmmc.follows = "tinycmmc";
+
+    geomcpp.url = "gitlab:grumbel/geomcpp";
+    geomcpp.inputs.nix.follows = "nix";
+    geomcpp.inputs.nixpkgs.follows = "nixpkgs";
+    geomcpp.inputs.flake-utils.follows = "flake-utils";
+    geomcpp.inputs.tinycmmc.follows = "tinycmmc";
+
+    geomcpp.url = "gitlab:grumbel/surfcpp";
+    surfcpp.inputs.nix.follows = "nix";
+    surfcpp.inputs.nixpkgs.follows = "nixpkgs";
+    surfcpp.inputs.flake-utils.follows = "flake-utils";
+    surfcpp.inputs.tinycmmc.follows = "tinycmmc";
+    surfcpp.inputs.geomcpp.follows = "geomcpp";
+    surfcpp.inputs.logmich.follows = "logmich";
   };
 
   outputs = { self, nix, nixpkgs, flake-utils, tinycmmc, babyxml, geomcpp, logmich, surfcpp }:
@@ -37,6 +59,7 @@
               geomcpp.defaultPackage.${system}
               logmich.defaultPackage.${system}
               surfcpp.defaultPackage.${system}
+
               pkgs.freetype
               pkgs.libGL
               pkgs.libGLU
