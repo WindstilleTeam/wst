@@ -17,7 +17,10 @@
 cmake_minimum_required(VERSION 3.15)
 project(wstgui VERSION 0.3.0)
 
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/external/cmake-modules/)
+set(TINYCMMC_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/external/cmake-modules/modules/")
+find_package(tinycmmc CONFIG)
+message(STATUS "tinycmmc module path: ${TINYCMMC_MODULE_PATH}")
+list(APPEND CMAKE_MODULE_PATH ${TINYCMMC_MODULE_PATH})
 
 include(GNUInstallDirs)
 include(ClangTidy)
@@ -33,12 +36,40 @@ function(build_dependencies)
   set(BUILD_TESTS OFF)
   set(BUILD_EXTRA OFF)
 
+  find_package(sexp QUIET)
+  find_package(babyxml QUIET)
+
+  find_package(logmich QUIET)
+  if(NOT TARGET logmich)
+    add_subdirectory(external/logmich/ EXCLUDE_FROM_ALL)
+  endif()
+
+  find_package(geomcpp QUIET)
+  if(NOT TARGET geomcpp)
+    add_subdirectory(external/geomcpp/ EXCLUDE_FROM_ALL)
+  endif()
+
+  find_package(priocpp QUIET)
+  if(NOT TARGET prio)
+    add_subdirectory(external/priocpp/ EXCLUDE_FROM_ALL)
+  endif()
+
+  find_package(surfcpp QUIET)
+  if(NOT TARGET surf)
+    add_subdirectory(external/surf/ EXCLUDE_FROM_ALL)
+  endif()
+
+  find_package(wstdisplay QUIET)
   if(NOT TARGET wstdisplay)
     add_subdirectory(external/wstdisplay/ EXCLUDE_FROM_ALL)
   endif()
+
+  find_package(wstinput QUIET)
   if(NOT TARGET wstinput)
     add_subdirectory(external/wstinput/ EXCLUDE_FROM_ALL)
   endif()
+
+  find_package(wstsound QUIET)
   if(NOT TARGET wstsound)
     add_subdirectory(external/wstsound/ EXCLUDE_FROM_ALL)
   endif()
@@ -58,12 +89,20 @@ set_target_properties(wstgui PROPERTIES
   CXX_STANDARD_REQUIRED ON
   CXX_EXTENSIONS OFF)
 target_include_directories(wstgui SYSTEM PUBLIC ${OPENAL_INCLUDE_DIR})
-target_include_directories(wstgui PUBLIC include/)
-target_include_directories(wstgui PRIVATE src/ include/wstgui/)
+target_include_directories(wstgui PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+  )
+target_include_directories(wstgui PRIVATE
+  src/
+  include/wstgui/
+  )
 target_link_libraries(wstgui PUBLIC
   wstdisplay
   wstinput
   wstsound
+  geomcpp
+  prio
   PkgConfig::SIGCXX
   PkgConfig::SDL2)
 
@@ -71,6 +110,23 @@ if(CWIID_LIBRARY)
   target_compile_options(wstgui PUBLIC -DHAVE_CWIID)
   target_link_libraries(wstgui ${CWIID_LIBRARY})
 endif()
+
+install(TARGETS wstgui
+  EXPORT wstgui-targets
+  LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+  PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}")
+
+# CMake integration
+configure_file(wstgui-config.cmake.in
+  "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/wstgui-config.cmake" @ONLY)
+install(FILES
+  "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/wstgui-config.cmake"
+  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/wstgui/")
+export(TARGETS wstgui
+  FILE "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/wstgui-targets.cmake")
+export(PACKAGE wstgui)
+install(EXPORT wstgui-targets
+  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/wstgui/")
 
 if(BUILD_EXTRA)
   file(GLOB EXTRA_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
@@ -83,11 +139,9 @@ if(BUILD_EXTRA)
       CXX_STANDARD_REQUIRED ON
       CXX_EXTENSIONS OFF)
     target_link_libraries(${SRC_BASENAME} wstgui wstdisplay)
+    install(TARGETS ${SRC_BASENAME}
+      RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
   endforeach(SRC)
 endif()
-
-install(TARGETS wstgui
-  LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-  PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}")
 
 # EOF #

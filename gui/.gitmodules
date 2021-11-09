@@ -10,3 +10,6 @@
 [submodule "external/wstinput"]
 	path = external/wstinput
 	url = https://gitlab.com/Windstille/wstinput.git
+[submodule "external/geomcpp"]
+	path = external/geomcpp
+	url = https://gitlab.com/grumbel/geomcpp.git
