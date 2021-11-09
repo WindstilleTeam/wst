@@ -28,7 +28,7 @@
     geomcpp.inputs.flake-utils.follows = "flake-utils";
     geomcpp.inputs.tinycmmc.follows = "tinycmmc";
 
-    geomcpp.url = "gitlab:grumbel/surfcpp";
+    surfcpp.url = "gitlab:grumbel/surfcpp";
     surfcpp.inputs.nix.follows = "nix";
     surfcpp.inputs.nixpkgs.follows = "nixpkgs";
     surfcpp.inputs.flake-utils.follows = "flake-utils";
