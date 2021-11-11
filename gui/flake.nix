@@ -91,8 +91,14 @@ rec {
               pkgs.ninja
               pkgs.gcc
               pkgs.pkgconfig
+              pkgs.makeWrapper
               tinycmmc.defaultPackage.${system}
             ];
+            postFixup = ''
+                wrapProgram $out/bin/guitest \
+                  --prefix LIBGL_DRIVERS_PATH ":" "${pkgs.mesa.drivers}/lib/dri" \
+                  --prefix LD_LIBRARY_PATH ":" "${pkgs.mesa.drivers}/lib"
+            '';
             buildInputs = [
               logmich.defaultPackage.${system}
               geomcpp.defaultPackage.${system}
