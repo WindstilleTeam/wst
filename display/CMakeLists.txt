@@ -69,6 +69,11 @@ function(build_dependencies)
   if(NOT TARGET surf)
     add_subdirectory(external/surfcpp/ EXCLUDE_FROM_ALL)
   endif()
+
+  find_package(logmich QUIET)
+  if(NOT TARGET logmich)
+    add_subdirectory(external/logmich/ EXCLUDE_FROM_ALL)
+  endif()
 endfunction()
 build_dependencies()
 
@@ -96,6 +101,7 @@ target_link_libraries(wstdisplay PUBLIC
   babyxml
   geomcpp
   surf
+  logmich
   GLEW::GLEW
   OpenGL::GL
   OpenGL::GLU
