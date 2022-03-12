@@ -1,4 +1,4 @@
-get_filename_component(WSTDISPLAY_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+get_filename_component(WSTGUI_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
 
 include(CMakeFindDependencyMacro)
 
@@ -11,8 +11,8 @@ find_dependency(PkgConfig)
 pkg_search_module(SDL2 REQUIRED sdl2 IMPORTED_TARGET)
 pkg_search_module(SIGCXX REQUIRED sigc++-2.0 IMPORTED_TARGET)
 
-if(NOT TARGET wstdisplay)
-  include("${WSTDISPLAY_CMAKE_DIR}/wstdisplay-targets.cmake")
+if(NOT TARGET wstgui)
+  include("${WSTGUI_CMAKE_DIR}/wstgui-targets.cmake")
 endif()
 
 # EOF #
