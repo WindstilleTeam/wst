@@ -56,22 +56,22 @@ function(build_dependencies)
   set(BUILD_EXTRA OFF)
 
   find_package(babyxml QUIET)
-  if(NOT TARGET babyxml)
+  if(NOT TARGET babyxml::babyxml)
     add_subdirectory(external/babyxml/ EXCLUDE_FROM_ALL)
   endif()
 
-  find_package(geomcpp QUIET)
-  if(NOT TARGET geomcpp)
+  find_package(geom QUIET)
+  if(NOT TARGET geom::geom)
     add_subdirectory(external/geomcpp/ EXCLUDE_FROM_ALL)
   endif()
 
-  find_package(surfcpp QUIET)
-  if(NOT TARGET surf)
+  find_package(surf QUIET)
+  if(NOT TARGET surf::surf)
     add_subdirectory(external/surfcpp/ EXCLUDE_FROM_ALL)
   endif()
 
   find_package(logmich QUIET)
-  if(NOT TARGET logmich)
+  if(NOT TARGET logmich::logmich)
     add_subdirectory(external/logmich/ EXCLUDE_FROM_ALL)
   endif()
 endfunction()
@@ -98,10 +98,10 @@ target_include_directories(wstdisplay PUBLIC
   )
 target_compile_options(wstdisplay PRIVATE ${WARNINGS_CXX_FLAGS})
 target_link_libraries(wstdisplay PUBLIC
-  babyxml
-  geomcpp
-  surf
-  logmich
+  babyxml::babyxml
+  geom::geom
+  surf::surf
+  logmich::logmich
   GLEW::GLEW
   OpenGL::GL
   OpenGL::GLU

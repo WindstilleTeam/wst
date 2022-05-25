@@ -18,7 +18,7 @@
 
 #include "font/text_area.hpp"
 
-#include <babyxml.hpp>
+#include <babyxml/babyxml.hpp>
 #include <wstdisplay/font/ttf_font.hpp>
 #include <wstdisplay/graphics_context.hpp>
 #include <wstdisplay/scenegraph/vertex_array_drawable.hpp>

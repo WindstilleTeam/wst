@@ -61,7 +61,8 @@
               pkgs.libGLU
               pkgs.glew
               pkgs.gtest
-
+            ];
+            propagatedBuildInputs = [
               pkgs.fmt
               pkgs.glm
               pkgs.SDL2
