@@ -129,13 +129,14 @@ if(BUILD_EXTRA)
     extra/*.cpp)
   foreach(SRC ${EXTRA_SOURCES})
     get_filename_component(SRC_BASENAME ${SRC} NAME_WE)
-    add_executable(${SRC_BASENAME} ${SRC})
-    set_target_properties(${SRC_BASENAME} PROPERTIES
+    add_executable("${SRC_BASENAME}_exe" ${SRC})
+    set_target_properties("${SRC_BASENAME}_exe" PROPERTIES
+      OUTPUT_NAME "${SRC_BASENAME}"
       CXX_STANDARD 20
       CXX_STANDARD_REQUIRED ON
       CXX_EXTENSIONS OFF)
-    target_link_libraries(${SRC_BASENAME} wstgui wstdisplay)
-    install(TARGETS ${SRC_BASENAME}
+    target_link_libraries("${SRC_BASENAME}_exe" wstgui wstdisplay)
+    install(TARGETS "${SRC_BASENAME}_exe"
       RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
   endforeach(SRC)
 endif()

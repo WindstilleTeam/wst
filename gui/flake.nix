@@ -85,7 +85,7 @@ rec {
               pkgs.makeWrapper
             ];
             postFixup = ''
-                wrapProgram $out/bin/guitest \
+                wrapProgram $out/bin/wstgui \
                   --prefix LIBGL_DRIVERS_PATH ":" "${pkgs.mesa.drivers}/lib/dri" \
                   --prefix LD_LIBRARY_PATH ":" "${pkgs.mesa.drivers}/lib"
             '';
