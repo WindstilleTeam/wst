@@ -49,8 +49,8 @@ public:
   virtual void draw(wstdisplay::GraphicsContext& gc) =0;
   virtual void update(float delta, const Controller& controller) =0;
 
-  virtual geom::frect get_screen_rect() const;
-  virtual void  set_screen_rect(const geom::frect& rect);
+  virtual geom::frect geometry() const;
+  virtual void  set_geometry(const geom::frect& rect);
 
   virtual geom::fsize get_prefered_size() const;
 
@@ -60,7 +60,7 @@ protected:
   Component* m_parent;
 
   /** Rectangle on the screen allocated for the Component */
-  geom::frect m_rect;
+  geom::frect m_geometry;
 
   /** Size prefered by the widget */
   geom::fsize m_prefered_size;

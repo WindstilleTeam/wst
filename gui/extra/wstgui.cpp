@@ -75,11 +75,11 @@ int main()
   auto* root = gui_manager->get_root();
 
   auto label = std::make_unique<Label>("GUI Test", root);
-  label->set_screen_rect(geom::frect(20, 20, 100, 50));
+  label->set_geometry(geom::frect(20, 20, 100, 50));
   root->add_child(std::move(label));
 
   auto textview = std::make_unique<TextView>(root);
-  textview->set_screen_rect(geom::frect(20, 50, 620, 200));
+  textview->set_geometry(geom::frect(20, 50, 620, 200));
   textview->set_font(smallfont.get());
   textview->set_text(
     "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi in "
@@ -117,8 +117,8 @@ int main()
 
   auto ok_button = std::make_unique<Button>("Ok", root);
   auto cancel_button = std::make_unique<Button>("Cancel", root);
-  ok_button->set_screen_rect(geom::frect(500, 420, 600, 460));
-  cancel_button->set_screen_rect(geom::frect(380, 420, 480, 460));
+  ok_button->set_geometry(geom::frect(500, 420, 600, 460));
+  cancel_button->set_geometry(geom::frect(380, 420, 480, 460));
   root->add_child(std::move(ok_button));
   root->add_child(std::move(cancel_button));
 

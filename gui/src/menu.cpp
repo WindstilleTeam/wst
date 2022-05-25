@@ -40,9 +40,9 @@ Menu::Menu(const std::string& name, const geom::frect& rect, Style& style, bool 
   }
 
   m_group.reset(new GroupComponent(name, parent));
-  m_group->set_screen_rect(rect);
+  m_group->set_geometry(rect);
   m_menu.reset(new MenuComponent(allow_cancel, m_group.get()));
-  m_menu->set_screen_rect(m_group->get_child_rect());
+  m_menu->set_geometry(m_group->get_child_rect());
   m_menu->set_font(style.get_font());
 }
 
@@ -98,7 +98,7 @@ Menu::show(ScreenManager& screen_manager)
   assert(m_manager.get());
 
   {
-    geom::frect rect = m_group->get_screen_rect();
+    geom::frect rect = m_group->geometry();
 
     glm::vec2 center((rect.left() + rect.right()) / 2.0f,
                      (rect.top() + rect.bottom()) / 2.0f);
@@ -109,11 +109,11 @@ Menu::show(ScreenManager& screen_manager)
                       static_cast<float>(m_manager->get_style().get_font()->get_height()) + 18.0f :
                       0.0f));
 
-    m_group->set_screen_rect(geom::frect(glm::vec2(center.x - size.width()/2.0f,
+    m_group->set_geometry(geom::frect(glm::vec2(center.x - size.width()/2.0f,
                                                    center.y - size.height()/2.0f),
                                          size));
 
-    m_menu->set_screen_rect(m_group->get_child_rect());
+    m_menu->set_geometry(m_group->get_child_rect());
   }
 
   m_group->pack(std::move(m_menu));

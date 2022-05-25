@@ -48,7 +48,7 @@ MenuComponent::add_item(std::unique_ptr<MenuItem> item)
 {
   m_items.emplace_back(std::move(item));
 
-  if (calc_height() >= m_rect.height())
+  if (calc_height() >= m_geometry.height())
   {
     m_scroll_mode   = true;
     m_scroll_offset = 0;
@@ -65,22 +65,22 @@ MenuComponent::draw(wstdisplay::GraphicsContext& gc)
     for(int i = 0; i < m_num_displayable_items; ++i)
     {
       m_items[i + m_scroll_offset]->draw(gc,
-                                         geom::frect(m_rect.left(), m_rect.top() + static_cast<float>(i) * step + 2.0f,
-                                                     m_rect.right() - 32.0f, m_rect.top() + static_cast<float>(i+1) * step - 2.0f),
+                                         geom::frect(m_geometry.left(), m_geometry.top() + static_cast<float>(i) * step + 2.0f,
+                                                     m_geometry.right() - 32.0f, m_geometry.top() + static_cast<float>(i+1) * step - 2.0f),
                                          is_active() && (i + m_scroll_offset == m_current_item));
     }
 
     // draw scrollbar
-    float scrollbar_height = (m_rect.height() - 4.0f) * static_cast<float>(m_num_displayable_items) / static_cast<float>(m_items.size());
-    float scrollbar_incr   = (m_rect.height() - 4.0f) * static_cast<float>(m_scroll_offset) / static_cast<float>(m_items.size());
+    float scrollbar_height = (m_geometry.height() - 4.0f) * static_cast<float>(m_num_displayable_items) / static_cast<float>(m_items.size());
+    float scrollbar_incr   = (m_geometry.height() - 4.0f) * static_cast<float>(m_scroll_offset) / static_cast<float>(m_items.size());
 
-    gc.fill_rounded_rect(geom::frect(m_rect.right() - 24, m_rect.top() + 2.0f + scrollbar_incr,
-                                     m_rect.right() - 2,  m_rect.top() + 2.0f + scrollbar_incr + scrollbar_height),
+    gc.fill_rounded_rect(geom::frect(m_geometry.right() - 24, m_geometry.top() + 2.0f + scrollbar_incr,
+                                     m_geometry.right() - 2,  m_geometry.top() + 2.0f + scrollbar_incr + scrollbar_height),
                          5.0f,
                          surf::Color(0.5f, 0.5f, 0.5f, 0.75f));
 
-    gc.draw_rounded_rect(geom::frect(m_rect.right() - 24, m_rect.top() + 2.0f,
-                                     m_rect.right() - 2,  m_rect.bottom() - 2.0f),
+    gc.draw_rounded_rect(geom::frect(m_geometry.right() - 24, m_geometry.top() + 2.0f,
+                                     m_geometry.right() - 2,  m_geometry.bottom() - 2.0f),
                          5.0f,
                          surf::Color(1.0f, 1.0f, 1.0f, 1.0f));
   }
@@ -89,8 +89,8 @@ MenuComponent::draw(wstdisplay::GraphicsContext& gc)
     for(size_t i = 0; i < m_items.size(); ++i)
     {
       m_items[i]->draw(gc,
-                       geom::frect(m_rect.left(), m_rect.top() + static_cast<float>(i) * step + 2.0f,
-                                   m_rect.right(), m_rect.top() + static_cast<float>(i+1) * step - 2.0f),
+                       geom::frect(m_geometry.left(), m_geometry.top() + static_cast<float>(i) * step + 2.0f,
+                                   m_geometry.right(), m_geometry.top() + static_cast<float>(i+1) * step - 2.0f),
                        is_active() && (int(i) == m_current_item));
     }
   }
@@ -197,7 +197,7 @@ MenuComponent::get_prefered_size() const
     {
     width = std::max(get_width())
     }  */
-  return geom::fsize(m_rect.width(),
+  return geom::fsize(m_geometry.width(),
                      item_height() * static_cast<float>(std::min(10, int(m_items.size()))) + 12.0f);
 }
 
@@ -231,7 +231,7 @@ MenuComponent::adjust_scroll_offset()
 }
 
 void
-MenuComponent::set_screen_rect(const geom::frect& rect)
+MenuComponent::set_geometry(const geom::frect& rect)
 {
   m_num_displayable_items = static_cast<int>(rect.height() / item_height());
 
@@ -246,7 +246,7 @@ MenuComponent::set_screen_rect(const geom::frect& rect)
     m_scroll_offset = 0;
   }
 
-  Component::set_screen_rect(rect);
+  Component::set_geometry(rect);
 }
 
 } // namespace wstgui

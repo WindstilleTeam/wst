@@ -65,9 +65,9 @@ TextView::update(float delta, const Controller& controller)
 }
 
 void
-TextView::set_screen_rect(const geom::frect& rect_)
+TextView::set_geometry(const geom::frect& rect_)
 {
-  Component::set_screen_rect(rect_);
+  Component::set_geometry(rect_);
   text_area.set_rect(geom::grow(rect_, -16.0f, -4.0f));
 }
 

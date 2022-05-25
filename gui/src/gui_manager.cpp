@@ -41,7 +41,7 @@ GUIManager::draw(wstdisplay::GraphicsContext& gc)
   m_root->draw(gc);
 
   if (m_focus_component) {
-    gc.fill_rect(m_focus_component->get_screen_rect(), surf::Color(1.0f, 0.0f, 0.0f, 0.5f));
+    gc.fill_rect(m_focus_component->geometry(), surf::Color(1.0f, 0.0f, 0.0f, 0.5f));
   }
 }
 

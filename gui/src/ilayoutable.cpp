@@ -30,7 +30,7 @@ LayoutableComponent::LayoutableComponent(Component* component) :
 void
 LayoutableComponent::set_geometry(geom::frect const& rect)
 {
-  m_component->set_screen_rect(rect);
+  m_component->set_geometry(rect);
 }
 
 } // namespace wstgui

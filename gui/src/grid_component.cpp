@@ -45,8 +45,8 @@ GridComponent::~GridComponent()
 void
 GridComponent::draw(wstdisplay::GraphicsContext& gc)
 {
-  gc.fill_rect(m_rect, surf::Color(0.0f, 0.0f, 0.0f, 0.5f));
-  gc.draw_rect(m_rect, surf::Color(1.0f, 1.0f, 1.0f, 0.5f));
+  gc.fill_rect(m_geometry, surf::Color(0.0f, 0.0f, 0.0f, 0.5f));
+  gc.draw_rect(m_geometry, surf::Color(1.0f, 1.0f, 1.0f, 0.5f));
 
   for(int y = 0; y < grid.get_height(); ++y)
     for(int x = 0; x < grid.get_width(); ++x)
@@ -54,7 +54,7 @@ GridComponent::draw(wstdisplay::GraphicsContext& gc)
       if (grid(x, y).component)
       {
         if (x == pos.x && y == pos.y)
-          gc.fill_rect(grid(x, y).component->get_screen_rect(), surf::Color(1.0f, 1.0f, 1.0f, 0.5f));
+          gc.fill_rect(grid(x, y).component->geometry(), surf::Color(1.0f, 1.0f, 1.0f, 0.5f));
 
         grid(x, y).component->draw(gc);
       }
@@ -210,7 +210,7 @@ GridComponent::pack(std::unique_ptr<Component> component, int x, int y, int cols
     return;
   }
 
-  geom::frect rect_ = get_screen_rect();
+  geom::frect rect_ = geometry();
 
   if (colspan == 1 && rowspan == 1)
   {
@@ -227,7 +227,7 @@ GridComponent::pack(std::unique_ptr<Component> component, int x, int y, int cols
     grid(x, y) = ComponentBox(std::move(component), geom::isize(colspan, rowspan));
   }
 
-  grid(x, y).component->set_screen_rect(
+  grid(x, y).component->set_geometry(
     geom::frect(glm::vec2(rect_.left() + static_cast<float>(x) * (rect_.width()  / static_cast<float>(grid.get_width()))  + padding,
                           rect_.top()  + static_cast<float>(y) * (rect_.height() / static_cast<float>(grid.get_height())) + padding),
                 geom::fsize((rect_.width()  / static_cast<float>(grid.get_width()))  * static_cast<float>(colspan) - 2.0f * padding,

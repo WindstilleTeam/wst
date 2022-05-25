@@ -37,19 +37,19 @@ GroupComponent::~GroupComponent()
 void
 GroupComponent::draw(wstdisplay::GraphicsContext& gc)
 {
-  gc.fill_rounded_rect(m_rect, 5.0f, surf::Color(0.0f, 0.0f, 0.0f, 0.7f));
-  gc.draw_rounded_rect(m_rect, 5.0f, surf::Color(1.0f, 1.0f, 1.0f, 0.5f));
+  gc.fill_rounded_rect(m_geometry, 5.0f, surf::Color(0.0f, 0.0f, 0.0f, 0.7f));
+  gc.draw_rounded_rect(m_geometry, 5.0f, surf::Color(1.0f, 1.0f, 1.0f, 0.5f));
 
   if (!m_title.empty())
   {
     wstdisplay::TTFFont* font = get_style().get_font();
     font->draw_center(gc,
-                      glm::vec2(m_rect.left() + m_rect.width() / 2.0f,
-                                m_rect.top()  + static_cast<float>(font->get_height()) + 5.0f),
+                      glm::vec2(m_geometry.left() + m_geometry.width() / 2.0f,
+                                m_geometry.top()  + static_cast<float>(font->get_height()) + 5.0f),
                       m_title, surf::Color(1.0f, 1.0f, 1.0f));
 
-    gc.fill_rect(geom::frect(m_rect.left()  + 8.0f, m_rect.top() + static_cast<float>(font->get_height()) + 16.0f,
-                             m_rect.right() - 8.0f, m_rect.top() + static_cast<float>(font->get_height()) + 18.0f),
+    gc.fill_rect(geom::frect(m_geometry.left()  + 8.0f, m_geometry.top() + static_cast<float>(font->get_height()) + 16.0f,
+                             m_geometry.right() - 8.0f, m_geometry.top() + static_cast<float>(font->get_height()) + 18.0f),
                  surf::Color(1.0f, 1.0f, 1.0f, 0.5f));
   }
 
@@ -78,20 +78,20 @@ GroupComponent::get_child_rect() const
 {
   float const padding = 6.0f;
 
-  return geom::frect(m_rect.left() + padding,
-                     m_rect.top() + padding + (m_title.empty() ?
-                                               0.0f :
-                                               static_cast<float>(get_style().get_font()->get_height()) + 18.0f),
-                     m_rect.right()  - padding,
-                     m_rect.bottom() - padding);
+  return geom::frect(m_geometry.left() + padding,
+                     m_geometry.top() + padding + (m_title.empty() ?
+                                                   0.0f :
+                                                   static_cast<float>(get_style().get_font()->get_height()) + 18.0f),
+                     m_geometry.right()  - padding,
+                     m_geometry.bottom() - padding);
 }
 
 void
-GroupComponent::set_screen_rect(geom::frect const& rect)
+GroupComponent::set_geometry(geom::frect const& rect)
 {
-  Component::set_screen_rect(rect);
+  Component::set_geometry(rect);
   if (m_child) {
-    m_child->set_screen_rect(get_child_rect());
+    m_child->set_geometry(get_child_rect());
   }
 }
 

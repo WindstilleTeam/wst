@@ -33,7 +33,7 @@ public:
 
   void draw(wstdisplay::GraphicsContext& gc) override;
   void update(float delta, const Controller& controller) override;
-  void set_screen_rect(geom::frect const& rect) override;
+  void set_geometry(geom::frect const& rect) override;
 
   void pack(std::unique_ptr<Component> component);
 

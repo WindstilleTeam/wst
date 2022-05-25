@@ -42,7 +42,7 @@ public:
   void set_font(wstdisplay::TTFFont* font_);
   wstdisplay::TTFFont* get_font();
 
-  void set_screen_rect(const geom::frect& rect) override;
+  void set_geometry(const geom::frect& rect) override;
 
 private:
   /** Calculate how much height will be needed for the menu */

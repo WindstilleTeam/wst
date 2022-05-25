@@ -69,13 +69,13 @@ Slider::set_step(int step_)
 void
 Slider::draw(wstdisplay::GraphicsContext& gc)
 {
-  gc.fill_rect(m_rect, surf::Color(0.0f, 0.0f, 0.0f, 0.5f));
-  gc.draw_rect(m_rect, surf::Color(1.0f, 1.0f, 1.0f, 0.5f));
+  gc.fill_rect(m_geometry, surf::Color(0.0f, 0.0f, 0.0f, 0.5f));
+  gc.draw_rect(m_geometry, surf::Color(1.0f, 1.0f, 1.0f, 0.5f));
 
   float width = 30.0f;
-  geom::frect slider_rect(glm::vec2(m_rect.left() + (m_rect.width() - width) * (static_cast<float>(pos-min)/static_cast<float>(max - min)),
-                                    m_rect.top() + 2.0f),
-                          geom::fsize(width, m_rect.height() - 4.0f));
+  geom::frect slider_rect(glm::vec2(m_geometry.left() + (m_geometry.width() - width) * (static_cast<float>(pos-min)/static_cast<float>(max - min)),
+                                    m_geometry.top() + 2.0f),
+                          geom::fsize(width, m_geometry.height() - 4.0f));
   if (is_active())
   {
     gc.fill_rect(slider_rect, surf::Color(1.0f, 1.0f, 1.0f, 0.5f));

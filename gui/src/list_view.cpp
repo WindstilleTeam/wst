@@ -43,8 +43,8 @@ ListView::draw(wstdisplay::GraphicsContext& gc)
 {
   wstdisplay::TTFFont* font = get_style().get_font();
 
-  float x = m_rect.left();
-  float y = m_rect.top() + static_cast<float>(font->get_height());
+  float x = m_geometry.left();
+  float y = m_geometry.top() + static_cast<float>(font->get_height());
   float padding = 10;
 
   for(int i = 0; i < int(columns.size()); ++i)
@@ -60,11 +60,11 @@ ListView::draw(wstdisplay::GraphicsContext& gc)
 
   for(int j = 0; j < int(items.size()); ++j)
   {
-    x = m_rect.left();
+    x = m_geometry.left();
 
     if (j == current_item)
       gc.fill_rect(geom::frect(x, y,
-                               m_rect.right(), y + static_cast<float>(font->get_height())),
+                               m_geometry.right(), y + static_cast<float>(font->get_height())),
                          is_active() ? surf::Color(0.5f, 0.5f, 1.0f, 0.8f) : surf::Color(0.5f, 0.5f, 1.0f, 0.3f));
 
     y += static_cast<float>(font->get_height());
@@ -79,7 +79,7 @@ ListView::draw(wstdisplay::GraphicsContext& gc)
 }
 
 void
-ListView::update(float , const Controller& controller)
+ListView::update(float delta, const Controller& controller)
 {
   for(auto i = controller.get_events().begin();
       i != controller.get_events().end(); ++i)

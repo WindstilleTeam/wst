@@ -22,7 +22,7 @@ namespace wstgui {
 
 Component::Component(Component* parent) :
   m_parent(parent),
-  m_rect(),
+  m_geometry(),
   m_prefered_size(),
   m_active(false)
 {
@@ -54,15 +54,15 @@ Component::set_active(bool active)
 }
 
 geom::frect
-Component::get_screen_rect() const
+Component::geometry() const
 {
-  return m_rect;
+  return m_geometry;
 }
 
 void
-Component::set_screen_rect(const geom::frect& rect)
+Component::set_geometry(const geom::frect& rect)
 {
-  m_rect = rect;
+  m_geometry = rect;
 }
 
 geom::fsize

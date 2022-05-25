@@ -107,7 +107,7 @@ RootComponent::query(geom::fpoint const& pos) const
   for (auto it = m_children.rbegin(); it != m_children.rend(); ++it) {
     auto const& component = *it;
 
-    geom::frect const rect = component->get_screen_rect();
+    geom::frect const rect = component->geometry();
     if (geom::contains(rect, pos)) {
       return component.get();
     }
