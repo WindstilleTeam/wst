@@ -22,6 +22,7 @@ find_package(tinycmmc CONFIG)
 message(STATUS "tinycmmc module path: ${TINYCMMC_MODULE_PATH}")
 list(APPEND CMAKE_MODULE_PATH ${TINYCMMC_MODULE_PATH})
 
+include(GetProjectVersion)
 include(GNUInstallDirs)
 include(ClangTidy)
 include(MaximumWarnings)
