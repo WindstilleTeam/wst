@@ -48,9 +48,13 @@
               pkgs.ninja
               pkgs.gcc
               pkgs.pkgconfig
-              tinycmmc.defaultPackage.${system}
             ];
             buildInputs = [
+              tinycmmc.defaultPackage.${system}
+
+              pkgs.gtest
+            ];
+            propagatedBuildInputs = [
               babyxml.defaultPackage.${system}
               geomcpp.defaultPackage.${system}
               logmich.defaultPackage.${system}
@@ -60,9 +64,6 @@
               pkgs.libGL
               pkgs.libGLU
               pkgs.glew
-              pkgs.gtest
-            ];
-            propagatedBuildInputs = [
               pkgs.fmt
               pkgs.glm
               pkgs.SDL2
