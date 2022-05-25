@@ -110,31 +110,6 @@ target_link_libraries(wstdisplay PUBLIC
   PkgConfig::SIGCXX
   Threads::Threads)
 
-install(TARGETS wstdisplay
-  EXPORT wstdisplay-targets
-  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  # PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}"
-  )
-
-install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/"
-  DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/"
-  FILES_MATCHING
-  PATTERN "*.hpp"
-  )
-
-# CMake integration
-configure_file(wstdisplay-config.cmake.in
-  "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/wstdisplay-config.cmake" @ONLY)
-install(FILES
-  "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/wstdisplay-config.cmake"
-  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/wstdisplay/")
-export(TARGETS wstdisplay
-  FILE "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/wstdisplay-targets.cmake")
-export(PACKAGE wstdisplay)
-install(EXPORT wstdisplay-targets
-  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/wstdisplay/")
-
 if(BUILD_TESTS)
   file(GLOB TEST_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
     test/*_test.cpp)
@@ -156,5 +131,15 @@ if(BUILD_EXTRA)
       RUNTIME DESTINATION ${CMAKE_INSTALL_FULL_BINDIR})
   endforeach(SRC)
 endif()
+
+# PUBLIC_HEADER can't handle subdirectories, so do this manually, try
+# to use cmake's target_sources(...FILE_SET...) once 3.23 comes output
+install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/"
+  DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/"
+  FILES_MATCHING
+  PATTERN "*.hpp"
+  )
+
+include(ExportAndInstallLibrary)
 
 # EOF #
