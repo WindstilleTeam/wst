@@ -24,13 +24,10 @@
 #include <wstdisplay/graphics_context.hpp>
 #include <wstinput/controller.hpp>
 
+#include "fwd.hpp"
 #include "screen.hpp"
 
 namespace wstgui {
-
-class Component;
-class RootComponent;
-class Style;
 
 class GUIManager : public Screen
 {

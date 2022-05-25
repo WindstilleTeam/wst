@@ -21,16 +21,13 @@
 
 #include <geom/geom.hpp>
 #include <wstdisplay/fwd.hpp>
+#include <wstinput/fwd.hpp>
 
 #include "style.hpp"
 
-namespace wstinput { class Controller; }
-
-class FileReader;
+namespace wstgui {
 
 using Controller = wstinput::Controller;
-
-namespace wstgui {
 
 class Component
 {
