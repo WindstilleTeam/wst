@@ -1,4 +1,7 @@
-get_filename_component(WSTGUI_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+@PACKAGE_INIT@
+
+include("${CMAKE_CURRENT_LIST_DIR}/wstgui-config-version.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/wstgui-targets.cmake")
 
 include(CMakeFindDependencyMacro)
 
@@ -11,8 +14,6 @@ find_dependency(PkgConfig)
 pkg_search_module(SDL2 REQUIRED sdl2 IMPORTED_TARGET)
 pkg_search_module(SIGCXX REQUIRED sigc++-2.0 IMPORTED_TARGET)
 
-if(NOT TARGET wstgui)
-  include("${WSTGUI_CMAKE_DIR}/wstgui-targets.cmake")
-endif()
+check_required_components(wstsgui)
 
 # EOF #
