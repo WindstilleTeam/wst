@@ -81,11 +81,8 @@ rec {
             cmakeFlags = [ "-DBUILD_EXTRA=ON" ];
             nativeBuildInputs = [
               pkgs.cmake
-              pkgs.ninja
-              pkgs.gcc
               pkgs.pkgconfig
               pkgs.makeWrapper
-              tinycmmc.defaultPackage.${system}
             ];
             postFixup = ''
                 wrapProgram $out/bin/guitest \
@@ -93,15 +90,18 @@ rec {
                   --prefix LD_LIBRARY_PATH ":" "${pkgs.mesa.drivers}/lib"
             '';
             buildInputs = [
-              logmich.defaultPackage.${system}
-              geomcpp.defaultPackage.${system}
-              priocpp.defaultPackage.${system}
-              surfcpp.defaultPackage.${system}
               babyxml.defaultPackage.${system}
+            ];
+            propagatedBuildInputs = [
+              geomcpp.defaultPackage.${system}
+              logmich.defaultPackage.${system}
+              priocpp.defaultPackage.${system}
               sexpcpp.defaultPackage.${system}
+              surfcpp.defaultPackage.${system}
+              tinycmmc.defaultPackage.${system}
+              wstdisplay.defaultPackage.${system}
               wstinput.defaultPackage.${system}
               wstsound.defaultPackage.${system}
-              wstdisplay.defaultPackage.${system}
 
               pkgs.freetype
               pkgs.libGL

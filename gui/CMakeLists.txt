@@ -37,40 +37,47 @@ function(build_dependencies)
   set(BUILD_EXTRA OFF)
 
   find_package(sexp QUIET)
+  if(NOT TARGET sexp::sexp)
+    add_subdirectory(external/sexpcpp/ EXCLUDE_FROM_ALL)
+  endif()
+
   find_package(babyxml QUIET)
+  if(NOT TARGET babyxml::babyxml)
+    add_subdirectory(external/babyxml/ EXCLUDE_FROM_ALL)
+  endif()
 
   find_package(logmich QUIET)
-  if(NOT TARGET logmich)
+  if(NOT TARGET logmich::logmich)
     add_subdirectory(external/logmich/ EXCLUDE_FROM_ALL)
   endif()
 
-  find_package(geomcpp QUIET)
-  if(NOT TARGET geomcpp)
+  find_package(geom QUIET)
+  if(NOT TARGET geom::geom)
     add_subdirectory(external/geomcpp/ EXCLUDE_FROM_ALL)
   endif()
 
-  find_package(priocpp QUIET)
-  if(NOT TARGET prio)
+  find_package(prio QUIET)
+  if(NOT TARGET prio::prio)
     add_subdirectory(external/priocpp/ EXCLUDE_FROM_ALL)
   endif()
 
-  find_package(surfcpp QUIET)
-  if(NOT TARGET surf)
-    add_subdirectory(external/surf/ EXCLUDE_FROM_ALL)
+  find_package(surf QUIET)
+  if(NOT TARGET surf::surf)
+    add_subdirectory(external/surfcpp/ EXCLUDE_FROM_ALL)
   endif()
 
   find_package(wstdisplay QUIET)
-  if(NOT TARGET wstdisplay)
+  if(NOT TARGET wstdisplay::wstdisplay)
     add_subdirectory(external/wstdisplay/ EXCLUDE_FROM_ALL)
   endif()
 
   find_package(wstinput QUIET)
-  if(NOT TARGET wstinput)
+  if(NOT TARGET wstinput::wstinput)
     add_subdirectory(external/wstinput/ EXCLUDE_FROM_ALL)
   endif()
 
   find_package(wstsound QUIET)
-  if(NOT TARGET wstsound)
+  if(NOT TARGET wstsound::wstsound)
     add_subdirectory(external/wstsound/ EXCLUDE_FROM_ALL)
   endif()
 endfunction()
@@ -98,11 +105,11 @@ target_include_directories(wstgui PRIVATE
   include/wstgui/
   )
 target_link_libraries(wstgui PUBLIC
-  wstdisplay
-  wstinput
-  wstsound
-  geomcpp
-  prio
+  wstdisplay::wstdisplay
+  wstinput::wstinput
+  wstsound::wstsound
+  geom::geom
+  prio::prio
   PkgConfig::SIGCXX
   PkgConfig::SDL2)
 
@@ -115,18 +122,6 @@ install(TARGETS wstgui
   EXPORT wstgui-targets
   LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
   PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}")
-
-# CMake integration
-configure_file(wstgui-config.cmake.in
-  "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/wstgui-config.cmake" @ONLY)
-install(FILES
-  "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/wstgui-config.cmake"
-  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/wstgui/")
-export(TARGETS wstgui
-  FILE "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_FILES_DIRECTORY}/wstgui-targets.cmake")
-export(PACKAGE wstgui)
-install(EXPORT wstgui-targets
-  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/wstgui/")
 
 if(BUILD_EXTRA)
   file(GLOB EXTRA_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
@@ -143,5 +138,7 @@ if(BUILD_EXTRA)
       RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
   endforeach(SRC)
 endif()
+
+include(ExportAndInstallLibrary)
 
 # EOF #
