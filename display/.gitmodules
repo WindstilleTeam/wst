@@ -1,5 +1,5 @@
-[submodule "external/cmake-modules"]
-	path = external/cmake-modules
+[submodule "external/tinycmmc"]
+	path = external/tinycmmc
 	url = https://gitlab.com/grumbel/cmake-modules.git
 [submodule "external/surfcpp"]
 	path = external/surfcpp
