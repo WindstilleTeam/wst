@@ -59,7 +59,7 @@ ShaderObject::from_file(GLenum type, std::filesystem::path const& filename)
   ShaderObjectPtr shader(new ShaderObject(type));
 
   // FIXME: this is oldstyle C garbage
-  GLchar* buf = load_file(filename.c_str());
+  GLchar* buf = load_file(filename.string().c_str());
   shader->load(buf);
   shader->compile();
   free(buf);
