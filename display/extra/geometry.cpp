@@ -1,5 +1,6 @@
 #include <SDL.h>
 
+#include <cstdlib>
 #include <iostream>
 #include <random>
 #include <sstream>
@@ -229,12 +230,14 @@ void run()
 
 } // namespace
 
-int main()
+int main(int argc, char** argv)
 {
   try {
     run();
+    return EXIT_SUCCESS;
   } catch (std::exception const& err) {
     std::cerr << "error: " << err.what() << std::endl;
+    return EXIT_FAILURE;
   }
 }
 
