@@ -17,17 +17,7 @@
 cmake_minimum_required(VERSION 3.15)
 project(wstdisplay VERSION 0.3.0)
 
-set(TINYCMMC_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/external/tinycmmc/modules/")
-find_package(tinycmmc CONFIG)
-message(STATUS "tinycmmc module path: ${TINYCMMC_MODULE_PATH}")
-list(APPEND CMAKE_MODULE_PATH ${TINYCMMC_MODULE_PATH})
-
-# include(GetProjectVersion)
-include(GNUInstallDirs)
-include(CheckIncludeFile)
-include(ClangTidy)
-include(MaximumWarnings)
-include(InstallWithWrapper)
+include(mk/cmake/TinyCMMC.cmake)
 
 option(BUILD_TESTS "Build test cases" OFF)
 option(BUILD_EXTRA "Build extra stuff" OFF)
@@ -55,25 +45,10 @@ function(build_dependencies)
   set(BUILD_TESTS OFF)
   set(BUILD_EXTRA OFF)
 
-  find_package(babyxml QUIET)
-  if(NOT TARGET babyxml::babyxml)
-    add_subdirectory(external/babyxml/ EXCLUDE_FROM_ALL)
-  endif()
-
-  find_package(geom QUIET)
-  if(NOT TARGET geom::geom)
-    add_subdirectory(external/geomcpp/ EXCLUDE_FROM_ALL)
-  endif()
-
-  find_package(surf QUIET)
-  if(NOT TARGET surf::surf)
-    add_subdirectory(external/surfcpp/ EXCLUDE_FROM_ALL)
-  endif()
-
-  find_package(logmich QUIET)
-  if(NOT TARGET logmich::logmich)
-    add_subdirectory(external/logmich/ EXCLUDE_FROM_ALL)
-  endif()
+  tinycmmc_find_dependency(babyxml)
+  tinycmmc_find_dependency(geom)
+  tinycmmc_find_dependency(surf)
+  tinycmmc_find_dependency(logmich)
 endfunction()
 build_dependencies()
 
@@ -96,7 +71,7 @@ target_include_directories(wstdisplay PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
   )
-target_compile_options(wstdisplay PRIVATE ${WARNINGS_CXX_FLAGS})
+target_compile_options(wstdisplay PRIVATE ${TINYCMMC_WARNINGS_CXX_FLAGS})
 target_link_libraries(wstdisplay PUBLIC
   babyxml::babyxml
   geom::geom
@@ -140,6 +115,6 @@ install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/"
   PATTERN "*.hpp"
   )
 
-include(ExportAndInstallLibrary)
+tinycmmc_export_and_install_library(wstdisplay)
 
 # EOF #
