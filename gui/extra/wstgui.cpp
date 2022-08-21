@@ -46,7 +46,7 @@ using namespace wstinput;
 using namespace wstdisplay;
 using namespace wstgui;
 
-int main()
+int main(int argc, char** argv)
 {
   wstsys::System system;
 
