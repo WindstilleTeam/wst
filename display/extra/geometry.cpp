@@ -137,13 +137,6 @@ void run()
     // render
     { // render to framebuffer
       gc.push_framebuffer(fb);
-      gc.push_matrix();
-      gc.mult_matrix(glm::ortho(0.0f,
-                                static_cast<float>(gc.size().width()),
-                                static_cast<float>(gc.size().height()),
-                                0.0f,
-                                1000.0f,
-                                -1000.0f));
 
       switch (mode % 11) {
         case 0:
@@ -212,7 +205,6 @@ void run()
           break;
       }
 
-      gc.pop_matrix();
       gc.pop_framebuffer();
     }
 
