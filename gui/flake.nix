@@ -69,67 +69,57 @@ rec {
   outputs = { self, nixpkgs, flake-utils,
               tinycmmc, logmich, geomcpp, priocpp, surfcpp, babyxml, sexpcpp,
               wstinput, wstdisplay, wstsound }:
-    flake-utils.lib.eachDefaultSystem (system:
-      let
-        pkgs = nixpkgs.legacyPackages.${system};
-      in rec {
-        packages = flake-utils.lib.flattenTree {
+
+    tinycmmc.lib.eachSystemWithPkgs (pkgs:
+      {
+        packages = rec {
+          default = wstgui;
+
           wstgui = pkgs.stdenv.mkDerivation {
             pname = "wstgui";
             version = "0.3.0";
+
             src = nixpkgs.lib.cleanSource ./.;
+
             cmakeFlags = [ "-DBUILD_EXTRA=ON" ];
+
             nativeBuildInputs = [
-              pkgs.cmake
-              pkgs.pkgconfig
-              pkgs.makeWrapper
-            ];
-            postFixup = ''
-                wrapProgram $out/bin/wstgui \
-                  --prefix LIBGL_DRIVERS_PATH ":" "${pkgs.mesa.drivers}/lib/dri" \
-                  --prefix LD_LIBRARY_PATH ":" "${pkgs.mesa.drivers}/lib"
-            '';
+              pkgs.buildPackages.cmake
+              pkgs.buildPackages.pkgconfig
+            ] ++
+            (nixpkgs.lib.optional pkgs.targetPlatform.isLinux pkgs.buildPackages.makeWrapper);
+
+            postFixup =
+              (nixpkgs.lib.optionalString pkgs.targetPlatform.isLinux ''
+                 wrapProgram $out/bin/wstgui \
+                   --prefix LIBGL_DRIVERS_PATH ":" "${pkgs.mesa.drivers}/lib/dri" \
+                   --prefix LD_LIBRARY_PATH ":" "${pkgs.mesa.drivers}/lib"
+                '') +
+              (nixpkgs.lib.optionalString pkgs.targetPlatform.isWindows ''
+                mkdir -p $out/bin/
+                ln -sfv ${wstdisplay.packages.${pkgs.system}.default}/bin/*.dll $out/bin/
+
+                # FIXME: should be handled by sexpcpp itself
+                ln -sfv ${pkgs.jsoncpp}/bin/*.dll $out/bin/
+               '');
+
             buildInputs = [
-              babyxml.defaultPackage.${system}
+              babyxml.packages.${pkgs.system}.default
             ];
+
             propagatedBuildInputs = [
-              geomcpp.defaultPackage.${system}
-              logmich.defaultPackage.${system}
-              priocpp.defaultPackage.${system}
-              sexpcpp.defaultPackage.${system}
-              surfcpp.defaultPackage.${system}
-              tinycmmc.defaultPackage.${system}
-              wstdisplay.defaultPackage.${system}
-              wstinput.defaultPackage.${system}
-              wstsound.defaultPackage.${system}
-
-              pkgs.freetype
-              pkgs.libGL
-              pkgs.libGLU
-              pkgs.glew
-              pkgs.gtest
-
-              pkgs.fmt
-              pkgs.glm
-              pkgs.SDL2
-              pkgs.libjpeg
-              pkgs.libpng
-              pkgs.libsigcxx
-              pkgs.imagemagick6
-              pkgs.libexif
-
-              pkgs.openal
-              pkgs.libvorbis
-              pkgs.libogg
-              pkgs.opusfile
-              pkgs.mpg123
-              pkgs.libmodplug
-              pkgs.gtest
-
-              pkgs.jsoncpp
+              geomcpp.packages.${pkgs.system}.default
+              logmich.packages.${pkgs.system}.default
+              priocpp.packages.${pkgs.system}.default
+              sexpcpp.packages.${pkgs.system}.default
+              surfcpp.packages.${pkgs.system}.default
+              tinycmmc.packages.${pkgs.system}.default
+              wstdisplay.packages.${pkgs.system}.default
+              wstinput.packages.${pkgs.system}.default
+              wstsound.packages.${pkgs.system}.default
             ];
            };
         };
-        defaultPackage = packages.wstgui;
-      });
+      }
+    );
 }
