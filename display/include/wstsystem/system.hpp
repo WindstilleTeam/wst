@@ -21,6 +21,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <unordered_map>
 
 #include <sigc++/signal.h>
 #include <geom/rect.hpp>
