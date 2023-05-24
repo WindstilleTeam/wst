@@ -20,6 +20,7 @@
 #define HEADER_WSTGUI_LAYOUT_BUILDER_HPP
 
 #include <memory>
+#include <vector>
 
 #include "ilayoutable.hpp"
 #include "cut_layoutable.hpp"

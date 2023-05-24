@@ -20,6 +20,7 @@
 #define HEADER_WSTGUI_BOX_LAYOUTABLE_HPP
 
 #include <memory>
+#include <vector>
 
 #include "ilayoutable.hpp"
 

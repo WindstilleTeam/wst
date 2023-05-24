@@ -20,6 +20,7 @@
 #define HEADER_WSTGUI_ANCHOR_LAYOUTABLE_HPP
 
 #include <memory>
+#include <vector>
 
 #include "rfloat.hpp"
 #include "ilayoutable.hpp"
