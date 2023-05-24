@@ -81,15 +81,9 @@ rec {
             nativeBuildInputs = [
               pkgs.buildPackages.cmake
               pkgs.buildPackages.pkgconfig
-            ] ++
-            (nixpkgs.lib.optional pkgs.targetPlatform.isLinux pkgs.buildPackages.makeWrapper);
+            ];
 
             postFixup =
-              (nixpkgs.lib.optionalString pkgs.targetPlatform.isLinux ''
-                 wrapProgram $out/bin/wstgui \
-                   --prefix LIBGL_DRIVERS_PATH ":" "${pkgs.mesa.drivers}/lib/dri" \
-                   --prefix LD_LIBRARY_PATH ":" "${pkgs.mesa.drivers}/lib"
-                '') +
               (nixpkgs.lib.optionalString pkgs.targetPlatform.isWindows ''
                 mkdir -p $out/bin/
                 ln -sfv ${wstdisplay.packages.${pkgs.system}.default}/bin/*.dll $out/bin/
