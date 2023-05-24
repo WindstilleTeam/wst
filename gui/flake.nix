@@ -2,7 +2,7 @@ rec {
   description = "Windstille GUI Engine";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-22.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.05";
     flake-utils.url = "github:numtide/flake-utils";
 
     tinycmmc.url = "github:grumbel/tinycmmc";
@@ -11,12 +11,10 @@ rec {
 
     logmich.url = "github:logmich/logmich";
     logmich.inputs.nixpkgs.follows = "nixpkgs";
-    logmich.inputs.flake-utils.follows = "flake-utils";
     logmich.inputs.tinycmmc.follows = "tinycmmc";
 
     geomcpp.url = "github:grumbel/geomcpp";
     geomcpp.inputs.nixpkgs.follows = "nixpkgs";
-    geomcpp.inputs.flake-utils.follows = "flake-utils";
     geomcpp.inputs.tinycmmc.follows = "tinycmmc";
 
     priocpp.url = "github:grumbel/priocpp";
@@ -28,14 +26,12 @@ rec {
 
     surfcpp.url = "github:grumbel/surfcpp";
     surfcpp.inputs.nixpkgs.follows = "nixpkgs";
-    surfcpp.inputs.flake-utils.follows = "flake-utils";
     surfcpp.inputs.tinycmmc.follows = "tinycmmc";
     surfcpp.inputs.geomcpp.follows = "geomcpp";
     surfcpp.inputs.logmich.follows = "logmich";
 
     babyxml.url = "github:grumbel/babyxml";
     babyxml.inputs.nixpkgs.follows = "nixpkgs";
-    babyxml.inputs.flake-utils.follows = "flake-utils";
     babyxml.inputs.tinycmmc.follows = "tinycmmc";
 
     sexpcpp.url = "github:lispparser/sexp-cpp";
@@ -53,7 +49,6 @@ rec {
 
     wstdisplay.url = "github:windstilleteam/wstdisplay";
     wstdisplay.inputs.nixpkgs.follows = "nixpkgs";
-    wstdisplay.inputs.flake-utils.follows = "flake-utils";
     wstdisplay.inputs.tinycmmc.follows = "tinycmmc";
     wstdisplay.inputs.geomcpp.follows = "geomcpp";
     wstdisplay.inputs.babyxml.follows = "babyxml";
