@@ -106,13 +106,14 @@ target_include_directories(wstgui PRIVATE
   include/wstgui/
   )
 target_link_libraries(wstgui PUBLIC
-  wstdisplay::wstdisplay
   wstinput::wstinput
   wstsound::wstsound
   geom::geom
   prio::prio
   PkgConfig::SIGCXX
-  PkgConfig::SDL2)
+  PkgConfig::SDL2
+  wstdisplay::wstdisplay
+  )
 
 if(CWIID_LIBRARY)
   target_compile_options(wstgui PUBLIC -DHAVE_CWIID)
@@ -135,7 +136,7 @@ if(BUILD_EXTRA)
       CXX_STANDARD 20
       CXX_STANDARD_REQUIRED ON
       CXX_EXTENSIONS OFF)
-    target_link_libraries("${SRC_BASENAME}_exe" wstgui wstdisplay)
+    target_link_libraries("${SRC_BASENAME}_exe" wstgui)
     install(TARGETS "${SRC_BASENAME}_exe"
       RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
   endforeach(SRC)
