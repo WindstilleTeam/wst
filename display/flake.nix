@@ -41,7 +41,7 @@
 
   outputs = { self, nixpkgs, tinycmmc, babyxml, geomcpp, logmich, surfcpp, freetype-win32, SDL2-win32, glew-win32 }:
     tinycmmc.lib.eachSystemWithPkgs (pkgs:
-      {
+      rec {
         packages = rec {
           default = wstdisplay;
 
@@ -103,6 +103,15 @@
                then SDL2-win32.packages.${pkgs.system}.default
                else pkgs.SDL2)
             ];
+          };
+        };
+
+        apps = rec {
+          default = wstdisplay-geometry;
+
+          wstdisplay-geometry = tinycmmc.inputs.flake-utils.lib.mkApp {
+            drv = packages.wstdisplay;
+            exePath = "/bin/wstdisplay-geometry";
           };
         };
       }

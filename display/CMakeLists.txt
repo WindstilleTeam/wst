@@ -101,6 +101,7 @@ if(BUILD_EXTRA)
   foreach(SRC ${EXTRA_SOURCES})
     get_filename_component(SRC_BASENAME ${SRC} NAME_WE)
     add_executable(${SRC_BASENAME} ${SRC})
+    set_target_properties(${SRC_BASENAME} PROPERTIES OUTPUT_NAME "${PROJECT_NAME}-${SRC_BASENAME}")
     target_link_libraries(${SRC_BASENAME} PRIVATE wstdisplay)
     install(TARGETS ${SRC_BASENAME}
       RUNTIME DESTINATION ${CMAKE_INSTALL_FULL_BINDIR})
