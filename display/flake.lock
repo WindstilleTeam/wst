@@ -11,11 +11,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1660923972,
-        "narHash": "sha256-xkVYQOjJyHkhxCKVz5S8Xhy30WzzolG538JCVeu4kQw=",
+        "lastModified": 1712097214,
+        "narHash": "sha256-lXu+tuvZw8WnbNHMHzCMeSE93fLQEhSz+xLWkaJ1cCA=",
         "owner": "grumnix",
         "repo": "SDL2-win32",
-        "rev": "34f0919fec05bcdba1c97ec6425bf18b5ebe2b4d",
+        "rev": "123c65858c5259437469a06f20cec5944ea4bb4b",
         "type": "github"
       },
       "original": {
@@ -27,6 +27,7 @@
     "SDL2_src": {
       "flake": false,
       "locked": {
+        "lastModified": 1650910413,
         "narHash": "sha256-7F8KGZaY6R7tzv/+0gNNm1FvDyrY4Z4PPuzYu+3pvNM=",
         "type": "tarball",
         "url": "https://libsdl.org/release/SDL2-devel-2.0.22-mingw.tar.gz"
@@ -46,11 +47,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1661006639,
-        "narHash": "sha256-4ZAAECpJTkt2H88s0nh6kj7t4qYjMHyT/iBteD5VHuw=",
+        "lastModified": 1716728957,
+        "narHash": "sha256-O1jH5VZ//92nW+HwtoXoen3PR2/QvMwLiOq8ex0Qnhw=",
         "owner": "grumbel",
         "repo": "babyxml",
-        "rev": "1ad290696683c11795bd4759560345d0372e0c96",
+        "rev": "8ab2b3f3a33c654097226e4c243e5f49b48e7e71",
         "type": "github"
       },
       "original": {
@@ -64,11 +65,11 @@
         "systems": "systems"
       },
       "locked": {
-        "lastModified": 1681202837,
-        "narHash": "sha256-H+Rh19JDwRtpVPAWp64F+rlEtxUWBAQW28eAi3SRSzg=",
+        "lastModified": 1701680307,
+        "narHash": "sha256-kAuep2h5ajznlPMD9rnQyffWG8EM/C73lejGofXvdM8=",
         "owner": "numtide",
         "repo": "flake-utils",
-        "rev": "cfacdce06f30d2b68473a46042957675eebb3401",
+        "rev": "4022d587cbbfd70fe950c1e2083a02621806a725",
         "type": "github"
       },
       "original": {
@@ -88,11 +89,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1660996667,
-        "narHash": "sha256-AdCUfUJKanOiElCK9/eKUifbYeawhobZXE8t46dBHqs=",
+        "lastModified": 1712097214,
+        "narHash": "sha256-5MQUyK6OSQtLpm1xcgu1fc1ASRxnsuh+MFo2i2Bt5xs=",
         "owner": "grumnix",
         "repo": "freetype-win32",
-        "rev": "14edf79fe14d7efbd792680bc2c40b87af292d6b",
+        "rev": "6ba76d185914748f4d462abf603b3b2425c7929e",
         "type": "github"
       },
       "original": {
@@ -104,13 +105,14 @@
     "freetype_src": {
       "flake": false,
       "locked": {
-        "narHash": "sha256-2ua7AwyZ2CIPEFfAsOLrMiOdUV94nVL23SwlGke4EQc=",
+        "lastModified": 1687588007,
+        "narHash": "sha256-e1WKuyGSJwgSSzdXqbuZdbosyxpMfr/Fw/LqVMTnZus=",
         "type": "tarball",
-        "url": "https://download.savannah.gnu.org/releases/freetype/freetype-2.12.0.tar.xz"
+        "url": "https://download.savannah.gnu.org/releases/freetype/freetype-2.13.1.tar.gz"
       },
       "original": {
         "type": "tarball",
-        "url": "https://download.savannah.gnu.org/releases/freetype/freetype-2.12.0.tar.xz"
+        "url": "https://download.savannah.gnu.org/releases/freetype/freetype-2.13.1.tar.gz"
       }
     },
     "geomcpp": {
@@ -123,11 +125,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1661006109,
-        "narHash": "sha256-fa7JEZr1Z+tChetnien/TNpuKKL/UEyRaJEPFAG3tOc=",
+        "lastModified": 1716729078,
+        "narHash": "sha256-c5CIQTRS8qmlTdZ2D1hNnht3gD9snuQaqOWDiLAkE2g=",
         "owner": "grumbel",
         "repo": "geomcpp",
-        "rev": "c2ffae5984f9eecf11f7f1e8a5611f988ade1552",
+        "rev": "730b3d35bc4fcd5f68764239682d936bae192811",
         "type": "github"
       },
       "original": {
@@ -147,11 +149,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1661005666,
-        "narHash": "sha256-ChmbLUFZjw9sMT/gSZ7XwsmYas3qZNvls192USI7NsY=",
+        "lastModified": 1716729346,
+        "narHash": "sha256-bO+mEfQT7V86Xi7m4xLpigWh4FxLSlbwBUnndn4Lb+o=",
         "owner": "grumnix",
         "repo": "glew-win32",
-        "rev": "6031fe8fa7abbdd9937f3138fd677bdd079fa63a",
+        "rev": "e2cc411d17dc1845eb25492e9bf408d5862ad19c",
         "type": "github"
       },
       "original": {
@@ -163,6 +165,7 @@
     "glew_src": {
       "flake": false,
       "locked": {
+        "lastModified": 1584277261,
         "narHash": "sha256-q91JXPURP4ZRGf0RjH78Yn0wV1MaL/JBTzJc8WSxWW8=",
         "type": "tarball",
         "url": "https://github.com/nigels-com/glew/releases/download/glew-2.2.0/glew-2.2.0-win32.zip"
@@ -182,11 +185,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1684870196,
-        "narHash": "sha256-5Y5FfBXM53OBSJzO6q+7M3Fj1KsusJcFg3cAfnFAWcA=",
+        "lastModified": 1716728859,
+        "narHash": "sha256-RgyLWkRBOCvuCmyvfG0WSDH6PzTEuE36RKcIrgef7eA=",
         "owner": "logmich",
         "repo": "logmich",
-        "rev": "5924b2beabd2169a077ae57401bdd3cd8ebfba7d",
+        "rev": "0cc475efc10c6786d1d805c997fab1d7da60252a",
         "type": "github"
       },
       "original": {
@@ -197,16 +200,16 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1685004253,
-        "narHash": "sha256-AbVL1nN/TDicUQ5wXZ8xdLERxz/eJr7+o8lqkIOVuaE=",
+        "lastModified": 1716542732,
+        "narHash": "sha256-0Y9fRr0CUqWT4KgBITmaGwlnNIGMYuydu2L8iLTfHU4=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "3e01645c40b92d29f3ae76344a6d654986a91a91",
+        "rev": "d12251ef6e8e6a46e05689eeccd595bdbd3c9e60",
         "type": "github"
       },
       "original": {
         "owner": "NixOS",
-        "ref": "nixos-23.05",
+        "ref": "nixos-24.05",
         "repo": "nixpkgs",
         "type": "github"
       }
@@ -243,11 +246,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1684878810,
-        "narHash": "sha256-PEqr7xLHWFUiidtZnc/V5+HnwIwSiO0BYkptSDHf9No=",
+        "lastModified": 1716735371,
+        "narHash": "sha256-yO3JZb2V6fSqqMfHg73hde5oMhzeUdtf1QnggMjubpc=",
         "owner": "grumbel",
         "repo": "surfcpp",
-        "rev": "9c1f8490f91d6d790b355d6550ef6423327fb5bf",
+        "rev": "1a86aa165282d4dfa59056d11545855a4d496975",
         "type": "github"
       },
       "original": {
@@ -279,11 +282,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1684952066,
-        "narHash": "sha256-yS8/+TOL2OA7f/RQs1Zr20mmlPFIVvFOgWShLAQvH8w=",
+        "lastModified": 1701699760,
+        "narHash": "sha256-L0vwqcTQFOiFfRY90nBgDuUsVOYS0+S8BfVxFvaFBNM=",
         "owner": "grumbel",
         "repo": "tinycmmc",
-        "rev": "01fe277570a290837726de6eb3c16d617bfda28c",
+        "rev": "9a51e13802d930feb7261ba8876940659b258cb7",
         "type": "github"
       },
       "original": {

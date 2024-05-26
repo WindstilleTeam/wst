@@ -2,7 +2,7 @@
   description = "Windstille Display Engine";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.05";
+    nixpkgs.url = "github:NixOS/nixpkgs?ref=nixos-24.05";
 
     tinycmmc.url = "github:grumbel/tinycmmc";
     tinycmmc.inputs.nixpkgs.follows = "nixpkgs";
@@ -45,7 +45,7 @@
         packages = rec {
           default = wstdisplay;
 
-          wstdisplay = pkgs.gcc12Stdenv.mkDerivation {
+          wstdisplay = pkgs.stdenv.mkDerivation {
             pname = "wstdisplay";
             version = "0.3.0";
 
@@ -73,7 +73,7 @@
 
             nativeBuildInputs = [
               pkgs.buildPackages.cmake
-              pkgs.buildPackages.pkgconfig
+              pkgs.buildPackages.pkg-config
             ];
 
             buildInputs = [
