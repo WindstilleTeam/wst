@@ -2,7 +2,7 @@
   description = "Windstille Display Engine";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs?ref=nixos-24.05";
+    nixpkgs.url = "github:NixOS/nixpkgs?ref=nixos-25.05";
 
     tinycmmc.url = "github:grumbel/tinycmmc";
     tinycmmc.inputs.nixpkgs.follows = "nixpkgs";
@@ -59,7 +59,7 @@
                 find ${pkgs.windows.mcfgthreads} -iname "*.dll" -exec ln -sfv {} $out/bin/ \;
                 find ${pkgs.stdenv.cc.cc} -iname "*.dll" -exec ln -sfv {} $out/bin/ \;
                 ln -sfv ${SDL2-win32.packages.${pkgs.system}.default}/bin/*.dll $out/bin/
-                ln -sfv ${pkgs.fmt_8}/bin/*.dll $out/bin/
+                ln -sfv ${pkgs.fmt}/bin/*.dll $out/bin/
                 ln -sfv ${pkgs.gtest}/bin/*.dll $out/bin/
                 ln -sfv ${pkgs.libsigcxx}/bin/*.dll $out/bin/
                 ln -sfv ${freetype-win32.packages.${pkgs.system}.default}/bin/*.dll $out/bin/
@@ -89,7 +89,7 @@
               surfcpp.packages.${pkgs.system}.default
 
               pkgs.libsigcxx
-              pkgs.fmt_8
+              pkgs.fmt
 
               (if pkgs.targetPlatform.isWindows
                then freetype-win32.packages.${pkgs.system}.default
