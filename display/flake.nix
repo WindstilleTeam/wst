@@ -54,16 +54,16 @@
             cmakeFlags = [ "-DBUILD_EXTRA=ON" ];
 
             postFixup =
-              (nixpkgs.lib.optionalString pkgs.targetPlatform.isWindows ''
+              (nixpkgs.lib.optionalString pkgs.stdenv.targetPlatform.isWindows ''
                 mkdir -p $out/bin/
                 find ${pkgs.windows.mcfgthreads} -iname "*.dll" -exec ln -sfv {} $out/bin/ \;
                 find ${pkgs.stdenv.cc.cc} -iname "*.dll" -exec ln -sfv {} $out/bin/ \;
-                ln -sfv ${SDL2-win32.packages.${pkgs.system}.default}/bin/*.dll $out/bin/
+                ln -sfv ${SDL2-win32.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/*.dll $out/bin/
                 ln -sfv ${pkgs.fmt}/bin/*.dll $out/bin/
                 ln -sfv ${pkgs.gtest}/bin/*.dll $out/bin/
                 ln -sfv ${pkgs.libsigcxx}/bin/*.dll $out/bin/
-                ln -sfv ${freetype-win32.packages.${pkgs.system}.default}/bin/*.dll $out/bin/
-                ln -sfv ${glew-win32.packages.${pkgs.system}.default}/bin/*.dll $out/bin/
+                ln -sfv ${freetype-win32.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/*.dll $out/bin/
+                ln -sfv ${glew-win32.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/*.dll $out/bin/
 
                 # FIXME: These should be handled in surfcpp or statically linked
                 ln -sfv ${pkgs.libjpeg_original.overrideAttrs (oldAttrs: { meta = {}; })}/bin/*.dll $out/bin/
@@ -77,30 +77,30 @@
             ];
 
             buildInputs = [
-              tinycmmc.packages.${pkgs.system}.default
+              tinycmmc.packages.${pkgs.stdenv.hostPlatform.system}.default
 
               pkgs.gtest
             ];
 
             propagatedBuildInputs = [
-              babyxml.packages.${pkgs.system}.default
-              geomcpp.packages.${pkgs.system}.default
-              logmich.packages.${pkgs.system}.default
-              surfcpp.packages.${pkgs.system}.default
+              babyxml.packages.${pkgs.stdenv.hostPlatform.system}.default
+              geomcpp.packages.${pkgs.stdenv.hostPlatform.system}.default
+              logmich.packages.${pkgs.stdenv.hostPlatform.system}.default
+              surfcpp.packages.${pkgs.stdenv.hostPlatform.system}.default
 
               pkgs.libsigcxx
               pkgs.fmt
 
-              (if pkgs.targetPlatform.isWindows
-               then freetype-win32.packages.${pkgs.system}.default
+              (if pkgs.stdenv.targetPlatform.isWindows
+               then freetype-win32.packages.${pkgs.stdenv.hostPlatform.system}.default
                else pkgs.freetype)
 
-              (if pkgs.targetPlatform.isWindows
-               then glew-win32.packages.${pkgs.system}.default
+              (if pkgs.stdenv.targetPlatform.isWindows
+               then glew-win32.packages.${pkgs.stdenv.hostPlatform.system}.default
                else pkgs.glew)
 
-              (if pkgs.targetPlatform.isWindows
-               then SDL2-win32.packages.${pkgs.system}.default
+              (if pkgs.stdenv.targetPlatform.isWindows
+               then SDL2-win32.packages.${pkgs.stdenv.hostPlatform.system}.default
                else pkgs.SDL2)
             ];
           };

@@ -47,11 +47,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1716728957,
-        "narHash": "sha256-O1jH5VZ//92nW+HwtoXoen3PR2/QvMwLiOq8ex0Qnhw=",
+        "lastModified": 1763579068,
+        "narHash": "sha256-SIZ09yh1EHjGXRBNThi3mQhz6UebJUJrKZgP5fA7cm0=",
         "owner": "grumbel",
         "repo": "babyxml",
-        "rev": "8ab2b3f3a33c654097226e4c243e5f49b48e7e71",
+        "rev": "e78a832e566c30ac91934c75d6daa6d284027fb0",
         "type": "github"
       },
       "original": {
@@ -125,11 +125,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1749679405,
-        "narHash": "sha256-M4a6P6J/PBDklpOiR81Nah0STlXFI48+mQkNqMBicKQ=",
+        "lastModified": 1763578552,
+        "narHash": "sha256-cI5Qe8JHthl/C/E7TYskEnzB/+FY/hXdsmCzmBdiv/Q=",
         "owner": "grumbel",
         "repo": "geomcpp",
-        "rev": "282e3710fbe6dacee630391e4af8ffe03181f8a9",
+        "rev": "d3a94b28cbce9da9a59129919d33ee1465e5b5a3",
         "type": "github"
       },
       "original": {
@@ -185,11 +185,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1753120025,
-        "narHash": "sha256-e8k/ZzPAfLgNF30wmXHDX5ovK/msTH6sgzxWKzZhtOY=",
+        "lastModified": 1763578800,
+        "narHash": "sha256-mnqKS+m/m/zwlOpse3+QnP54fgaXR9/8FW+FDq/MKlo=",
         "owner": "logmich",
         "repo": "logmich",
-        "rev": "c73c7b7d6cd050d1bcc42d522ce80a2eb86da5c8",
+        "rev": "f69ccb6b8963d995eeb886f60e8c30b2742d596e",
         "type": "github"
       },
       "original": {
@@ -200,11 +200,11 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1762977756,
-        "narHash": "sha256-4PqRErxfe+2toFJFgcRKZ0UI9NSIOJa+7RXVtBhy4KE=",
+        "lastModified": 1763421233,
+        "narHash": "sha256-Stk9ZYRkGrnnpyJ4eqt9eQtdFWRRIvMxpNRf4sIegnw=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "c5ae371f1a6a7fd27823bc500d9390b38c05fa55",
+        "rev": "89c2b2330e733d6cdb5eae7b899326930c2c0648",
         "type": "github"
       },
       "original": {
@@ -246,11 +246,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1763256318,
-        "narHash": "sha256-bW5ojCt2hzetX/03P9hMOGd89y+bMS/RUTHqtCpOgFM=",
+        "lastModified": 1763578863,
+        "narHash": "sha256-5+15W7vTVdNkljM21guGaGhUw2PTxIf65R2+YZcBfoQ=",
         "owner": "grumbel",
         "repo": "surfcpp",
-        "rev": "6bfec4f813dfd3923bf9950edaa79b44a63ac9ea",
+        "rev": "0002577f58ac14d1b314f3defe32b0529441a08e",
         "type": "github"
       },
       "original": {
