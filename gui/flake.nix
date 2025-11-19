@@ -84,28 +84,28 @@ rec {
             ];
 
             postFixup =
-              (nixpkgs.lib.optionalString pkgs.targetPlatform.isWindows ''
+              (nixpkgs.lib.optionalString pkgs.stdenv.targetPlatform.isWindows ''
                 mkdir -p $out/bin/
-                ln -sfv ${wstdisplay.packages.${pkgs.system}.default}/bin/*.dll $out/bin/
+                ln -sfv ${wstdisplay.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/*.dll $out/bin/
 
                 # FIXME: should be handled by sexpcpp itself
                 ln -sfv ${pkgs.jsoncpp}/bin/*.dll $out/bin/
                '');
 
             buildInputs = [
-              babyxml.packages.${pkgs.system}.default
+              babyxml.packages.${pkgs.stdenv.hostPlatform.system}.default
             ];
 
             propagatedBuildInputs = [
-              geomcpp.packages.${pkgs.system}.default
-              logmich.packages.${pkgs.system}.default
-              priocpp.packages.${pkgs.system}.default
-              sexpcpp.packages.${pkgs.system}.default
-              surfcpp.packages.${pkgs.system}.default
-              tinycmmc.packages.${pkgs.system}.default
-              wstdisplay.packages.${pkgs.system}.default
-              wstinput.packages.${pkgs.system}.default
-              wstsound.packages.${pkgs.system}.default
+              geomcpp.packages.${pkgs.stdenv.hostPlatform.system}.default
+              logmich.packages.${pkgs.stdenv.hostPlatform.system}.default
+              priocpp.packages.${pkgs.stdenv.hostPlatform.system}.default
+              sexpcpp.packages.${pkgs.stdenv.hostPlatform.system}.default
+              surfcpp.packages.${pkgs.stdenv.hostPlatform.system}.default
+              tinycmmc.packages.${pkgs.stdenv.hostPlatform.system}.default
+              wstdisplay.packages.${pkgs.stdenv.hostPlatform.system}.default
+              wstinput.packages.${pkgs.stdenv.hostPlatform.system}.default
+              wstsound.packages.${pkgs.stdenv.hostPlatform.system}.default
             ];
            };
         };
