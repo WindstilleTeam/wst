@@ -84,7 +84,7 @@ rec {
             ];
 
             postFixup =
-              (nixpkgs.lib.optionalString pkgs.stdenv.targetPlatform.isWindows ''
+              (nixpkgs.lib.optionalString pkgs.stdenv.hostPlatform.isWindows ''
                 mkdir -p $out/bin/
                 ln -sfv ${wstdisplay.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/*.dll $out/bin/
 
@@ -97,8 +97,8 @@ rec {
             ];
 
             propagatedBuildInputs = [
-              geomcpp.packages.${pkgs.stdenv.hostPlatform.system}.default
-              logmich.packages.${pkgs.stdenv.hostPlatform.system}.default
+              (geomcpp.packages.${pkgs.stdenv.hostPlatform.system}.default.override { })
+              (logmich.packages.${pkgs.stdenv.hostPlatform.system}.default.overrideAttrs (old: { name = "lutsch"; }))
               priocpp.packages.${pkgs.stdenv.hostPlatform.system}.default
               sexpcpp.packages.${pkgs.stdenv.hostPlatform.system}.default
               surfcpp.packages.${pkgs.stdenv.hostPlatform.system}.default
