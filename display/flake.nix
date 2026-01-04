@@ -54,7 +54,7 @@
             cmakeFlags = [ "-DBUILD_EXTRA=ON" ];
 
             postFixup =
-              (nixpkgs.lib.optionalString pkgs.stdenv.targetPlatform.isWindows ''
+              (nixpkgs.lib.optionalString pkgs.stdenv.hostPlatform.isWindows ''
                 mkdir -p $out/bin/
                 find ${pkgs.windows.mcfgthreads} -iname "*.dll" -exec ln -sfv {} $out/bin/ \;
                 find ${pkgs.stdenv.cc.cc} -iname "*.dll" -exec ln -sfv {} $out/bin/ \;
@@ -91,15 +91,15 @@
               pkgs.libsigcxx
               pkgs.fmt
 
-              (if pkgs.stdenv.targetPlatform.isWindows
+              (if pkgs.stdenv.hostPlatform.isWindows
                then freetype-win32.packages.${pkgs.stdenv.hostPlatform.system}.default
                else pkgs.freetype)
 
-              (if pkgs.stdenv.targetPlatform.isWindows
+              (if pkgs.stdenv.hostPlatform.isWindows
                then glew-win32.packages.${pkgs.stdenv.hostPlatform.system}.default
                else pkgs.glew)
 
-              (if pkgs.stdenv.targetPlatform.isWindows
+              (if pkgs.stdenv.hostPlatform.isWindows
                then SDL2-win32.packages.${pkgs.stdenv.hostPlatform.system}.default
                else pkgs.SDL2)
             ];
