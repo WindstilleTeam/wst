@@ -13,15 +13,15 @@
       "locked": {
         "lastModified": 1753127534,
         "narHash": "sha256-73UFk9wGZb0CQ2EpFaXRczHzUUlOzK/Ov2KP3ewk4qw=",
-        "owner": "grumnix",
-        "repo": "SDL2-win32",
+        "ref": "refs/heads/master",
         "rev": "278a40a7bff4c0b0bf4f5ad1c528308df4a1b0f9",
-        "type": "github"
+        "revCount": 6,
+        "type": "git",
+        "url": "https://github.com/grumnix/SDL2-win32.git"
       },
       "original": {
-        "owner": "grumnix",
-        "repo": "SDL2-win32",
-        "type": "github"
+        "type": "git",
+        "url": "https://github.com/grumnix/SDL2-win32.git"
       }
     },
     "SDL2_src": {
@@ -49,15 +49,15 @@
       "locked": {
         "lastModified": 1775728485,
         "narHash": "sha256-ugdjNEOetBbkvXuSm9/9JOtkj32rA71Uk9K8ULhD91c=",
-        "owner": "grumbel",
-        "repo": "babyxml",
+        "ref": "refs/heads/master",
         "rev": "a0ad6c8c51479cbba3fca730d9c54a9a60a40563",
-        "type": "github"
+        "revCount": 50,
+        "type": "git",
+        "url": "https://github.com/grumbel/babyxml.git"
       },
       "original": {
-        "owner": "grumbel",
-        "repo": "babyxml",
-        "type": "github"
+        "type": "git",
+        "url": "https://github.com/grumbel/babyxml.git"
       }
     },
     "flake-utils": {
@@ -91,15 +91,15 @@
       "locked": {
         "lastModified": 1716729375,
         "narHash": "sha256-4H2Y+DuT9OMePK6JBi9Y7L+tnhXuUfvIIJlR+zcAjXI=",
-        "owner": "grumnix",
-        "repo": "freetype-win32",
+        "ref": "refs/heads/master",
         "rev": "874cb3559c6463e96e18c3a22ae9491df45a8327",
-        "type": "github"
+        "revCount": 4,
+        "type": "git",
+        "url": "https://github.com/grumnix/freetype-win32.git"
       },
       "original": {
-        "owner": "grumnix",
-        "repo": "freetype-win32",
-        "type": "github"
+        "type": "git",
+        "url": "https://github.com/grumnix/freetype-win32.git"
       }
     },
     "freetype_src": {
@@ -126,16 +126,16 @@
       },
       "locked": {
         "lastModified": 1775669653,
-        "narHash": "sha256-5wbwUbRO0+yw+cWvKChq7W6FTMg9S7QIGiz/ZpAOwsw=",
-        "owner": "grumbel",
-        "repo": "geomcpp",
+        "narHash": "sha256-brC1Xkk17mQTw2C+/em1C1BxsJa7X9/wkQWIb4kucoQ=",
+        "ref": "refs/heads/master",
         "rev": "af84b6266807f66efb338fdd5d88d060ee741267",
-        "type": "github"
+        "revCount": 112,
+        "type": "git",
+        "url": "https://github.com/grumbel/geomcpp.git"
       },
       "original": {
-        "owner": "grumbel",
-        "repo": "geomcpp",
-        "type": "github"
+        "type": "git",
+        "url": "https://github.com/grumbel/geomcpp.git"
       }
     },
     "glew-win32": {
@@ -151,15 +151,15 @@
       "locked": {
         "lastModified": 1716729346,
         "narHash": "sha256-bO+mEfQT7V86Xi7m4xLpigWh4FxLSlbwBUnndn4Lb+o=",
-        "owner": "grumnix",
-        "repo": "glew-win32",
+        "ref": "refs/heads/master",
         "rev": "e2cc411d17dc1845eb25492e9bf408d5862ad19c",
-        "type": "github"
+        "revCount": 4,
+        "type": "git",
+        "url": "https://github.com/grumnix/glew-win32.git"
       },
       "original": {
-        "owner": "grumnix",
-        "repo": "glew-win32",
-        "type": "github"
+        "type": "git",
+        "url": "https://github.com/grumnix/glew-win32.git"
       }
     },
     "glew_src": {
@@ -187,15 +187,15 @@
       "locked": {
         "lastModified": 1763578800,
         "narHash": "sha256-mnqKS+m/m/zwlOpse3+QnP54fgaXR9/8FW+FDq/MKlo=",
-        "owner": "logmich",
-        "repo": "logmich",
+        "ref": "refs/heads/master",
         "rev": "f69ccb6b8963d995eeb886f60e8c30b2742d596e",
-        "type": "github"
+        "revCount": 53,
+        "type": "git",
+        "url": "https://github.com/logmich/logmich.git"
       },
       "original": {
-        "owner": "logmich",
-        "repo": "logmich",
-        "type": "github"
+        "type": "git",
+        "url": "https://github.com/logmich/logmich.git"
       }
     },
     "nixpkgs": {
@@ -248,15 +248,15 @@
       "locked": {
         "lastModified": 1763578863,
         "narHash": "sha256-5+15W7vTVdNkljM21guGaGhUw2PTxIf65R2+YZcBfoQ=",
-        "owner": "grumbel",
-        "repo": "surfcpp",
+        "ref": "refs/heads/master",
         "rev": "0002577f58ac14d1b314f3defe32b0529441a08e",
-        "type": "github"
+        "revCount": 358,
+        "type": "git",
+        "url": "https://github.com/grumbel/surfcpp.git"
       },
       "original": {
-        "owner": "grumbel",
-        "repo": "surfcpp",
-        "type": "github"
+        "type": "git",
+        "url": "https://github.com/grumbel/surfcpp.git"
       }
     },
     "systems": {
@@ -284,15 +284,15 @@
       "locked": {
         "lastModified": 1763256011,
         "narHash": "sha256-CpQWAHdeLUYd28cT9heG05p6RX9WF7QslqNHoBi931E=",
-        "owner": "grumbel",
-        "repo": "tinycmmc",
+        "ref": "refs/heads/master",
         "rev": "2e007ba059a4991c011a7193c9d7df28826c9adc",
-        "type": "github"
+        "revCount": 64,
+        "type": "git",
+        "url": "https://github.com/grumbel/tinycmmc.git"
       },
       "original": {
-        "owner": "grumbel",
-        "repo": "tinycmmc",
-        "type": "github"
+        "type": "git",
+        "url": "https://github.com/grumbel/tinycmmc.git"
       }
     }
   },

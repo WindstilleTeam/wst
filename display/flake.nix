@@ -4,34 +4,34 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs?ref=nixos-unstable";
 
-    tinycmmc.url = "github:grumbel/tinycmmc";
+    tinycmmc.url = "git+https://github.com/grumbel/tinycmmc.git";
     tinycmmc.inputs.nixpkgs.follows = "nixpkgs";
 
-    babyxml.url = "github:grumbel/babyxml";
+    babyxml.url = "git+https://github.com/grumbel/babyxml.git";
     babyxml.inputs.nixpkgs.follows = "nixpkgs";
     babyxml.inputs.tinycmmc.follows = "tinycmmc";
 
-    logmich.url = "github:logmich/logmich";
+    logmich.url = "git+https://github.com/logmich/logmich.git";
     logmich.inputs.nixpkgs.follows = "nixpkgs";
     logmich.inputs.tinycmmc.follows = "tinycmmc";
 
-    geomcpp.url = "github:grumbel/geomcpp";
+    geomcpp.url = "git+https://github.com/grumbel/geomcpp.git";
     geomcpp.inputs.nixpkgs.follows = "nixpkgs";
     geomcpp.inputs.tinycmmc.follows = "tinycmmc";
 
-    SDL2-win32.url = "github:grumnix/SDL2-win32";
+    SDL2-win32.url = "git+https://github.com/grumnix/SDL2-win32.git";
     SDL2-win32.inputs.nixpkgs.follows = "nixpkgs";
     SDL2-win32.inputs.tinycmmc.follows = "tinycmmc";
 
-    glew-win32.url = "github:grumnix/glew-win32";
+    glew-win32.url = "git+https://github.com/grumnix/glew-win32.git";
     glew-win32.inputs.nixpkgs.follows = "nixpkgs";
     glew-win32.inputs.tinycmmc.follows = "tinycmmc";
 
-    freetype-win32.url = "github:grumnix/freetype-win32";
+    freetype-win32.url = "git+https://github.com/grumnix/freetype-win32.git";
     freetype-win32.inputs.nixpkgs.follows = "nixpkgs";
     freetype-win32.inputs.tinycmmc.follows = "tinycmmc";
 
-    surfcpp.url = "github:grumbel/surfcpp";
+    surfcpp.url = "git+https://github.com/grumbel/surfcpp.git";
     surfcpp.inputs.nixpkgs.follows = "nixpkgs";
     surfcpp.inputs.tinycmmc.follows = "tinycmmc";
     surfcpp.inputs.geomcpp.follows = "geomcpp";
