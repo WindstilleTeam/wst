@@ -685,29 +685,6 @@
         "type": "github"
       }
     },
-    "tinycmmc_2": {
-      "inputs": {
-        "flake-utils": [
-          "flake-utils"
-        ],
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1763256011,
-        "narHash": "sha256-CpQWAHdeLUYd28cT9heG05p6RX9WF7QslqNHoBi931E=",
-        "ref": "refs/heads/master",
-        "rev": "2e007ba059a4991c011a7193c9d7df28826c9adc",
-        "revCount": 64,
-        "type": "git",
-        "url": "https://github.com/grumbel/tinycmmc.git"
-      },
-      "original": {
-        "type": "git",
-        "url": "https://github.com/grumbel/tinycmmc.git"
-      }
-    },
     "wstdisplay": {
       "inputs": {
         "SDL2-win32": "SDL2-win32_2",
