@@ -5,15 +5,20 @@ include("${CMAKE_CURRENT_LIST_DIR}/wstgui-targets.cmake")
 
 include(CMakeFindDependencyMacro)
 
-find_dependency(Threads)
-find_dependency(Freetype)
-find_dependency(OpenGL)
-find_dependency(GLEW)
-find_dependency(PkgConfig)
-
+find_dependency(PkgConfig REQUIRED)
 pkg_search_module(SDL2 REQUIRED sdl2 IMPORTED_TARGET)
 pkg_search_module(SIGCXX REQUIRED sigc++-2.0 IMPORTED_TARGET)
 
-check_required_components(wstsgui)
+find_dependency(sexp REQUIRED)
+find_dependency(babyxml REQUIRED)
+find_dependency(logmich REQUIRED)
+find_dependency(geom REQUIRED)
+find_dependency(prio REQUIRED)
+find_dependency(surf REQUIRED)
+find_dependency(wstdisplay REQUIRED)
+find_dependency(wstinput REQUIRED)
+find_dependency(wstsound REQUIRED)
+
+check_required_components(wstgui)
 
 # EOF #

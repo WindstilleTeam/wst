@@ -15,74 +15,116 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 cmake_minimum_required(VERSION 3.15)
-project(wstgui VERSION 0.3.0)
 
-set(TINYCMMC_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/external/tinycmmc/modules/")
-find_package(tinycmmc CONFIG)
-message(STATUS "tinycmmc module path: ${TINYCMMC_MODULE_PATH}")
-list(APPEND CMAKE_MODULE_PATH ${TINYCMMC_MODULE_PATH})
+# Source of truth: top-level VERSION (e.g. "0.3.0-dev"), or
+# -DPROJECT_VERSION_FULL=... from packaging (Nix may append .<revCount>+g<rev>).
+if(NOT DEFINED PROJECT_VERSION_FULL)
+  file(STRINGS "${CMAKE_CURRENT_SOURCE_DIR}/VERSION" PROJECT_VERSION_FULL LIMIT_COUNT 1)
+endif()
 
-include(GetProjectVersion)
+# project() needs a numeric version; strip -dev / +git / similar suffixes.
+string(REGEX MATCH "^[0-9]+(\\.[0-9]+)*" _project_version_cmake "${PROJECT_VERSION_FULL}")
+
+project(wstgui VERSION ${_project_version_cmake} LANGUAGES CXX)
+
 include(GNUInstallDirs)
-include(ClangTidy)
-include(MaximumWarnings)
+include(CMakePackageConfigHelpers)
+
+option(BUILD_EXTRA "Build extra stuff" OFF)
+option(WARNINGS "Enable extra compiler warnings" OFF)
+option(WERROR "Treat warnings as errors" OFF)
+
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+# Compiler warnings (inlined from former tinycmmc MaximumWarnings)
+set(WARNINGS_CXX_FLAGS "")
+if(WERROR)
+  list(APPEND WARNINGS_CXX_FLAGS -Werror)
+endif()
+if(WARNINGS)
+  list(APPEND WARNINGS_CXX_FLAGS -Wall -Wextra)
+  if(CMAKE_COMPILER_IS_GNUCXX)
+    list(APPEND WARNINGS_CXX_FLAGS
+      -Wcast-align
+      -Wcast-qual
+      -Wconversion
+      -Wctor-dtor-privacy
+      -Wdisabled-optimization
+      -Wdouble-promotion
+      -Weffc++
+      -Wformat=2
+      -Winit-self
+      -Winvalid-pch
+      -Wlogical-op
+      -Wmissing-format-attribute
+      -Wmissing-noreturn
+      -Wno-suggest-attribute=noreturn
+      -Wno-unused-parameter
+      -Wnon-virtual-dtor
+      -Wold-style-cast
+      -Woverloaded-virtual
+      -Wpacked
+      -Wredundant-decls
+      -Wshadow
+      -Wsign-promo
+      -Wstrict-null-sentinel
+      -Wsuggest-override
+      -Wunreachable-code
+      -Wzero-as-null-pointer-constant
+      -pedantic
+    )
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_GREATER 8)
+      list(APPEND WARNINGS_CXX_FLAGS -Wint-in-bool-context)
+    endif()
+  elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    list(APPEND WARNINGS_CXX_FLAGS
+      -Weverything
+      -Wno-c++98-compat
+      -Wno-c++98-compat-pedantic
+      -Wno-float-equal
+      -Wno-padded
+      -Wno-weak-vtables
+      -Wno-disabled-macro-expansion
+      -Wno-documentation
+      -Wno-reserved-id-macro
+      -Wno-sign-conversion
+      -Wno-gnu-zero-variadic-macro-arguments
+      -Wno-poison-system-directories
+      -Wno-reserved-identifier
+      -Wno-documentation-unknown-command
+      -Wno-inconsistent-missing-destructor-override
+      -Wno-deprecated-dynamic-exception-spec
+      -Wno-deprecated
+      -Wno-switch-enum
+      -Wno-covered-switch-default
+      -Wno-exit-time-destructors
+      -Wno-global-constructors
+      -Wno-duplicate-enum
+      -Wno-unused-parameter
+      -Wno-old-style-cast
+      -Wno-unreachable-code-break
+      -Wno-double-promotion
+      -Wno-unused-private-field
+      -Wno-unused-exception-parameter
+    )
+  endif()
+endif()
 
 find_package(PkgConfig REQUIRED)
-
 pkg_search_module(SDL2 REQUIRED sdl2 IMPORTED_TARGET)
 pkg_search_module(SIGCXX REQUIRED sigc++-2.0 IMPORTED_TARGET)
 
-# Build dependencies
-function(build_dependencies)
-  set(BUILD_TESTS OFF)
-  set(BUILD_EXTRA OFF)
-
-  find_package(sexp QUIET)
-  if(NOT TARGET sexp::sexp)
-    add_subdirectory(external/sexpcpp/ EXCLUDE_FROM_ALL)
-  endif()
-
-  find_package(babyxml QUIET)
-  if(NOT TARGET babyxml::babyxml)
-    add_subdirectory(external/babyxml/ EXCLUDE_FROM_ALL)
-  endif()
-
-  find_package(logmich QUIET)
-  if(NOT TARGET logmich::logmich)
-    add_subdirectory(external/logmich/ EXCLUDE_FROM_ALL)
-  endif()
-
-  find_package(geom QUIET)
-  if(NOT TARGET geom::geom)
-    add_subdirectory(external/geomcpp/ EXCLUDE_FROM_ALL)
-  endif()
-
-  find_package(prio QUIET)
-  if(NOT TARGET prio::prio)
-    add_subdirectory(external/priocpp/ EXCLUDE_FROM_ALL)
-  endif()
-
-  find_package(surf QUIET)
-  if(NOT TARGET surf::surf)
-    add_subdirectory(external/surfcpp/ EXCLUDE_FROM_ALL)
-  endif()
-
-  find_package(wstdisplay QUIET)
-  if(NOT TARGET wstdisplay::wstdisplay)
-    add_subdirectory(external/wstdisplay/ EXCLUDE_FROM_ALL)
-  endif()
-
-  find_package(wstinput QUIET)
-  if(NOT TARGET wstinput::wstinput)
-    add_subdirectory(external/wstinput/ EXCLUDE_FROM_ALL)
-  endif()
-
-  find_package(wstsound QUIET)
-  if(NOT TARGET wstsound::wstsound)
-    add_subdirectory(external/wstsound/ EXCLUDE_FROM_ALL)
-  endif()
-endfunction()
-build_dependencies()
+find_package(sexp REQUIRED)
+find_package(babyxml REQUIRED)
+find_package(logmich REQUIRED)
+find_package(geom REQUIRED)
+find_package(prio REQUIRED)
+find_package(surf REQUIRED)
+find_package(wstdisplay REQUIRED)
+find_package(wstinput REQUIRED)
+find_package(wstsound REQUIRED)
 
 file(GLOB WSTGUI_HEADERS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
   include/wstgui/*.hpp)
@@ -91,12 +133,7 @@ file(GLOB WSTGUI_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
 
 add_library(wstgui STATIC ${WSTGUI_SOURCES})
 set_target_properties(wstgui PROPERTIES PUBLIC_HEADER "${WSTGUI_HEADERS}")
-target_compile_options(wstgui PUBLIC ${WARNINGS_CXX_FLAGS})
-set_target_properties(wstgui PROPERTIES
-  CXX_STANDARD 20
-  CXX_STANDARD_REQUIRED ON
-  CXX_EXTENSIONS OFF)
-target_include_directories(wstgui SYSTEM PUBLIC ${OPENAL_INCLUDE_DIR})
+target_compile_options(wstgui PRIVATE ${WARNINGS_CXX_FLAGS})
 target_include_directories(wstgui PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
@@ -115,16 +152,6 @@ target_link_libraries(wstgui PUBLIC
   wstdisplay::wstdisplay
   )
 
-if(CWIID_LIBRARY)
-  target_compile_options(wstgui PUBLIC -DHAVE_CWIID)
-  target_link_libraries(wstgui ${CWIID_LIBRARY})
-endif()
-
-install(TARGETS wstgui
-  EXPORT wstgui-targets
-  LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-  PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}")
-
 if(BUILD_EXTRA)
   file(GLOB EXTRA_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
     extra/*.cpp)
@@ -136,12 +163,39 @@ if(BUILD_EXTRA)
       CXX_STANDARD 20
       CXX_STANDARD_REQUIRED ON
       CXX_EXTENSIONS OFF)
-    target_link_libraries("${SRC_BASENAME}_exe" wstgui)
+    target_link_libraries("${SRC_BASENAME}_exe" PRIVATE wstgui)
     install(TARGETS "${SRC_BASENAME}_exe"
       RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
   endforeach(SRC)
 endif()
 
-include(ExportAndInstallLibrary)
+# Export and install library (inlined from former tinycmmc)
+install(TARGETS wstgui
+  EXPORT wstgui
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  PUBLIC_HEADER DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/wstgui")
+
+add_library(wstgui::wstgui ALIAS wstgui)
+
+configure_package_config_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/wstgui-config.cmake.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/wstgui-config.cmake"
+  INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/wstgui")
+write_basic_package_version_file(
+  "${CMAKE_CURRENT_BINARY_DIR}/wstgui-config-version.cmake"
+  VERSION "${PROJECT_VERSION}"
+  COMPATIBILITY SameMinorVersion)
+export(EXPORT wstgui
+  NAMESPACE wstgui::
+  FILE "${CMAKE_CURRENT_BINARY_DIR}/wstgui-targets.cmake")
+install(EXPORT wstgui
+  FILE wstgui-targets.cmake
+  NAMESPACE wstgui::
+  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/wstgui")
+install(FILES
+  "${CMAKE_CURRENT_BINARY_DIR}/wstgui-config-version.cmake"
+  "${CMAKE_CURRENT_BINARY_DIR}/wstgui-config.cmake"
+  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/wstgui")
 
 # EOF #
