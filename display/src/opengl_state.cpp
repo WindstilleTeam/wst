@@ -279,17 +279,6 @@ OpenGLState::verify()
     std::cout << "OpenGLState: dst blendfunc is out of sync" << std::endl;
   }
 
-  if ((false))
-  {
-    // FIXME: Add multitexture support here
-    GLint texture_handle;
-    glActiveTexture(GL_TEXTURE0);
-    glGetIntegerv(GL_TEXTURE_2D_BINDING_EXT, &texture_handle);
-    if (impl->texture[0] && static_cast<GLuint>(texture_handle) != impl->texture[0]->get_handle())
-    {
-      std::cout << "OpenGLState: texture handle is out of sync: " << impl->texture[0]->get_handle() << std::endl;
-    }
-  }
   assert_gl();
 }
 
