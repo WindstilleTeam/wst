@@ -3,8 +3,7 @@
     "SDL2-win32": {
       "inputs": {
         "SDL2_src": "SDL2_src",
-        "nixpkgs": "nixpkgs_2",
-        "tinycmmc": "tinycmmc"
+        "nixpkgs": "nixpkgs_2"
       },
       "locked": {
         "lastModified": 1753127534,
@@ -26,10 +25,6 @@
         "nixpkgs": [
           "wstdisplay",
           "nixpkgs"
-        ],
-        "tinycmmc": [
-          "wstdisplay",
-          "tinycmmc"
         ]
       },
       "locked": {
@@ -52,10 +47,6 @@
         "nixpkgs": [
           "wstinput",
           "nixpkgs"
-        ],
-        "tinycmmc": [
-          "wstinput",
-          "tinycmmc"
         ]
       },
       "locked": {
@@ -115,9 +106,6 @@
       "inputs": {
         "nixpkgs": [
           "nixpkgs"
-        ],
-        "tinycmmc": [
-          "tinycmmc"
         ]
       },
       "locked": {
@@ -176,10 +164,6 @@
         "nixpkgs": [
           "wstdisplay",
           "nixpkgs"
-        ],
-        "tinycmmc": [
-          "wstdisplay",
-          "tinycmmc"
         ]
       },
       "locked": {
@@ -213,9 +197,6 @@
       "inputs": {
         "nixpkgs": [
           "nixpkgs"
-        ],
-        "tinycmmc": [
-          "tinycmmc"
         ]
       },
       "locked": {
@@ -238,10 +219,6 @@
         "nixpkgs": [
           "wstdisplay",
           "nixpkgs"
-        ],
-        "tinycmmc": [
-          "wstdisplay",
-          "tinycmmc"
         ]
       },
       "locked": {
@@ -277,10 +254,6 @@
         "nixpkgs": [
           "wstsound",
           "nixpkgs"
-        ],
-        "tinycmmc": [
-          "wstsound",
-          "tinycmmc"
         ]
       },
       "locked": {
@@ -316,10 +289,6 @@
         "nixpkgs": [
           "wstsound",
           "nixpkgs"
-        ],
-        "tinycmmc": [
-          "wstsound",
-          "tinycmmc"
         ]
       },
       "locked": {
@@ -359,10 +328,6 @@
         "nixpkgs": [
           "wstsound",
           "nixpkgs"
-        ],
-        "tinycmmc": [
-          "wstsound",
-          "tinycmmc"
         ]
       },
       "locked": {
@@ -396,9 +361,6 @@
       "inputs": {
         "nixpkgs": [
           "nixpkgs"
-        ],
-        "tinycmmc": [
-          "tinycmmc"
         ]
       },
       "locked": {
@@ -421,10 +383,6 @@
         "nixpkgs": [
           "wstsound",
           "nixpkgs"
-        ],
-        "tinycmmc": [
-          "wstsound",
-          "tinycmmc"
         ]
       },
       "locked": {
@@ -492,11 +450,7 @@
           "wstsound",
           "nixpkgs"
         ],
-        "openal-soft_src": "openal-soft_src",
-        "tinycmmc": [
-          "wstsound",
-          "tinycmmc"
-        ]
+        "openal-soft_src": "openal-soft_src"
       },
       "locked": {
         "lastModified": 1763585892,
@@ -535,11 +489,7 @@
           "wstsound",
           "nixpkgs"
         ],
-        "opus_src": "opus_src",
-        "tinycmmc": [
-          "wstsound",
-          "tinycmmc"
-        ]
+        "opus_src": "opus_src"
       },
       "locked": {
         "lastModified": 1716728603,
@@ -582,11 +532,7 @@
           "wstsound",
           "opus-win32"
         ],
-        "opusfile_src": "opusfile_src",
-        "tinycmmc": [
-          "wstsound",
-          "tinycmmc"
-        ]
+        "opusfile_src": "opusfile_src"
       },
       "locked": {
         "lastModified": 1716728646,
@@ -628,9 +574,6 @@
         ],
         "sexpcpp": [
           "sexpcpp"
-        ],
-        "tinycmmc": [
-          "tinycmmc"
         ]
       },
       "locked": {
@@ -657,7 +600,6 @@
         "priocpp": "priocpp",
         "sexpcpp": "sexpcpp",
         "surfcpp": "surfcpp",
-        "tinycmmc": "tinycmmc_2",
         "wstdisplay": "wstdisplay",
         "wstinput": "wstinput",
         "wstsound": "wstsound"
@@ -670,9 +612,6 @@
         ],
         "nixpkgs": [
           "nixpkgs"
-        ],
-        "tinycmmc": [
-          "tinycmmc"
         ]
       },
       "locked": {
@@ -700,9 +639,6 @@
         ],
         "nixpkgs": [
           "nixpkgs"
-        ],
-        "tinycmmc": [
-          "tinycmmc"
         ]
       },
       "locked": {
@@ -749,29 +685,6 @@
         "type": "github"
       }
     },
-    "tinycmmc": {
-      "inputs": {
-        "flake-utils": "flake-utils_2",
-        "nixpkgs": [
-          "surfcpp",
-          "SDL2-win32",
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1701699760,
-        "narHash": "sha256-L0vwqcTQFOiFfRY90nBgDuUsVOYS0+S8BfVxFvaFBNM=",
-        "owner": "grumbel",
-        "repo": "tinycmmc",
-        "rev": "9a51e13802d930feb7261ba8876940659b258cb7",
-        "type": "github"
-      },
-      "original": {
-        "owner": "grumbel",
-        "repo": "tinycmmc",
-        "type": "github"
-      }
-    },
     "tinycmmc_2": {
       "inputs": {
         "flake-utils": [
@@ -814,9 +727,6 @@
         ],
         "surfcpp": [
           "surfcpp"
-        ],
-        "tinycmmc": [
-          "tinycmmc"
         ]
       },
       "locked": {
@@ -850,9 +760,6 @@
         ],
         "sexpcpp": [
           "sexpcpp"
-        ],
-        "tinycmmc": [
-          "tinycmmc"
         ]
       },
       "locked": {
@@ -883,10 +790,7 @@
         ],
         "openal-soft-win32": "openal-soft-win32",
         "opus-win32": "opus-win32",
-        "opusfile-win32": "opusfile-win32",
-        "tinycmmc": [
-          "tinycmmc"
-        ]
+        "opusfile-win32": "opusfile-win32"
       },
       "locked": {
         "lastModified": 1775757265,
