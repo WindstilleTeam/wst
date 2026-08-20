@@ -25,7 +25,7 @@ endif()
 # project() needs a numeric version; strip -dev / +git / similar suffixes.
 string(REGEX MATCH "^[0-9]+(\\.[0-9]+)*" _project_version_cmake "${PROJECT_VERSION_FULL}")
 
-project(wstdisplay VERSION ${_project_version_cmake} LANGUAGES CXX)
+project(wstdisplay VERSION ${_project_version_cmake} LANGUAGES CXX C)
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
@@ -150,7 +150,7 @@ target_include_directories(wstdisplay PUBLIC
   $<INSTALL_INTERFACE:include>
   )
 target_compile_options(wstdisplay PRIVATE ${WSTDISPLAY_WARNINGS_CXX_FLAGS})
-# glad is C; silence warnings when compiled as part of the C++ target
+# glad is C; silence some warnings
 set_source_files_properties(external/glad/src/gl.c PROPERTIES
   COMPILE_FLAGS "-Wno-pedantic -Wno-unused-function")
 target_link_libraries(wstdisplay PUBLIC
