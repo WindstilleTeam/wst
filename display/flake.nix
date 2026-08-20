@@ -88,10 +88,19 @@
             nativeBuildInputs = [
               pkgs.buildPackages.cmake
               pkgs.buildPackages.pkg-config
+            ] ++ nixpkgs.lib.optionals pkgs.stdenv.hostPlatform.isLinux [
+              # GLEW pulls in X11 (libSM/libICE/libX11/…); ensure RPATHs are set
+              pkgs.autoPatchelfHook
             ];
 
             buildInputs = [
               pkgs.gtest
+            ] ++ nixpkgs.lib.optionals pkgs.stdenv.hostPlatform.isLinux [
+              # Runtime deps of GLEW that otherwise go missing under `nix run`
+              pkgs.xorg.libX11
+              pkgs.xorg.libXext
+              pkgs.xorg.libSM
+              pkgs.xorg.libICE
             ];
 
             propagatedBuildInputs = [
