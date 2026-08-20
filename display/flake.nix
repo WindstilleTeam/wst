@@ -74,7 +74,6 @@
                 find ${pkgs.windows.mcfgthreads} -iname "*.dll" -exec ln -sfv {} $out/bin/ \;
                 find ${pkgs.stdenv.cc.cc} -iname "*.dll" -exec ln -sfv {} $out/bin/ \;
                 ln -sfv ${SDL2-win32.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/*.dll $out/bin/
-                ln -sfv ${pkgs.fmt}/bin/*.dll $out/bin/
                 ln -sfv ${pkgs.gtest}/bin/*.dll $out/bin/
                 ln -sfv ${pkgs.libsigcxx}/bin/*.dll $out/bin/
                 ln -sfv ${freetype-win32.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/*.dll $out/bin/
@@ -102,7 +101,6 @@
               surfcpp.packages.${pkgs.stdenv.hostPlatform.system}.default
 
               pkgs.libsigcxx
-              pkgs.fmt
 
               (if pkgs.stdenv.hostPlatform.isWindows
                then freetype-win32.packages.${pkgs.stdenv.hostPlatform.system}.default
