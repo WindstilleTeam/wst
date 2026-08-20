@@ -23,6 +23,8 @@
 
 #include <glm/ext.hpp>
 
+#include <GL/glu.h>
+
 #include <geom/rect.hpp>
 #include <geom/io.hpp>
 
