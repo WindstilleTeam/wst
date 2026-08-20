@@ -33,7 +33,7 @@ SurfaceManager::SurfaceManager() :
   // NPOV should be ok with OpenGL2.0 in theory, but in practice there
   // is hardware that does OpenGL2.0, but not NPOV, see:
   // http://www.opengl.org/wiki/NPOT_Texture
-  if (!GLEW_ARB_texture_non_power_of_two) {
+  if (!GLAD_GL_ARB_texture_non_power_of_two) {
     m_texture_packer.reset(new TexturePacker(geom::isize(2048, 2048)));
   }
 }
@@ -128,7 +128,7 @@ SurfaceManager::create_texture(SoftwareSurface const& image,
 {
   // OpenGL2.0 should be fine with non-power-of-two, but some
   // implementations aren't
-  if (GLEW_ARB_texture_non_power_of_two) {
+  if (GLAD_GL_ARB_texture_non_power_of_two) {
     *maxu = 1.0f;
     *maxv = 1.0f;
     return Texture::create(image);

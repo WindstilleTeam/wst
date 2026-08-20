@@ -60,7 +60,7 @@ Texture::Texture(GLenum target, geom::isize const& size, GLint format) :
 {
   assert_gl();
 
-  if (!GLEW_ARB_texture_non_power_of_two) {
+  if (!GLAD_GL_ARB_texture_non_power_of_two) {
     if (!glm::isPowerOfTwo(m_size.width()) || !glm::isPowerOfTwo(m_size.height())) {
       std::cout  << "Texture::Texture(): texture dimensions have non power of two size: " << m_size;
 
@@ -96,7 +96,7 @@ Texture::Texture(SoftwareSurface const& image, GLint glformat) :
   glGenTextures(1, &m_handle);
   assert_gl();
 
-  if (!GLEW_ARB_texture_non_power_of_two) {
+  if (!GLAD_GL_ARB_texture_non_power_of_two) {
     if (!glm::isPowerOfTwo(image.get_width()) || !glm::isPowerOfTwo(image.get_height())) {
       std::ostringstream str;
       str << "Texture::Texture(): image dimensions have non power of two size: "

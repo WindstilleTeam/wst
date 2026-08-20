@@ -121,7 +121,6 @@ endif()
 find_package(Threads REQUIRED)
 find_package(Freetype REQUIRED)
 find_package(OpenGL REQUIRED)
-find_package(GLEW REQUIRED)
 find_package(PkgConfig REQUIRED)
 
 pkg_search_module(SDL2 REQUIRED sdl2 IMPORTED_TARGET)
@@ -136,20 +135,29 @@ file(GLOB WSTDISPLAY_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
   src/*.cpp
   src/font/*.?pp
   src/scenegraph/*.cpp
+  external/glad/src/gl.c
   )
 add_library(wstdisplay STATIC ${WSTDISPLAY_SOURCES})
-target_include_directories(wstdisplay PRIVATE src/ include/wstdisplay include/wstsystem/)
+target_include_directories(wstdisplay PRIVATE
+  src/
+  include/wstdisplay
+  include/wstsystem/
+  external/glad/include
+  )
 target_include_directories(wstdisplay PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/external/glad/include>
   $<INSTALL_INTERFACE:include>
   )
 target_compile_options(wstdisplay PRIVATE ${WSTDISPLAY_WARNINGS_CXX_FLAGS})
+# glad is C; silence warnings when compiled as part of the C++ target
+set_source_files_properties(external/glad/src/gl.c PROPERTIES
+  COMPILE_FLAGS "-Wno-pedantic -Wno-unused-function")
 target_link_libraries(wstdisplay PUBLIC
   babyxml::babyxml
   geom::geom
   surf::surf
   logmich::logmich
-  GLEW::GLEW
   OpenGL::GL
   OpenGL::GLU
   Freetype::Freetype
@@ -185,6 +193,11 @@ install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/"
   DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/"
   FILES_MATCHING
   PATTERN "*.hpp"
+  )
+
+# GLAD headers (public, since wstdisplay headers include <glad/gl.h>)
+install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/external/glad/include/"
+  DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/"
   )
 
 # Export and install library (inlined from former tinycmmc)

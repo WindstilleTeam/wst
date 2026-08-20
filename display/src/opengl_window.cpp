@@ -17,7 +17,7 @@
 #include "opengl_window.hpp"
 
 #include <iostream>
-#include <GL/glew.h>
+#include <glad/gl.h>
 
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
@@ -103,22 +103,18 @@ OpenGLWindow::OpenGLWindow(wstsys::System& system,
     throw std::runtime_error("Display:: failed to create GLContext");
   }
 
-  GLenum err = glewInit();
-  if (err != GLEW_OK)
-  {
-    std::ostringstream msg;
-    msg << "Display:: Couldn't initialize glew: " << glewGetString(err);
-    throw std::runtime_error(msg.str());
+  int glad_version = gladLoadGL(reinterpret_cast<GLADloadfunc>(SDL_GL_GetProcAddress));
+  if (!glad_version) {
+    throw std::runtime_error("Display:: failed to initialize GLAD");
   }
 
-  std::cout << "glewInit() successfull: " << glewGetString(GLEW_VERSION) << std::endl;
-  std::cout << "OpenGL 3.2: " << GL_VERSION_3_2 << std::endl;
-  std::cout << "GL_VERSION_3_0: " << GL_VERSION_3_0 << std::endl;
+  std::cout << "GLAD loaded OpenGL "
+            << GLAD_VERSION_MAJOR(glad_version) << "."
+            << GLAD_VERSION_MINOR(glad_version) << std::endl;
   std::cout << "GL_VENDOR: " << get_gl_string(GL_VENDOR) << std::endl;
   std::cout << "GL_RENDERER: " << get_gl_string(GL_RENDERER) << std::endl;
   std::cout << "GL_VERSION: " << get_gl_string(GL_VERSION) << std::endl;
   std::cout << "GL_SHADING_LANGUAGE_VERSION: " << get_gl_string(GL_SHADING_LANGUAGE_VERSION) << std::endl;
-  // std::cout << "GL_EXTENSIONS: " << get_gl_string(GL_EXTENSIONS) << std::endl;
 
   if (m_anti_aliasing) {
     glEnable(GL_MULTISAMPLE);

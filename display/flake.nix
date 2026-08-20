@@ -17,9 +17,6 @@
     SDL2-win32.url = "git+https://github.com/grumnix/SDL2-win32.git";
     SDL2-win32.inputs.nixpkgs.follows = "nixpkgs";
 
-    glew-win32.url = "git+https://github.com/grumnix/glew-win32.git";
-    glew-win32.inputs.nixpkgs.follows = "nixpkgs";
-
     freetype-win32.url = "git+https://github.com/grumnix/freetype-win32.git";
     freetype-win32.inputs.nixpkgs.follows = "nixpkgs";
 
@@ -30,7 +27,7 @@
     surfcpp.inputs.SDL2-win32.follows = "SDL2-win32";
   };
 
-  outputs = { self, nixpkgs, flake-utils, babyxml, geomcpp, logmich, surfcpp, freetype-win32, SDL2-win32, glew-win32 }:
+  outputs = { self, nixpkgs, flake-utils, babyxml, geomcpp, logmich, surfcpp, freetype-win32, SDL2-win32 }:
     let
       # Read the base from VERSION.
       versionBase = nixpkgs.lib.strings.removeSuffix "\n" (builtins.readFile ./VERSION);
@@ -77,7 +74,6 @@
                 ln -sfv ${pkgs.gtest}/bin/*.dll $out/bin/
                 ln -sfv ${pkgs.libsigcxx}/bin/*.dll $out/bin/
                 ln -sfv ${freetype-win32.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/*.dll $out/bin/
-                ln -sfv ${glew-win32.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/*.dll $out/bin/
 
                 # FIXME: These should be handled in surfcpp or statically linked
                 ln -sfv ${pkgs.libjpeg_original.overrideAttrs (oldAttrs: { meta = {}; })}/bin/*.dll $out/bin/
@@ -88,19 +84,10 @@
             nativeBuildInputs = [
               pkgs.buildPackages.cmake
               pkgs.buildPackages.pkg-config
-            ] ++ nixpkgs.lib.optionals pkgs.stdenv.hostPlatform.isLinux [
-              # GLEW pulls in X11 (libSM/libICE/libX11/…); ensure RPATHs are set
-              pkgs.autoPatchelfHook
             ];
 
             buildInputs = [
               pkgs.gtest
-            ] ++ nixpkgs.lib.optionals pkgs.stdenv.hostPlatform.isLinux [
-              # Runtime deps of GLEW that otherwise go missing under `nix run`
-              pkgs.xorg.libX11
-              pkgs.xorg.libXext
-              pkgs.xorg.libSM
-              pkgs.xorg.libICE
             ];
 
             propagatedBuildInputs = [
@@ -116,12 +103,12 @@
                else pkgs.freetype)
 
               (if pkgs.stdenv.hostPlatform.isWindows
-               then glew-win32.packages.${pkgs.stdenv.hostPlatform.system}.default
-               else pkgs.glew)
-
-              (if pkgs.stdenv.hostPlatform.isWindows
                then SDL2-win32.packages.${pkgs.stdenv.hostPlatform.system}.default
                else pkgs.SDL2)
+
+              # OpenGL via libglvnd (no X11 pulled in by GLEW anymore; GLAD is vendored)
+              pkgs.libGL
+              pkgs.libGLU
             ];
           };
         };

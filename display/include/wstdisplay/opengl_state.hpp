@@ -17,7 +17,7 @@
 #ifndef HEADER_WINDSTILLE_DISPLAY_OPENGL_STATE_HPP
 #define HEADER_WINDSTILLE_DISPLAY_OPENGL_STATE_HPP
 
-#include <GL/glew.h>
+#include <glad/gl.h>
 #include <memory>
 
 #include <surf/fwd.hpp>

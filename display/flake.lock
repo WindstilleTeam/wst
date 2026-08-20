@@ -256,41 +256,6 @@
         "url": "https://github.com/grumbel/geomcpp.git"
       }
     },
-    "glew-win32": {
-      "inputs": {
-        "glew_src": "glew_src",
-        "nixpkgs": [
-          "nixpkgs"
-        ],
-        "tinycmmc": "tinycmmc_2"
-      },
-      "locked": {
-        "lastModified": 1716729346,
-        "narHash": "sha256-bO+mEfQT7V86Xi7m4xLpigWh4FxLSlbwBUnndn4Lb+o=",
-        "ref": "refs/heads/master",
-        "rev": "e2cc411d17dc1845eb25492e9bf408d5862ad19c",
-        "revCount": 4,
-        "type": "git",
-        "url": "https://github.com/grumnix/glew-win32.git"
-      },
-      "original": {
-        "type": "git",
-        "url": "https://github.com/grumnix/glew-win32.git"
-      }
-    },
-    "glew_src": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1584277261,
-        "narHash": "sha256-q91JXPURP4ZRGf0RjH78Yn0wV1MaL/JBTzJc8WSxWW8=",
-        "type": "tarball",
-        "url": "https://github.com/nigels-com/glew/releases/download/glew-2.2.0/glew-2.2.0-win32.zip"
-      },
-      "original": {
-        "type": "tarball",
-        "url": "https://github.com/nigels-com/glew/releases/download/glew-2.2.0/glew-2.2.0-win32.zip"
-      }
-    },
     "logmich": {
       "inputs": {
         "flake-utils": "flake-utils_7",
@@ -335,7 +300,6 @@
         "flake-utils": "flake-utils_3",
         "freetype-win32": "freetype-win32",
         "geomcpp": "geomcpp",
-        "glew-win32": "glew-win32",
         "logmich": "logmich",
         "nixpkgs": "nixpkgs",
         "surfcpp": "surfcpp"
@@ -515,11 +479,7 @@
     },
     "tinycmmc_2": {
       "inputs": {
-        "flake-utils": "flake-utils_6",
-        "nixpkgs": [
-          "glew-win32",
-          "nixpkgs"
-        ]
+        "flake-utils": "flake-utils_6"
       },
       "locked": {
         "lastModified": 1701699760,

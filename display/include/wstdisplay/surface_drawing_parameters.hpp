@@ -17,7 +17,7 @@
 #ifndef HEADER_WINDSTILLE_DISPLAY_SURFACE_DRAWING_PARAMETERS_HPP
 #define HEADER_WINDSTILLE_DISPLAY_SURFACE_DRAWING_PARAMETERS_HPP
 
-#include <GL/glew.h>
+#include <glad/gl.h>
 
 #include <glm/glm.hpp>
 #include <surf/color.hpp>

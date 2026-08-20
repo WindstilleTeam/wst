@@ -17,7 +17,7 @@
 #ifndef HEADER_WINDSTILLE_DISPLAY_SHADER_PROGRAM_HPP
 #define HEADER_WINDSTILLE_DISPLAY_SHADER_PROGRAM_HPP
 
-#include <GL/glew.h>
+#include <glad/gl.h>
 #include <memory>
 #include <string_view>
 

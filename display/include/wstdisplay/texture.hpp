@@ -18,7 +18,7 @@
 #define HEADER_WINDSTILLE_DISPLAY_TEXTURE_HPP
 
 #include <string>
-#include <GL/glew.h>
+#include <glad/gl.h>
 #include <memory>
 
 #include <geom/rect.hpp>

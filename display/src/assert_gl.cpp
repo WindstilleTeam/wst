@@ -18,7 +18,7 @@
 
 #include <stdexcept>
 #include <sstream>
-#include <GL/glew.h>
+#include <glad/gl.h>
 
 void assert_gl_loc(char const* file, int line, char const* message)
 {

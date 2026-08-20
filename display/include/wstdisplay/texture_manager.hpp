@@ -19,7 +19,7 @@
 
 #include <string>
 #include <map>
-#include <GL/glew.h>
+#include <glad/gl.h>
 
 #include "texture.hpp"
 
