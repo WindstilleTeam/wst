@@ -3,55 +3,70 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs?ref=nixos-unstable";
-
-    tinycmmc.url = "git+https://github.com/grumbel/tinycmmc.git";
-    tinycmmc.inputs.nixpkgs.follows = "nixpkgs";
+    flake-utils.url = "github:numtide/flake-utils";
 
     babyxml.url = "git+https://github.com/grumbel/babyxml.git";
     babyxml.inputs.nixpkgs.follows = "nixpkgs";
-    babyxml.inputs.tinycmmc.follows = "tinycmmc";
 
     logmich.url = "git+https://github.com/logmich/logmich.git";
     logmich.inputs.nixpkgs.follows = "nixpkgs";
-    logmich.inputs.tinycmmc.follows = "tinycmmc";
 
     geomcpp.url = "git+https://github.com/grumbel/geomcpp.git";
     geomcpp.inputs.nixpkgs.follows = "nixpkgs";
-    geomcpp.inputs.tinycmmc.follows = "tinycmmc";
 
     SDL2-win32.url = "git+https://github.com/grumnix/SDL2-win32.git";
     SDL2-win32.inputs.nixpkgs.follows = "nixpkgs";
-    SDL2-win32.inputs.tinycmmc.follows = "tinycmmc";
 
     glew-win32.url = "git+https://github.com/grumnix/glew-win32.git";
     glew-win32.inputs.nixpkgs.follows = "nixpkgs";
-    glew-win32.inputs.tinycmmc.follows = "tinycmmc";
 
     freetype-win32.url = "git+https://github.com/grumnix/freetype-win32.git";
     freetype-win32.inputs.nixpkgs.follows = "nixpkgs";
-    freetype-win32.inputs.tinycmmc.follows = "tinycmmc";
 
     surfcpp.url = "git+https://github.com/grumbel/surfcpp.git";
     surfcpp.inputs.nixpkgs.follows = "nixpkgs";
-    surfcpp.inputs.tinycmmc.follows = "tinycmmc";
     surfcpp.inputs.geomcpp.follows = "geomcpp";
     surfcpp.inputs.logmich.follows = "logmich";
     surfcpp.inputs.SDL2-win32.follows = "SDL2-win32";
   };
 
-  outputs = { self, nixpkgs, tinycmmc, babyxml, geomcpp, logmich, surfcpp, freetype-win32, SDL2-win32, glew-win32 }:
-    tinycmmc.lib.eachSystemWithPkgs (pkgs:
+  outputs = { self, nixpkgs, flake-utils, babyxml, geomcpp, logmich, surfcpp, freetype-win32, SDL2-win32, glew-win32 }:
+    let
+      # Read the base from VERSION.
+      versionBase = nixpkgs.lib.strings.removeSuffix "\n" (builtins.readFile ./VERSION);
+      gitRev = "${self.shortRev or self.dirtyShortRev or "dirty"}";
+      isDev = nixpkgs.lib.strings.hasInfix "-dev" versionBase;
+      version =
+        if isDev then
+          "${versionBase}.${toString (self.revCount or 0)}+g${gitRev}"
+        else
+          versionBase;
+
+      # Support Windows cross as tinycmmc did
+      eachSystem = flake-utils.lib.eachSystem (flake-utils.lib.defaultSystems ++ [ "x86_64-windows" "i686-windows" ]);
+      pkgsFromSystem = system:
+        if system == "x86_64-windows" then nixpkgs.legacyPackages.x86_64-linux.pkgsCross.mingwW64
+        else if system == "i686-windows" then nixpkgs.legacyPackages.x86_64-linux.pkgsCross.mingw32
+        else nixpkgs.legacyPackages.${system};
+    in
+    eachSystem (system:
+      let
+        pkgs = pkgsFromSystem system;
+      in
       rec {
         packages = rec {
           default = wstdisplay;
 
           wstdisplay = pkgs.stdenv.mkDerivation {
             pname = "wstdisplay";
-            version = "0.3.0";
+            inherit version;
 
             src = nixpkgs.lib.cleanSource ./.;
 
-            cmakeFlags = [ "-DBUILD_EXTRA=ON" ];
+            cmakeFlags = [
+              "-DBUILD_EXTRA=ON"
+              "-DPROJECT_VERSION_FULL=${version}"
+            ];
 
             postFixup =
               (nixpkgs.lib.optionalString pkgs.stdenv.hostPlatform.isWindows ''
@@ -77,8 +92,6 @@
             ];
 
             buildInputs = [
-              tinycmmc.packages.${pkgs.stdenv.hostPlatform.system}.default
-
               pkgs.gtest
             ];
 
@@ -109,7 +122,7 @@
         apps = rec {
           default = wstdisplay-geometry;
 
-          wstdisplay-geometry = tinycmmc.inputs.flake-utils.lib.mkApp {
+          wstdisplay-geometry = flake-utils.lib.mkApp {
             drv = packages.wstdisplay;
             exePath = "/bin/wstdisplay-geometry";
           };
