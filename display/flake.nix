@@ -72,7 +72,7 @@
                 find ${pkgs.stdenv.cc.cc} -iname "*.dll" -exec ln -sfv {} $out/bin/ \;
                 ln -sfv ${SDL2-win32.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/*.dll $out/bin/
                 ln -sfv ${pkgs.gtest}/bin/*.dll $out/bin/
-                ln -sfv ${pkgs.libsigcxx}/bin/*.dll $out/bin/
+                ln -sfv ${pkgs.libsigcxx_3_0}/bin/*.dll $out/bin/
                 ln -sfv ${freetype-win32.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/*.dll $out/bin/
 
                 # FIXME: These should be handled in surfcpp or statically linked
@@ -96,7 +96,7 @@
               logmich.packages.${pkgs.stdenv.hostPlatform.system}.default
               surfcpp.packages.${pkgs.stdenv.hostPlatform.system}.default
 
-              pkgs.libsigcxx
+              pkgs.libsigcxx_3_0
 
               (if pkgs.stdenv.hostPlatform.isWindows
                then freetype-win32.packages.${pkgs.stdenv.hostPlatform.system}.default

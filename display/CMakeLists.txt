@@ -124,7 +124,7 @@ find_package(OpenGL REQUIRED)
 find_package(PkgConfig REQUIRED)
 
 pkg_search_module(SDL2 REQUIRED sdl2 IMPORTED_TARGET)
-pkg_search_module(SIGCXX REQUIRED sigc++-2.0 IMPORTED_TARGET)
+pkg_search_module(SIGCXX REQUIRED sigc++-3.0 IMPORTED_TARGET)
 
 find_package(babyxml REQUIRED)
 find_package(geom REQUIRED)
