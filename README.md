@@ -136,6 +136,20 @@ that is gone by then is skipped and counted in `RenderStats::skipped`
 instead of crashing, `Device::get()` throws on stale handles. The
 `Device` must outlive all `Unique` handles.
 
+Fonts and sprites follow the same pattern with their own managers,
+`FontManager` hands out `FontId` and `wstsprite::SpriteManager`
+`SpriteId`, so a text or sprite component is plain data too:
+
+    FontManager fonts(device);
+    FontId const title = fonts.load("Vera.ttf", 48, FontEffect{.border = 3});
+    FontId const pixel = fonts.add(BitmapFont::from_grid(device, image, {8, 8}, charset));
+
+    struct TextComponent { FontId font; std::string text; TextAlign align; };
+    canvas.draw_text(fonts.get(c.font), pos, c.text, color, c.align);
+
+`ResourcePool<T>` is the storage behind all of them and can be used
+for game side handle managers as well.
+
 ### Canvas state
 
 z, blend mode, material, coordinate space, transform and clip rect are
@@ -281,6 +295,7 @@ Porting from the old wstdisplay
 | `SceneGraph`, persistent `Drawable`s       | redraw every frame, or `StaticBatch` for static geometry|
 | `ShaderDrawable`, `ShockwaveDrawable`      | `canvas.set_material()`, `Framebuffer` for post processing |
 | `TTFFont::draw(gc, ...)`                   | `canvas.draw_text(font, ...)`, fonts are UTF-8 now      |
+| `TTFFontManager`, `BorderFontEffect(3, true)` | `FontManager::load(file, size, FontEffect{.border = 3})` returns a `FontId` |
 | `TextArea::draw(gc)`                       | `text_area.draw(canvas)`                                |
 | `Texture::create(GL_TEXTURE_2D, size)`     | `device.create_texture(size, TextureParams{...})`       |
 | `Framebuffer::create_with_texture(...)`    | `device.create_framebuffer(size, {.depth = true})`, `RenderPass{.target = fb}` |

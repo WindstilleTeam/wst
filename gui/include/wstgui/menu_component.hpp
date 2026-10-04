@@ -4,6 +4,9 @@
 #ifndef HEADER_WINDSTILLE_GUI_MENU_COMPONENT_HPP
 #define HEADER_WINDSTILLE_GUI_MENU_COMPONENT_HPP
 
+#include <memory>
+#include <vector>
+
 #include <wstdisplay/fwd.hpp>
 
 #include "component.hpp"

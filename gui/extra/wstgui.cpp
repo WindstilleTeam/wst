@@ -8,7 +8,7 @@
 
 #include <geom/io.hpp>
 #include <surf/palette.hpp>
-#include <wstdisplay/font/ttf_font_manager.hpp>
+#include <wstdisplay/font/font_manager.hpp>
 #include <wstdisplay/opengl_window.hpp>
 #include <wstgui/anchor_layoutable.hpp>
 #include <wstgui/box_layoutable.hpp>
@@ -52,10 +52,10 @@ int main(int argc, char** argv)
 
   ScreenManager screen(system, *window, input);
 
-  TTFFontManager ttf_font_manager(window->get_device());
-  std::unique_ptr<TTFFont> font = ttf_font_manager.create_font("extra/Vera.ttf", 20);
-  std::unique_ptr<TTFFont> smallfont = ttf_font_manager.create_font("extra/Vera.ttf", 16);
-  Style style(font.get());
+  FontManager fonts(window->get_device());
+  Font const& font = fonts.get(fonts.load("extra/Vera.ttf", 20));
+  Font const& smallfont = fonts.get(fonts.load("extra/Vera.ttf", 16));
+  Style style(&font);
   auto gui_manager = std::make_unique<GUIManager>(style);
   auto* root = gui_manager->get_root();
 
@@ -65,7 +65,7 @@ int main(int argc, char** argv)
 
   auto textview = std::make_unique<TextView>(root);
   textview->set_geometry(geom::frect(20, 50, 620, 200));
-  textview->set_font(smallfont.get());
+  textview->set_font(&smallfont);
   textview->set_text(
     "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi in "
     "consectetur sapien. Pellentesque a cursus est. Vestibulum nec "

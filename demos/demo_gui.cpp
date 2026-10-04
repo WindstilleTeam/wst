@@ -72,9 +72,9 @@ public:
     bindings.bind_keyboard_button(MENU_RIGHT_BUTTON, SDL_SCANCODE_RIGHT);
     bindings.bind_keyboard_axis(Y2_AXIS, SDL_SCANCODE_PAGEUP, SDL_SCANCODE_PAGEDOWN);
 
-    m_font = std::make_unique<TTFFont>(get_font_manager(), get_data("Vera.ttf"), 20);
-    m_small_font = std::make_unique<TTFFont>(get_font_manager(), get_data("Vera.ttf"), 14);
-    m_style = std::make_unique<wstgui::Style>(m_font.get());
+    m_font = get_font_manager().load(get_data("Vera.ttf"), 20);
+    m_small_font = get_font_manager().load(get_data("Vera.ttf"), 14);
+    m_style = std::make_unique<wstgui::Style>(&get_font_manager().get(m_font));
 
     m_gui = std::make_unique<wstgui::GUIManager>(*m_style);
     auto* root = m_gui->get_root();
@@ -85,7 +85,7 @@ public:
 
     auto text = std::make_unique<wstgui::TextView>(root);
     text->set_geometry(geom::frect(40, 70, 600, 330));
-    text->set_font(m_small_font.get());
+    text->set_font(&get_font_manager().get(m_small_font));
     text->set_text("The GUI components draw into a Canvas now and take their input from a "
                    "wstinput Controller. Text is laid out by a <b>TextArea</b>, so markup works "
                    "here as well.\n\nPage up and page down scroll this text view. "
@@ -131,15 +131,15 @@ public:
   {
     m_canvas.clear();
     m_gui->draw(m_canvas);
-    m_canvas.draw_text(*m_small_font, geom::fpoint(40, 440), m_status, surf::palette::lightgray);
+    m_canvas.draw_text(get_font_manager().get(m_small_font), geom::fpoint(40, 440), m_status, surf::palette::lightgray);
     renderer.render(m_canvas, RenderPass{.clear = surf::Color(0.15f, 0.2f, 0.25f)});
   }
 
 private:
   Canvas m_canvas;
   std::unique_ptr<wstinput::InputManagerSDL> m_input;
-  std::unique_ptr<TTFFont> m_font;
-  std::unique_ptr<TTFFont> m_small_font;
+  FontId m_font;
+  FontId m_small_font;
   std::unique_ptr<wstgui::Style> m_style;
   std::unique_ptr<wstgui::GUIManager> m_gui;
   std::unique_ptr<wstgui::Menu> m_menu;

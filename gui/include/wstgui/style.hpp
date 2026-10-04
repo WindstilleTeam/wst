@@ -4,7 +4,7 @@
 #ifndef HEADER_WINDSTILLE_STYLE_HPP
 #define HEADER_WINDSTILLE_STYLE_HPP
 
-#include <wstdisplay/font/ttf_font.hpp>
+#include <wstdisplay/font/font.hpp>
 
 namespace wstgui {
 

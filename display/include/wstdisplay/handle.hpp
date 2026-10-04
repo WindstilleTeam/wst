@@ -29,6 +29,7 @@ struct Handle
   friend auto operator<=>(Handle const& lhs, Handle const& rhs) = default;
 };
 
+class Font;
 class Framebuffer;
 class Material;
 class Mesh;
@@ -36,6 +37,7 @@ class ShaderProgram;
 class StaticBatch;
 class Texture;
 
+using FontId = Handle<Font>;
 using FramebufferId = Handle<Framebuffer>;
 using MaterialId = Handle<Material>;
 using MeshId = Handle<Mesh>;

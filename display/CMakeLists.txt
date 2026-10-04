@@ -144,10 +144,12 @@ target_link_libraries(wstdisplay PUBLIC
   surf::surf
   logmich::logmich
   OpenGL::GL
-  Freetype::Freetype
   PkgConfig::SDL2
   PkgConfig::SIGCXX
   Threads::Threads)
+# FreeType is not part of the public headers
+target_link_libraries(wstdisplay PRIVATE
+  Freetype::Freetype)
 
 if(BUILD_TESTS)
   find_package(GTest REQUIRED)

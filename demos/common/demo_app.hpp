@@ -16,8 +16,8 @@
 #include <geom/size.hpp>
 #include <wstdisplay/canvas.hpp>
 #include <wstdisplay/device.hpp>
-#include <wstdisplay/font/ttf_font.hpp>
-#include <wstdisplay/font/ttf_font_manager.hpp>
+#include <wstdisplay/font/font.hpp>
+#include <wstdisplay/font/font_manager.hpp>
 #include <wstdisplay/opengl_window.hpp>
 #include <wstdisplay/renderer.hpp>
 #include <wstsystem/system.hpp>
@@ -84,8 +84,8 @@ protected:
 
   std::filesystem::path get_data(std::filesystem::path const& filename) const;
 
-  wstdisplay::TTFFontManager& get_font_manager() { return *m_font_manager; }
-  wstdisplay::TTFFont& get_font() { return *m_font; }
+  wstdisplay::FontManager& get_font_manager() { return *m_font_manager; }
+  wstdisplay::Font const& get_font() const { return m_font_manager->get(m_font); }
 
   /** Seconds since start, deterministic with --frames */
   float get_time() const { return m_time; }
@@ -110,8 +110,8 @@ private:
 
   std::unique_ptr<wstsystem::System> m_system;
   std::unique_ptr<wstdisplay::OpenGLWindow> m_window;
-  std::unique_ptr<wstdisplay::TTFFontManager> m_font_manager;
-  std::unique_ptr<wstdisplay::TTFFont> m_font;
+  std::unique_ptr<wstdisplay::FontManager> m_font_manager;
+  wstdisplay::FontId m_font;
   wstdisplay::Canvas m_overlay;
 
   bool m_show_overlay;

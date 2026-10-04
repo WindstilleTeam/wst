@@ -4,6 +4,7 @@
 #include "frame_hud.hpp"
 
 #include <cmath>
+#include <sstream>
 
 #include <wstdisplay/canvas.hpp>
 

@@ -145,8 +145,8 @@ DemoApp::run()
 
     m_system = std::make_unique<wstsystem::System>();
     m_window = m_system->create_window(m_params);
-    m_font_manager = std::make_unique<wstdisplay::TTFFontManager>(m_window->get_device());
-    m_font = std::make_unique<wstdisplay::TTFFont>(*m_font_manager, get_data("Vera.ttf"), 14);
+    m_font_manager = std::make_unique<wstdisplay::FontManager>(m_window->get_device());
+    m_font = m_font_manager->load(get_data("Vera.ttf"), 14);
 
     m_system->sig_event().connect([this](SDL_Event const& event) {
       if (event.type == SDL_KEYDOWN && !event.key.repeat) {
@@ -280,10 +280,11 @@ DemoApp::draw_overlay(wstdisplay::Renderer& renderer)
     text += "\n" + info;
   }
 
-  geom::fsize const size = m_font->get_size(text);
+  wstdisplay::Font const& font = get_font();
+  geom::fsize const size = font.get_size(text);
   m_overlay.clear();
   m_overlay.fill_rect(geom::frect(4, 4, 16 + size.width(), 12 + size.height()), surf::Color(0.0f, 0.0f, 0.0f, 0.6f));
-  m_overlay.draw_text(*m_font, geom::fpoint(10, 8 + m_font->get_height()), text);
+  m_overlay.draw_text(font, geom::fpoint(10, 8 + font.get_height()), text);
   renderer.render(m_overlay);
 }
 

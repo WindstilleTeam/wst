@@ -12,7 +12,6 @@
 
 #include <surf/palette.hpp>
 #include <wstdisplay/font/bitmap_font.hpp>
-#include <wstdisplay/font/border_font_effect.hpp>
 #include <wstdisplay/font/text_area.hpp>
 
 #include "demo_app.hpp"
@@ -114,13 +113,15 @@ public:
 
   void init() override
   {
+    FontManager& fonts = get_font_manager();
     for (int size : {10, 12, 16, 20, 28, 40}) {
-      m_fonts.push_back(std::make_unique<TTFFont>(get_font_manager(), get_data("Vera.ttf"), size));
+      m_fonts.push_back(fonts.load(get_data("Vera.ttf"), size));
     }
-    m_title = std::make_unique<TTFFont>(get_font_manager(), get_data("Vera.ttf"), 48, BorderFontEffect(3, true));
-    m_pixel_font = BitmapFont::from_grid(get_device(), make_pixel_font(), geom::isize(8, 8), pixel_charset, true, 1.0f);
+    m_title = fonts.load(get_data("Vera.ttf"), 48, FontEffect{.border = 3, .outline = true});
+    m_pixel_font = fonts.add(BitmapFont::from_grid(get_device(), make_pixel_font(), geom::isize(8, 8),
+                                                   pixel_charset, true, 1.0f));
 
-    m_text_area = std::make_unique<TextArea>(m_fonts[3].get(), geom::frect(700, 330, 1240, 520), true);
+    m_text_area = std::make_unique<TextArea>(&fonts.get(m_fonts[3]), geom::frect(700, 330, 1240, 520), true);
     init_text();
   }
 
@@ -131,7 +132,8 @@ public:
       m_restart += delta;
       if (m_restart > 2.0f) {
         m_restart = 0.0f;
-        m_text_area = std::make_unique<TextArea>(m_fonts[3].get(), geom::frect(700, 330, 1240, 520), true);
+        m_text_area = std::make_unique<TextArea>(&get_font_manager().get(m_fonts[3]),
+                                                 geom::frect(700, 330, 1240, 520), true);
         init_text();
       }
     }
@@ -151,18 +153,22 @@ public:
     float const t = get_time();
     geom::fsize const size(get_size());
 
+    FontManager const& fonts = get_font_manager();
+    Font const& pixel_font = fonts.get(m_pixel_font);
+
     m_canvas.clear();
     float const s = std::min(size.width() / 1280.0f, size.height() / 720.0f);
     m_canvas.scale(s, s);
 
-    m_canvas.draw_text(*m_title, geom::fpoint(640, 70), "Fonts in wstdisplay",
+    m_canvas.draw_text(fonts.get(m_title), geom::fpoint(640, 70), "Fonts in wstdisplay",
                        surf::palette::gold, TextAlign::Center);
 
     float y = 140.0f;
-    for (auto const& font : m_fonts) {
-      m_canvas.draw_text(*font, geom::fpoint(40, y),
-                         std::format("{}px: The quick brown fox jumps over the lazy dog", font->get_pixel_size()));
-      y += font->get_line_height() + 4.0f;
+    for (FontId const id : m_fonts) {
+      Font const& font = fonts.get(id);
+      m_canvas.draw_text(font, geom::fpoint(40, y),
+                         std::format("{}px: The quick brown fox jumps over the lazy dog", font.get_height()));
+      y += font.get_line_height() + 4.0f;
     }
 
     // transformed text
@@ -170,18 +176,18 @@ public:
     m_canvas.translate(1000, 200);
     m_canvas.rotate(std::sin(t) * 15.0f);
     m_canvas.scale(1.0f + 0.1f * std::sin(t * 2.0f), 1.0f + 0.1f * std::sin(t * 2.0f));
-    m_canvas.draw_text(*m_fonts[4], geom::fpoint(0, 0), "rotated\nand scaled", surf::palette::lightgreen,
+    m_canvas.draw_text(fonts.get(m_fonts[4]), geom::fpoint(0, 0), "rotated\nand scaled", surf::palette::lightgreen,
                        TextAlign::Center);
     m_canvas.restore();
 
     // pixel font, scaled up with nearest filtering
     m_canvas.fill_rect(geom::frect(30, 470, 650, 680), surf::Color(0.2f, 0.25f, 0.4f));
-    m_canvas.draw_text(*m_pixel_font, geom::fpoint(50, 500), "BITMAP FONT FROM A GRID IMAGE", surf::palette::white);
+    m_canvas.draw_text(pixel_font, geom::fpoint(50, 500), "BITMAP FONT FROM A GRID IMAGE", surf::palette::white);
     m_canvas.save();
     m_canvas.translate(50, 560);
     m_canvas.scale(3.0f, 3.0f);
-    m_canvas.draw_text(*m_pixel_font, geom::fpoint(0, 0), "SCORE: 0012345", surf::palette::yellow);
-    m_canvas.draw_text(*m_pixel_font, geom::fpoint(0, 12), "LIVES: 3   TIME: 99", surf::palette::orangered);
+    m_canvas.draw_text(pixel_font, geom::fpoint(0, 0), "SCORE: 0012345", surf::palette::yellow);
+    m_canvas.draw_text(pixel_font, geom::fpoint(0, 12), "LIVES: 3   TIME: 99", surf::palette::orangered);
     m_canvas.restore();
 
     // text area
@@ -193,9 +199,9 @@ public:
 
 private:
   Canvas m_canvas;
-  std::vector<std::unique_ptr<TTFFont>> m_fonts;
-  std::unique_ptr<TTFFont> m_title;
-  std::unique_ptr<BitmapFont> m_pixel_font;
+  std::vector<FontId> m_fonts;
+  FontId m_title;
+  FontId m_pixel_font;
   std::unique_ptr<TextArea> m_text_area;
   float m_restart;
 };
