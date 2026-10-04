@@ -143,6 +143,22 @@ TEST(CanvasTest, null_surface_draws_nothing)
   EXPECT_TRUE(canvas.empty());
 }
 
+TEST(CanvasTest, draw_params_effect_reaches_vertices)
+{
+  Canvas canvas;
+  Surface const surface(TextureId{0, 1}, geom::isize(16, 16));
+  canvas.draw(surface, DrawParams().set_effect(surf::Color(1, 1, 1, 1)));
+  canvas.draw(surface, geom::fpoint(0, 0));
+
+  auto const& v = canvas.get_vertices();
+  ASSERT_EQ(v.size(), 8u);
+  EXPECT_EQ(v[0].effect, packed_white);
+  EXPECT_EQ(v[4].effect, packed_transparent);
+
+  // different effects still share a command
+  EXPECT_EQ(canvas.get_commands().size(), 1u);
+}
+
 TEST(CanvasTest, circle_segments_follow_size)
 {
   Canvas small;

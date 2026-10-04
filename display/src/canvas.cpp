@@ -378,14 +378,15 @@ Canvas::draw(Surface const& surface, DrawParams const& params)
   }
 
   PackedColor const color = pack_color(params.color);
+  PackedColor const effect = pack_color(params.effect);
   float const x = params.pos.x();
   float const y = params.pos.y();
 
   Vertex* v = add_quads(surface.get_texture(), 1);
-  v[0] = Vertex{x + corners[0].x, y + corners[0].y, u0, v0, color};
-  v[1] = Vertex{x + corners[1].x, y + corners[1].y, u1, v0, color};
-  v[2] = Vertex{x + corners[2].x, y + corners[2].y, u1, v1, color};
-  v[3] = Vertex{x + corners[3].x, y + corners[3].y, u0, v1, color};
+  v[0] = Vertex{x + corners[0].x, y + corners[0].y, u0, v0, color, effect};
+  v[1] = Vertex{x + corners[1].x, y + corners[1].y, u1, v0, color, effect};
+  v[2] = Vertex{x + corners[2].x, y + corners[2].y, u1, v1, color, effect};
+  v[3] = Vertex{x + corners[3].x, y + corners[3].y, u0, v1, color, effect};
   transform_vertices(v, 4);
 }
 

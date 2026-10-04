@@ -21,7 +21,8 @@ enum class Attrib : uint32_t
   Position = 0, // vec2 a_position (vec3 for meshes)
   Texcoord = 1, // vec2 a_texcoord
   Color = 2,    // vec4 a_color
-  Normal = 3    // vec3 a_normal, meshes only
+  Normal = 3,   // vec3 a_normal, meshes only
+  Effect = 4    // vec4 a_effect, 2D only, see Vertex::effect
 };
 
 /** A linked vertex+fragment shader, owned by a Device and created
@@ -33,7 +34,7 @@ enum class Attrib : uint32_t
     'texture2D()' and 'gl_FragColor' as in GLSL ES 1.00.
 
     Built-in names:
-    - attributes: a_position, a_texcoord, a_color, a_normal
+    - attributes: a_position, a_texcoord, a_color, a_effect, a_normal
     - uniforms: u_mvp (mat4), u_texture0 .. u_texture3 (sampler2D) */
 class ShaderProgram final
 {

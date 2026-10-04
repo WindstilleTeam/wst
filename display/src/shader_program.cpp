@@ -100,6 +100,7 @@ ShaderProgram::ShaderProgram(Caps const& caps, std::string_view vert_source, std
   glBindAttribLocation(m_handle, static_cast<GLuint>(Attrib::Texcoord), "a_texcoord");
   glBindAttribLocation(m_handle, static_cast<GLuint>(Attrib::Color), "a_color");
   glBindAttribLocation(m_handle, static_cast<GLuint>(Attrib::Normal), "a_normal");
+  glBindAttribLocation(m_handle, static_cast<GLuint>(Attrib::Effect), "a_effect");
 
   glLinkProgram(m_handle);
   glDeleteShader(vert);

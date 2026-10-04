@@ -107,9 +107,10 @@ public:
     }
     m_canvas.restore();
 
-    // surfaces with DrawParams
+    // surfaces with DrawParams, the first one flashes through the effect color
     float const sx = 700.0f;
-    m_canvas.draw(m_tux, geom::fpoint(sx, 340));
+    m_canvas.draw(m_tux, DrawParams().set_pos(geom::fpoint(sx, 340))
+                  .set_effect(surf::Color(1.0f, 1.0f, 1.0f, std::max(0.0f, std::sin(t * 6.0f)))));
     m_canvas.draw(m_tux, DrawParams().set_pos(geom::fpoint(sx + 200, 440))
                   .set_anchor(geom::origin::CENTER).set_angle(t * 90.0f));
     m_canvas.draw(m_tux, DrawParams().set_pos(geom::fpoint(sx + 320, 340)).set_hflip(true)

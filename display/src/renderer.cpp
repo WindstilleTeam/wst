@@ -28,16 +28,19 @@ char const default_vert_source[] = R"(
 attribute vec2 a_position;
 attribute vec2 a_texcoord;
 attribute vec4 a_color;
+attribute vec4 a_effect;
 
 uniform mat4 u_mvp;
 
 varying vec2 v_texcoord;
 varying vec4 v_color;
+varying vec4 v_effect;
 
 void main()
 {
   v_texcoord = a_texcoord;
   v_color = a_color;
+  v_effect = a_effect;
   gl_Position = u_mvp * vec4(a_position, 0.0, 1.0);
 }
 )";
@@ -51,11 +54,13 @@ uniform mat4 u_mvp;
 
 varying vec2 v_texcoord;
 varying vec4 v_color;
+varying vec4 v_effect;
 
 void main()
 {
   v_texcoord = a_texcoord;
   v_color = a_color;
+  v_effect = vec4(0.0);
   gl_Position = u_mvp * vec4(a_position, 1.0);
 }
 )";
@@ -65,10 +70,12 @@ uniform sampler2D u_texture0;
 
 varying vec2 v_texcoord;
 varying vec4 v_color;
+varying vec4 v_effect;
 
 void main()
 {
-  gl_FragColor = texture2D(u_texture0, v_texcoord) * v_color;
+  vec4 color = texture2D(u_texture0, v_texcoord) * v_color;
+  gl_FragColor = vec4(mix(color.rgb, v_effect.rgb, v_effect.a), color.a);
 }
 )";
 
@@ -385,6 +392,8 @@ public:
                           sizeof(Vertex), offset(offsetof(Vertex, u)));
     glVertexAttribPointer(static_cast<GLuint>(Attrib::Color), 4, GL_UNSIGNED_BYTE, GL_TRUE,
                           sizeof(Vertex), offset(offsetof(Vertex, color)));
+    glVertexAttribPointer(static_cast<GLuint>(Attrib::Effect), 4, GL_UNSIGNED_BYTE, GL_TRUE,
+                          sizeof(Vertex), offset(offsetof(Vertex, effect)));
     cur_attrib_base = base_vertex;
   }
 
@@ -393,6 +402,7 @@ public:
     glEnableVertexAttribArray(static_cast<GLuint>(Attrib::Position));
     glEnableVertexAttribArray(static_cast<GLuint>(Attrib::Texcoord));
     glEnableVertexAttribArray(static_cast<GLuint>(Attrib::Color));
+    glEnableVertexAttribArray(static_cast<GLuint>(Attrib::Effect));
     glDisableVertexAttribArray(static_cast<GLuint>(Attrib::Normal));
   }
 
@@ -579,6 +589,10 @@ public:
     if (model_location != -1) {
       glUniformMatrix4fv(model_location, 1, GL_FALSE, glm::value_ptr(model));
     }
+
+    // meshes have no effect values
+    glDisableVertexAttribArray(static_cast<GLuint>(Attrib::Effect));
+    glVertexAttrib4f(static_cast<GLuint>(Attrib::Effect), 0.0f, 0.0f, 0.0f, 0.0f);
 
     if (mesh->get_depth_test()) {
       glEnable(GL_DEPTH_TEST);

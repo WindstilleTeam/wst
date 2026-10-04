@@ -57,7 +57,7 @@ statistics, F12 takes a screenshot.
 
 | Demo                       | Shows                                                         |
 |----------------------------|---------------------------------------------------------------|
-| `wst-demo-shapes`          | every Canvas primitive, transforms, clipping, z order, text   |
+| `wst-demo-shapes`          | every Canvas primitive, transforms, clipping, z order, text, effect color |
 | `wst-demo-sprites`         | sprite benchmark, atlas vs. separate textures (`--count N`)   |
 | `wst-demo-text`            | TTF fonts, border effect, BitmapFont, TextArea markup         |
 | `wst-demo-lighting`        | Compositor lighting passes, camera zoom and rotation          |
@@ -151,7 +151,16 @@ changes:
     }
 
 `DrawParams` only holds what varies per instance: position, anchor,
-scale, angle, flip and color.
+scale, angle, flip, color and the effect color.
+
+### Per draw shader parameters
+
+Every vertex carries four bytes of `effect` (`a_effect` in shaders),
+set with `DrawParams::set_effect()`. The default shader mixes the rgb
+part into the result by its alpha, `{1, 1, 1, 0.8}` flashes white
+after a hit, `{0, 0, 0, 1}` draws a silhouette. Custom materials can
+use the four values for anything, a dissolve threshold or a palette
+row, without breaking batches the way one material per draw would.
 
 ### Batching rules
 
@@ -165,6 +174,8 @@ rect and coordinate space. In practice:
   each other, lines and outlines are drawn as quads.
 - Equal z keeps submission order. Use z to group things, e.g. one z
   per layer, interleaving textures within a z breaks batches.
+- Per draw shader parameters go through `DrawParams::effect`, not
+  through separate materials.
 
 ### Coordinate spaces
 
@@ -178,8 +189,8 @@ compositing). The canvas transform is applied when a draw is recorded.
 Shaders are written in GLSL ES 1.00 without a `#version` line and
 translated to GLSL 3.30 by a preamble: use `attribute`, `varying`,
 `texture2D()` and `gl_FragColor`. Built-in names are `a_position`,
-`a_texcoord`, `a_color`, `a_normal`, `u_mvp`, `u_model` (meshes) and
-`u_texture0` to `u_texture3`. A `Material` holds a
+`a_texcoord`, `a_color`, `a_effect`, `a_normal`, `u_mvp`, `u_model`
+(meshes) and `u_texture0` to `u_texture3`. A `Material` holds a
 program, extra textures and uniform values and is selected with
 `canvas.set_material()`, see `demos/demo_mesh.cpp`.
 
@@ -258,7 +269,7 @@ Notes per game:
 
 - **SuperTux Origins**: `Canvas`/`Painter`/`DrawingRequest` map almost
   one to one onto `wstdisplay::Canvas`, `int layer` becomes
-  `canvas.set_z()`. The lightmap becomes a Compositor pass.
+  `canvas.set_z()`. Hit flashes use `DrawParams::effect`. The lightmap becomes a Compositor pass.
   `Rectf` can move to `geom::frect`, geom has `from_center()`,
   `anchor_point()` and `with_left()` and friends for the setters.
   `Sprite::draw()` advancing the animation goes away, `AnimState` +

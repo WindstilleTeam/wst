@@ -24,7 +24,8 @@ namespace wstdisplay {
     surface.
 
     Draws sharing the same Material can be batched together, so share
-    materials instead of creating one per draw. */
+    materials instead of creating one per draw. Per draw parameters
+    can be passed through Vertex::effect (DrawParams::effect). */
 class Material final
 {
 public:

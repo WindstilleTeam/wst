@@ -34,6 +34,12 @@ struct DrawParams
   /** Multiplied with the surface */
   surf::Color color = {1.0f, 1.0f, 1.0f, 1.0f};
 
+  /** Passed to the shader as a_effect, see Vertex::effect. With the
+      default shader the rgb part replaces the surface color by a,
+      e.g. {1, 1, 1, 0.8} for a hit flash or {0, 0, 0, 1} for a
+      silhouette. */
+  surf::Color effect = {0.0f, 0.0f, 0.0f, 0.0f};
+
   bool hflip = false;
   bool vflip = false;
 
@@ -45,6 +51,7 @@ struct DrawParams
   DrawParams& set_angle(float degrees) { angle = degrees; return *this; }
   DrawParams& set_color(surf::Color const& c) { color = c; return *this; }
   DrawParams& set_alpha(float a) { color.a = a; return *this; }
+  DrawParams& set_effect(surf::Color const& e) { effect = e; return *this; }
   DrawParams& set_hflip(bool v) { hflip = v; return *this; }
   DrawParams& set_vflip(bool v) { vflip = v; return *this; }
 };
