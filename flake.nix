@@ -1,3 +1,6 @@
+# SPDX-FileCopyrightText: 2026 Ingo Ruhnke <grumbel@gmail.com>
+# SPDX-License-Identifier: GPL-3.0-or-later
+
 {
   description = "wst - Windstille game framework (display, input, gui, sprite)";
 
@@ -135,28 +138,53 @@
 
               # OpenGL via libglvnd (GLAD is vendored)
               pkgs.libGL
-              pkgs.libGLU
             ];
           };
         };
 
-        apps = rec {
-          default = demo-shapes;
+        apps =
+          let
+            app = exe: description: {
+              type = "app";
+              program = "${packages.wst}/bin/${exe}";
+              meta.description = description;
+            };
+            demos = {
+              demo-destructible = "Destructible terrain with partial texture updates";
+              demo-gui = "wstgui widgets and menus";
+              demo-lighting = "Compositor lighting passes";
+              demo-mesh = "Meshes, custom shaders and framebuffers";
+              demo-shapes = "Canvas shapes, transforms, clipping and text";
+              demo-sprite-viewer = "SuperTux, Windstille and Pingus .sprite files";
+              demo-sprites = "Sprite batching benchmark";
+              demo-text = "TTF and bitmap fonts, TextArea";
+              demo-tilemap = "Tilemap with static batches and parallax layers";
+            };
+          in
+            nixpkgs.lib.mapAttrs (name: description: app "wst-${name}" description) demos // {
+              default = app "wst-demo-shapes" demos.demo-shapes;
+              wstgui = app "wstgui" "wstgui example";
+            };
 
-          demo-shapes = flake-utils.lib.mkApp {
-            drv = packages.wst;
-            exePath = "/bin/wst-demo-shapes";
-          };
-
-          wstgui = flake-utils.lib.mkApp {
-            drv = packages.wst;
-            exePath = "/bin/wstgui";
-          };
-
-          demo-sprites = flake-utils.lib.mkApp {
-            drv = packages.wst;
-            exePath = "/bin/wst-demo-sprites";
-          };
+        # Build every package, check that every app exists and that the
+        # tree is REUSE compliant
+        checks = packages // (nixpkgs.lib.mapAttrs' (name: app:
+          nixpkgs.lib.nameValuePair "app-${name}" (
+            pkgs.runCommand "check-app-${name}" {} ''
+              if [ ! -e "${app.program}" ]; then
+                echo "apps.${name}: program missing: ${app.program}" >&2
+                exit 1
+              fi
+              touch "$out"
+            ''
+          )) apps) // {
+          reuse = pkgs.runCommand "check-reuse" {
+            nativeBuildInputs = [ pkgs.buildPackages.reuse ];
+          } ''
+            cd ${self}
+            reuse lint
+            touch "$out"
+          '';
         };
       }
     );

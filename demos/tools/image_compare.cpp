@@ -1,5 +1,4 @@
-// wst - Windstille game framework
-// Copyright (C) 2026 Ingo Ruhnke <grumbel@gmail.com>
+// SPDX-FileCopyrightText: 2026 Ingo Ruhnke <grumbel@gmail.com>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
 // Compare two images, fails if they differ in size or if the mean

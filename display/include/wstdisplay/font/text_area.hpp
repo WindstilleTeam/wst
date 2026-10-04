@@ -1,6 +1,5 @@
-// Windstille Display Library
-// Copyright (C) 2005-2026 Ingo Ruhnke <grumbel@gmail.com>
-// SPDX-License-Identifier: LGPL-3.0-or-later
+// SPDX-FileCopyrightText: 2005-2026 Ingo Ruhnke <grumbel@gmail.com>
+// SPDX-License-Identifier: GPL-3.0-or-later
 
 #ifndef HEADER_WSTDISPLAY_FONT_TEXT_AREA_HPP
 #define HEADER_WSTDISPLAY_FONT_TEXT_AREA_HPP
