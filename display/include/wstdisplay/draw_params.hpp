@@ -7,6 +7,7 @@
 
 #include <glm/glm.hpp>
 #include <geom/origin.hpp>
+#include <geom/offset.hpp>
 #include <geom/point.hpp>
 #include <surf/color.hpp>
 
@@ -21,6 +22,11 @@ struct DrawParams
 {
   geom::fpoint pos = {};
   geom::origin anchor = geom::origin::TOP_LEFT;
+
+  /** Additional offset of the surface relative to the anchor in
+      unscaled surface pixels, scaled and rotated with the surface.
+      Use TOP_LEFT and offset = -pivot for an arbitrary pivot point. */
+  geom::foffset offset = {};
   glm::vec2 scale = {1.0f, 1.0f};
 
   /** Rotation in degrees, clockwise on screen */
@@ -37,6 +43,7 @@ struct DrawParams
 
   DrawParams& set_pos(geom::fpoint const& p) { pos = p; return *this; }
   DrawParams& set_anchor(geom::origin a) { anchor = a; return *this; }
+  DrawParams& set_offset(geom::foffset const& o) { offset = o; return *this; }
   DrawParams& set_scale(float s) { scale = {s, s}; return *this; }
   DrawParams& set_scale(glm::vec2 const& s) { scale = s; return *this; }
   DrawParams& set_angle(float degrees) { angle = degrees; return *this; }

@@ -367,7 +367,8 @@ Canvas::draw(Surface const& surface, DrawParams const& params, float z)
 
   float const w = surface.get_width() * params.scale.x;
   float const h = surface.get_height() * params.scale.y;
-  geom::foffset const anchor = geom::anchor_offset(geom::fsize(w, h), params.anchor);
+  geom::foffset const anchor = geom::anchor_offset(geom::fsize(w, h), params.anchor) +
+    geom::foffset(params.offset.x() * params.scale.x, params.offset.y() * params.scale.y);
 
   glm::vec2 corners[4] = {
     {anchor.x(), anchor.y()},

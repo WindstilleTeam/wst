@@ -4,6 +4,7 @@
 
 #include "texture_packer.hpp"
 
+#include <cstring>
 #include <stdexcept>
 
 #include <surf/palette.hpp>
@@ -51,8 +52,17 @@ TexturePacker::upload(surf::SoftwareSurface const& image)
 
   surf::SoftwareSurface bordered = surf::SoftwareSurface::create(surf::PixelFormat::RGBA8, size,
                                                                  surf::palette::transparent);
-  surf::blit(image.get_format() == surf::PixelFormat::RGBA8 ? image : surf::convert(image, surf::PixelFormat::RGBA8),
-             bordered, geom::ipoint(1, 1));
+  // copy row by row, image might be a view into a larger surface
+  surf::SoftwareSurface converted;
+  surf::SoftwareSurface const* src = &image;
+  if (image.get_format() != surf::PixelFormat::RGBA8) {
+    converted = surf::convert(image, surf::PixelFormat::RGBA8);
+    src = &converted;
+  }
+  size_t const row_size = static_cast<size_t>(image.get_width()) * 4;
+  for (int y = 0; y < image.get_height(); ++y) {
+    std::memcpy(static_cast<uint8_t*>(bordered.get_row_data(y + 1)) + 4, src->get_row_data(y), row_size);
+  }
   generate_border(bordered, 1, 1, image.get_width(), image.get_height());
 
   page->texture->put(bordered, rect->topleft());

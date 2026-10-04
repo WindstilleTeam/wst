@@ -42,8 +42,13 @@ public:
   explicit SurfaceManager(Options const& options);
   ~SurfaceManager();
 
-  /** The surface for the image \a filename, loaded on first use */
+  /** The surface for the image \a filename, loaded on first use.
+      Throws if the image can't be loaded and no fallback is set. */
   SurfacePtr get(std::filesystem::path const& filename);
+
+  /** Returned by get() for images that can't be loaded, the error is
+      logged. nullptr (the default) makes get() throw instead. */
+  void set_fallback(SurfacePtr fallback) { m_fallback = std::move(fallback); }
 
   /** Upload \a image, not cached */
   SurfacePtr create(surf::SoftwareSurface const& image);
@@ -61,6 +66,7 @@ private:
   Options m_options;
   TexturePacker m_packer;
   std::map<std::filesystem::path, SurfacePtr> m_surfaces;
+  SurfacePtr m_fallback;
 
 public:
   SurfaceManager(SurfaceManager const&) = delete;

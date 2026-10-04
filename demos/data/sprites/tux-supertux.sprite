@@ -1,0 +1,16 @@
+;; SuperTux format: named actions with fps, hitbox and mirror actions
+(supertux-sprite
+  (version 2)
+  (actions
+    (action
+      (name "left")
+      (fps 2)
+      (hitbox 12 4 40 60)
+      (images "../tux.png" "../tux.png")
+      (events (sound (frame 1) (name "step"))))
+    (action
+      (name "right")
+      (mirror-action "left"))
+    (action
+      (name "spin")
+      (clone-action "left"))))

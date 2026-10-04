@@ -35,7 +35,8 @@ SurfaceManager::SurfaceManager() :
 SurfaceManager::SurfaceManager(Options const& options) :
   m_options(clamp_options(options)),
   m_packer(m_options.page_size, m_options.params),
-  m_surfaces()
+  m_surfaces(),
+  m_fallback()
 {
 }
 
@@ -51,7 +52,16 @@ SurfaceManager::get(std::filesystem::path const& filename)
     return it->second;
   }
 
-  SurfacePtr surface = create(surf::SoftwareSurface::from_file(filename));
+  SurfacePtr surface;
+  try {
+    surface = create(surf::SoftwareSurface::from_file(filename));
+  } catch (std::exception const& err) {
+    if (!m_fallback) {
+      throw;
+    }
+    log_error("SurfaceManager: {}", err.what());
+    surface = m_fallback;
+  }
   m_surfaces[filename] = surface;
   return surface;
 }
