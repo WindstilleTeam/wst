@@ -41,6 +41,20 @@ struct Popup
   geom::fpoint pos;
   float age;
 };
+
+/** Event data, parsed once while loading, see EventRegistry */
+struct SoundEvent
+{
+  std::string name;
+  float volume;
+};
+
+struct ParticleEvent
+{
+  std::string kind;
+  int count;
+};
+
 } // namespace
 
 class SpriteViewerDemo : public wstdemo::DemoApp
@@ -50,6 +64,7 @@ public:
     DemoApp("Sprite Viewer", argc, argv),
     m_path(),
     m_check(false),
+    m_events(),
     m_canvas(),
     m_surfaces(),
     m_entries(),
@@ -82,6 +97,13 @@ public:
       m_path = get_data("sprites");
     }
 
+    m_events.add("sound", [](Properties const& props) {
+      return SoundEvent{props.get_string("name").value_or("?"), props.get_float("volume").value_or(1.0f)};
+    });
+    m_events.add("particles", [](Properties const& props) {
+      return ParticleEvent{props.get_string("kind").value_or("?"), props.get_int("count").value_or(1)};
+    });
+
     m_surfaces = std::make_unique<SurfaceManager>(get_device(), SurfaceManager::Options{
         .params = TextureParams{TextureFilter::Nearest}});
 
@@ -106,7 +128,7 @@ public:
       std::string format = "?";
       try {
         format = prio::ReaderDocument::from_file(file).get_name();
-        SpriteDataPtr data = SpriteData::from_file(file, *m_surfaces);
+        SpriteDataPtr data = SpriteData::from_file(file, *m_surfaces, &m_events);
         m_entries.push_back(Entry{file, std::move(data), {}, 0.0f});
         formats[format].first += 1;
       } catch (std::exception const& err) {
@@ -185,11 +207,12 @@ public:
       }
 
       for (FrameEvent const* event : events) {
-        std::string text = event->type;
-        if (auto name = event->properties.get_string("name")) {
-          text += ": " + *name;
-        } else if (auto kind = event->properties.get_string("kind")) {
-          text += ": " + *kind;
+        // registered events come with their data already parsed
+        std::string text = event->name;
+        if (SoundEvent const* sound = event->get<SoundEvent>()) {
+          text = std::format("sound: {} ({:.0f}%)", sound->name, sound->volume * 100.0f);
+        } else if (ParticleEvent const* particles = event->get<ParticleEvent>()) {
+          text = std::format("particles: {} x{}", particles->kind, particles->count);
         }
         m_popups.push_back(Popup{text, cell_center(i - first), 0.0f});
       }
@@ -255,6 +278,7 @@ public:
 private:
   std::filesystem::path m_path;
   bool m_check;
+  EventRegistry m_events;
   Canvas m_canvas;
   std::unique_ptr<SurfaceManager> m_surfaces;
   std::vector<Entry> m_entries;

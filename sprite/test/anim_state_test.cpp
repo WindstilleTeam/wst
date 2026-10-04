@@ -68,8 +68,8 @@ TEST(AnimStateTest, events_fire_when_frame_is_entered)
 {
   SpriteData data;
   Action action = make_action("kill", 8, 0.1f, 1);
-  action.events.push_back(FrameEvent{7, "sound", {}});
-  action.events.push_back(FrameEvent{0, "start", {}});
+  action.events.push_back(FrameEvent{.frame = 7, .name = "sound"});
+  action.events.push_back(FrameEvent{.frame = 0, .name = "start"});
   data.add_action(std::move(action));
 
   AnimState state;
@@ -77,7 +77,7 @@ TEST(AnimStateTest, events_fire_when_frame_is_entered)
 
   fire_current_events(state, data, events);
   ASSERT_EQ(events.size(), 1u);
-  EXPECT_EQ(events[0]->type, "start");
+  EXPECT_EQ(events[0]->name, "start");
   events.clear();
 
   advance(state, data, 0.65f, &events);
@@ -85,7 +85,7 @@ TEST(AnimStateTest, events_fire_when_frame_is_entered)
 
   advance(state, data, 0.1f, &events);
   ASSERT_EQ(events.size(), 1u);
-  EXPECT_EQ(events[0]->type, "sound");
+  EXPECT_EQ(events[0]->name, "sound");
 }
 
 TEST(AnimStateTest, deterministic_with_fixed_steps)
@@ -155,6 +155,64 @@ TEST(PropertiesTest, typed_access)
   EXPECT_EQ(*props.get_bool("loop"), false);
   EXPECT_FALSE(props.get_float("name").has_value());
   EXPECT_FALSE(props.has("missing"));
+}
+
+namespace {
+
+struct SoundEvent
+{
+  std::string name;
+  float volume;
+};
+
+} // namespace
+
+TEST(EventRegistryTest, resolves_type_and_data)
+{
+  EventRegistry registry;
+  EventType const sound = registry.add("sound", [](Properties const& props) {
+    return SoundEvent{props.get_string("name").value(), props.get_float("volume").value_or(1.0f)};
+  });
+  EventType const step = registry.add("step");
+
+  EXPECT_NE(sound, EventType::Unknown);
+  EXPECT_NE(sound, step);
+  EXPECT_EQ(registry.find("step"), step);
+  EXPECT_EQ(registry.find("other"), EventType::Unknown);
+  EXPECT_EQ(registry.get_name(sound), "sound");
+  EXPECT_THROW(registry.add("step"), std::invalid_argument);
+
+  FrameEvent event{.frame = 3, .name = "sound"};
+  event.properties.set("name", {"splash"});
+  event.properties.set("volume", {"0.5"});
+  registry.resolve(event);
+
+  EXPECT_EQ(event.type, sound);
+  ASSERT_NE(event.get<SoundEvent>(), nullptr);
+  EXPECT_EQ(event.get<SoundEvent>()->name, "splash");
+  EXPECT_FLOAT_EQ(event.get<SoundEvent>()->volume, 0.5f);
+  EXPECT_EQ(event.get<int>(), nullptr);
+
+  FrameEvent other{.frame = 1, .name = "other"};
+  registry.resolve(other);
+  EXPECT_EQ(other.type, EventType::Unknown);
+  EXPECT_FALSE(other.data.has_value());
+}
+
+TEST(EventRegistryTest, parser_errors_name_the_event)
+{
+  EventRegistry registry;
+  registry.add("sound", [](Properties const& props) {
+    return props.get_string("name").value();
+  });
+
+  FrameEvent event{.frame = 2, .name = "sound"};
+  try {
+    registry.resolve(event);
+    FAIL() << "expected an exception";
+  } catch (std::runtime_error const& err) {
+    EXPECT_NE(std::string(err.what()).find("'sound' in frame 2"), std::string::npos);
+  }
 }
 
 /* EOF */

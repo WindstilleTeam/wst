@@ -65,7 +65,7 @@ statistics, F12 takes a screenshot.
 | `wst-demo-destructible`    | Pingus style terrain with partial texture updates             |
 | `wst-demo-mesh`            | Mesh with depth test, custom shaders, render to framebuffer   |
 | `wst-demo-gui`             | wstgui widgets and menus                                      |
-| `wst-demo-sprite-viewer`   | the three .sprite formats, hitboxes and frame events, `--path DIR`, `--check` |
+| `wst-demo-sprite-viewer`   | the three .sprite formats, hitboxes and typed frame events, `--path DIR`, `--check` |
 
 Measured on a Radeon RX 6700 at 1280x720, same workload:
 
@@ -221,17 +221,18 @@ origin (the point placed at the draw position), scale, mirroring,
 loop count, an optional hitbox and frame events. Unknown keys are
 kept in `Properties` for the game.
 
-    SpriteDataPtr data = SpriteData::from_file("tux.sprite", surfaces);
+    SpriteDataPtr data = SpriteData::from_file("tux.sprite", surfaces, &events);
 
     // in an ECS component: the shared data and a small POD state
     struct SpriteComponent { SpriteDataPtr data; AnimState anim; };
 
     // animation system, fixed time step
-    events.clear();
-    advance(c.anim, *c.data, dt, &events);
-    for (FrameEvent const* e : events) {
-      if (e->type == "sound") {
-        sound.play(*e->properties.get_string("name"), e->properties.get_float("volume").value_or(1.0f));
+    fired.clear();
+    advance(c.anim, *c.data, dt, &fired);
+    for (FrameEvent const* e : fired) {
+      if (e->type == sound_event) {
+        SoundEvent const& s = *e->get<SoundEvent>();
+        sound.play(s.sound, s.volume);
       }
     }
 
@@ -244,6 +245,17 @@ Frame events are written per action, `at-step` is accepted for Pingus:
     (events
       (sound (frame 7) (name "splash") (volume 0.5))
       (particles (frame 7) (kind "pingu") (count 3)))
+
+An `EventRegistry` turns them into typed data while loading, so firing
+an event involves no string compares or parsing:
+
+    EventRegistry events;
+    EventType const sound_event = events.add("sound", [&](Properties const& p) {
+      return SoundEvent{sounds.load(p.get_string("name").value()), p.get_float("volume").value_or(1.0f)};
+    });
+
+Events without a registered type keep `EventType::Unknown`, their
+`name` and the raw `properties`.
 
 `wst-demo-sprite-viewer --check --path DIR` loads a whole data
 directory and reports what failed.
@@ -285,7 +297,8 @@ Notes per game:
   maps onto chunk textures with `Texture::put()` as in
   `wst-demo-destructible`. Integer coordinates can stay in Pingus or
   become floats. `AnimationClock` maps onto `AnimState`, animsets keep
-  their game specific effects and can use frame events.
+  their game specific effects and can use frame events, with the
+  sounds resolved through an `EventRegistry` at load time.
 - **Windstille**: the game keeps `Sprite3D` and the armature code,
   frames become `Mesh` objects drawn with `canvas.draw(mesh, matrix)`.
   The editor creates a `Device` and a `Renderer` on the Gtk::GLArea

@@ -7,8 +7,9 @@
 
 namespace wstsprite {
 
-SpriteManager::SpriteManager(wstdisplay::SurfaceManager& surfaces) :
+SpriteManager::SpriteManager(wstdisplay::SurfaceManager& surfaces, EventRegistry const* events) :
   m_surfaces(surfaces),
+  m_events(events),
   m_data()
 {
 }
@@ -22,7 +23,7 @@ SpriteManager::get_data(std::filesystem::path const& filename)
   }
 
   SpriteDataPtr data = (filename.extension() == ".sprite") ?
-    SpriteData::from_file(filename, m_surfaces) :
+    SpriteData::from_file(filename, m_surfaces, m_events) :
     SpriteData::from_surface(m_surfaces.get(filename));
 
   m_data[filename] = data;

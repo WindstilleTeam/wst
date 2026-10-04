@@ -5,60 +5,25 @@
 #define HEADER_WSTSPRITE_SPRITE_DATA_HPP
 
 #include <filesystem>
-#include <map>
 #include <memory>
 #include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
 
-#include <glm/glm.hpp>
 #include <geom/point.hpp>
 #include <geom/rect.hpp>
 #include <wstdisplay/fwd.hpp>
 #include <wstdisplay/surface.hpp>
 
+#include "frame_event.hpp"
+#include "properties.hpp"
 
 namespace prio {
 class ReaderMapping;
 } // namespace prio
 
 namespace wstsprite {
-
-/** Values of keys the library doesn't interpret, kept as strings so
-    games can read their own extensions (hitboxes, sounds, ...) */
-class Properties
-{
-public:
-  bool has(std::string_view key) const;
-
-  std::optional<std::string> get_string(std::string_view key) const;
-  std::optional<float> get_float(std::string_view key) const;
-  std::optional<int> get_int(std::string_view key) const;
-  std::optional<bool> get_bool(std::string_view key) const;
-  std::optional<glm::vec2> get_vec2(std::string_view key) const;
-
-  /** All values of \a key, e.g. the four numbers of a hitbox */
-  std::vector<std::string> const* get(std::string_view key) const;
-
-  void set(std::string key, std::vector<std::string> values);
-
-  std::map<std::string, std::vector<std::string>, std::less<>> const& get_all() const { return m_values; }
-
-private:
-  std::map<std::string, std::vector<std::string>, std::less<>> m_values;
-};
-
-/** Something a game wants to happen when an animation reaches a frame,
-    e.g. (sound (frame 7) (name "splash") (volume 0.5)). The type is
-    the element name, the library only stores and reports events, the
-    game decides what they do. */
-struct FrameEvent
-{
-  int frame = 0;
-  std::string type = {};
-  Properties properties = {};
-};
 
 struct Frame
 {
@@ -109,19 +74,23 @@ using SpriteDataPtr = std::shared_ptr<SpriteData const>;
     (sprite (actions (action (name ..) (speed ..) (images ..) ...) ...))
     (pingus-sprite (image ..) (array ..) (speed ..) (origin ..) ...)
 
-    All formats accept an (events ...) list per action, see FrameEvent. */
+    All formats accept an (events ...) list per action, see FrameEvent,
+    which are converted to typed data by an optional EventRegistry. */
 class SpriteData final
 {
 public:
-  /** Load \a filename, images are loaded through \a surfaces */
-  static SpriteDataPtr from_file(std::filesystem::path const& filename, wstdisplay::SurfaceManager& surfaces);
+  /** Load \a filename, images are loaded through \a surfaces,
+      events are parsed with \a events if given */
+  static SpriteDataPtr from_file(std::filesystem::path const& filename, wstdisplay::SurfaceManager& surfaces,
+                                 EventRegistry const* events = nullptr);
 
   /** Load the sprite element \a name with \a mapping, images are
       relative to \a directory. Use this for sprites embedded in other
       files, e.g. Pingus animation sets. */
   static SpriteDataPtr from_mapping(std::string_view name, prio::ReaderMapping const& mapping,
                                     std::filesystem::path const& directory,
-                                    wstdisplay::SurfaceManager& surfaces);
+                                    wstdisplay::SurfaceManager& surfaces,
+                                    EventRegistry const* events = nullptr);
 
   /** A single image as a sprite with one action "default" */
   static SpriteDataPtr from_surface(wstdisplay::Surface const& surface);

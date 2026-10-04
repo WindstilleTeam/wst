@@ -15,11 +15,12 @@
 namespace wstsprite {
 
 /** Loads and caches SpriteData by filename. Plain images are accepted
-    as single frame sprites. */
+    as single frame sprites. Frame events are resolved with \a events
+    if given, which must outlive the manager. */
 class SpriteManager final
 {
 public:
-  explicit SpriteManager(wstdisplay::SurfaceManager& surfaces);
+  explicit SpriteManager(wstdisplay::SurfaceManager& surfaces, EventRegistry const* events = nullptr);
 
   SpriteDataPtr get_data(std::filesystem::path const& filename);
   Sprite create(std::filesystem::path const& filename);
@@ -29,6 +30,7 @@ public:
 
 private:
   wstdisplay::SurfaceManager& m_surfaces;
+  EventRegistry const* m_events;
   std::map<std::filesystem::path, SpriteDataPtr> m_data;
 
 public:

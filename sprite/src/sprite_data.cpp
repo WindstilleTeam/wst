@@ -156,10 +156,11 @@ struct LoadContext
 {
   std::filesystem::path directory;
   wstdisplay::SurfaceManager& surfaces;
+  EventRegistry const* events;
 };
 
-/** (events (TYPE (frame N) ...) ...), Pingus' (at-step N) is accepted too */
-void read_events(prio::ReaderMapping const& mapping, Action& action)
+/** (events (NAME (frame N) ...) ...), Pingus' (at-step N) is accepted too */
+void read_events(prio::ReaderMapping const& mapping, LoadContext const& ctx, Action& action)
 {
   prio::ReaderCollection collection;
   if (!mapping.read("events", collection)) {
@@ -168,12 +169,15 @@ void read_events(prio::ReaderMapping const& mapping, Action& action)
 
   for (auto const& obj : collection.get_objects()) {
     FrameEvent event;
-    event.type = obj.get_name();
+    event.name = obj.get_name();
     prio::ReaderMapping const event_mapping = obj.get_mapping();
     if (!event_mapping.read("frame", event.frame)) {
       event_mapping.read("at-step", event.frame);
     }
     read_properties(event_mapping, {"frame", "at-step"}, event.properties);
+    if (ctx.events) {
+      ctx.events->resolve(event);
+    }
     action.events.push_back(std::move(event));
   }
 }
@@ -309,7 +313,7 @@ void read_supertux_action(SpriteData& data, prio::ReaderMapping const& mapping, 
     action.hitbox = geom::frect(max_frame_size(action));
   }
 
-  read_events(mapping, action);
+  read_events(mapping, ctx, action);
   read_properties(mapping, {"name", "fps", "loops", "loop-frame", "hitbox", "mirror-action",
                             "clone-action", "images", "surfaces", "events"}, action.properties);
 
@@ -387,7 +391,7 @@ void read_windstille(SpriteData& data, prio::ReaderMapping const& mapping, LoadC
     }
 
     set_frame_duration(action, speed > 0.0f ? 1.0f / speed : 1.0f);
-    read_events(action_mapping, action);
+    read_events(action_mapping, ctx, action);
     read_properties(action_mapping, {"name", "speed", "scale", "offset", "images", "image-grid", "events"},
                     action.properties);
     data.add_action(std::move(action));
@@ -452,7 +456,7 @@ void read_pingus(SpriteData& data, prio::ReaderMapping const& mapping, LoadConte
     action.origin = geom::fpoint(-anchor.x() - offset[0], -anchor.y() - offset[1]);
   }
 
-  read_events(mapping, action);
+  read_events(mapping, ctx, action);
   read_properties(mapping, {"image", "array", "position", "size", "speed", "loop", "origin", "offset", "events"},
                   action.properties);
   data.add_action(std::move(action));
@@ -480,10 +484,11 @@ SpriteData::find_action(std::string_view name) const
 
 SpriteDataPtr
 SpriteData::from_mapping(std::string_view name, prio::ReaderMapping const& mapping,
-                         std::filesystem::path const& directory, wstdisplay::SurfaceManager& surfaces)
+                         std::filesystem::path const& directory, wstdisplay::SurfaceManager& surfaces,
+                         EventRegistry const* events)
 {
   auto data = std::make_shared<SpriteData>();
-  LoadContext const ctx{directory, surfaces};
+  LoadContext const ctx{directory, surfaces, events};
 
   if (name == "supertux-sprite") {
     read_supertux(*data, mapping, ctx);
@@ -503,11 +508,12 @@ SpriteData::from_mapping(std::string_view name, prio::ReaderMapping const& mappi
 }
 
 SpriteDataPtr
-SpriteData::from_file(std::filesystem::path const& filename, wstdisplay::SurfaceManager& surfaces)
+SpriteData::from_file(std::filesystem::path const& filename, wstdisplay::SurfaceManager& surfaces,
+                      EventRegistry const* events)
 {
   try {
     prio::ReaderDocument const doc = prio::ReaderDocument::from_file(filename);
-    return from_mapping(doc.get_name(), doc.get_mapping(), filename.parent_path(), surfaces);
+    return from_mapping(doc.get_name(), doc.get_mapping(), filename.parent_path(), surfaces, events);
   } catch (std::exception const& err) {
     throw std::runtime_error(filename.string() + ": " + err.what());
   }
