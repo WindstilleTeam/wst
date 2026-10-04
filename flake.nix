@@ -1,5 +1,5 @@
 {
-  description = "wst - Windstille game framework (display, input, gui)";
+  description = "wst - Windstille game framework (display, input, gui, sprite)";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs?ref=nixos-unstable";
@@ -72,8 +72,20 @@
 
             cmakeFlags = [
               "-DBUILD_EXTRA=ON"
+              "-DBUILD_TESTS=ON"
+              "-DWARNINGS=ON"
+              "-DWERROR=ON"
               "-DPROJECT_VERSION_FULL=${version}"
             ];
+
+            # the GL tests need a GPU or EGL, run them with
+            # 'ctest -L gl' outside of the sandbox
+            doCheck = !pkgs.stdenv.hostPlatform.isWindows;
+            checkPhase = ''
+              runHook preCheck
+              ctest --output-on-failure -LE gl
+              runHook postCheck
+            '';
 
             postFixup =
               (nixpkgs.lib.optionalString pkgs.stdenv.hostPlatform.isWindows ''
@@ -129,16 +141,21 @@
         };
 
         apps = rec {
-          default = wstdisplay-geometry;
+          default = demo-shapes;
 
-          wstdisplay-geometry = flake-utils.lib.mkApp {
+          demo-shapes = flake-utils.lib.mkApp {
             drv = packages.wst;
-            exePath = "/bin/wstdisplay-geometry";
+            exePath = "/bin/wst-demo-shapes";
           };
 
           wstgui = flake-utils.lib.mkApp {
             drv = packages.wst;
             exePath = "/bin/wstgui";
+          };
+
+          demo-sprites = flake-utils.lib.mkApp {
+            drv = packages.wst;
+            exePath = "/bin/wst-demo-sprites";
           };
         };
       }
