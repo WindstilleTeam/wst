@@ -33,7 +33,7 @@ using namespace wstgui;
 
 int main(int argc, char** argv)
 {
-  wstsys::System system;
+  wstsystem::System system;
 
   auto window = system.create_window({
       .title = "GUI Test",

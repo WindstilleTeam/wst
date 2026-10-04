@@ -15,7 +15,7 @@
 
 namespace wstdisplay {
 
-OpenGLWindow::OpenGLWindow(wstsys::System& system, Params const& params) :
+OpenGLWindow::OpenGLWindow(wstsystem::System& system, Params const& params) :
   sig_resized(),
   m_system(system),
   m_window(nullptr),

@@ -14,7 +14,7 @@
 #include <wstdisplay/fwd.hpp>
 #include <wstdisplay/opengl_window.hpp>
 
-namespace wstsys {
+namespace wstsystem {
 
 class System
 {
@@ -55,7 +55,7 @@ private:
   System& operator=(const System&) = delete;
 };
 
-} // namespace wstsys
+} // namespace wstsystem
 
 #endif
 

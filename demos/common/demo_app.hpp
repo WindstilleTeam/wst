@@ -76,7 +76,7 @@ protected:
   virtual void on_event(SDL_Event const& event) { (void)event; }
   virtual void on_resize(geom::isize const& size) { (void)size; }
 
-  wstsys::System& get_system() { return *m_system; }
+  wstsystem::System& get_system() { return *m_system; }
   wstdisplay::OpenGLWindow& get_window() { return *m_window; }
   wstdisplay::Device& get_device() { return m_window->get_device(); }
   wstdisplay::Renderer& get_renderer() { return m_window->get_renderer(); }
@@ -108,7 +108,7 @@ private:
   bool m_benchmark;
   std::filesystem::path m_datadir;
 
-  std::unique_ptr<wstsys::System> m_system;
+  std::unique_ptr<wstsystem::System> m_system;
   std::unique_ptr<wstdisplay::OpenGLWindow> m_window;
   std::unique_ptr<wstdisplay::TTFFontManager> m_font_manager;
   std::unique_ptr<wstdisplay::TTFFont> m_font;

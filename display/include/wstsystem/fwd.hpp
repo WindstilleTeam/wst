@@ -4,11 +4,11 @@
 #ifndef HEADER_WSTSYSTEM_FWD_HPP
 #define HEADER_WSTSYSTEM_FWD_HPP
 
-namespace wstsys {
+namespace wstsystem {
 
 class System;
 
-} // namespace wstsys
+} // namespace wstsystem
 
 #endif
 

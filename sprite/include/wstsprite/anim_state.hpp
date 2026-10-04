@@ -53,8 +53,8 @@ void restart(AnimState& state);
 
 /** Advance the animation by \a delta seconds. Events of frames that
     are entered are appended to \a events, which can be nullptr. The
-    first frame's events fire on (re)start through restart() and
-    set_action() only when passed to fire_start_events(). */
+    events of the first frame don't fire on restart() or set_action(),
+    use fire_current_events() for those. */
 void advance(AnimState& state, SpriteData const& data, float delta,
              std::vector<FrameEvent const*>* events = nullptr);
 

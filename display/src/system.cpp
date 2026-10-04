@@ -12,7 +12,7 @@
 
 #include "system.hpp"
 
-namespace wstsys {
+namespace wstsystem {
 
 System::System() :
   sig_keyboard_event(),
@@ -189,6 +189,6 @@ System::quit()
   m_quit = true;
 }
 
-} // namespace wstsys
+} // namespace wstsystem
 
 /* EOF */

@@ -15,7 +15,7 @@
 
 namespace wstgui {
 
-ScreenManager::ScreenManager(wstsys::System& system, wstdisplay::OpenGLWindow& window, wstinput::InputManagerSDL& input) :
+ScreenManager::ScreenManager(wstsystem::System& system, wstdisplay::OpenGLWindow& window, wstinput::InputManagerSDL& input) :
   m_system(system),
   m_window(window),
   m_input(input),

@@ -49,7 +49,7 @@ public:
   };
 
 public:
-  OpenGLWindow(wstsys::System& system, Params const& params);
+  OpenGLWindow(wstsystem::System& system, Params const& params);
   ~OpenGLWindow();
 
   void set_title(std::string const& title);
@@ -88,7 +88,7 @@ private:
   void destroy();
 
 private:
-  wstsys::System& m_system;
+  wstsystem::System& m_system;
   SDL_Window* m_window;
   SDL_GLContext m_gl_context;
   geom::isize m_size;

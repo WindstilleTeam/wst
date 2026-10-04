@@ -143,7 +143,7 @@ DemoApp::run()
   {
     parse_args();
 
-    m_system = std::make_unique<wstsys::System>();
+    m_system = std::make_unique<wstsystem::System>();
     m_window = m_system->create_window(m_params);
     m_font_manager = std::make_unique<wstdisplay::TTFFontManager>(m_window->get_device());
     m_font = std::make_unique<wstdisplay::TTFFont>(*m_font_manager, get_data("Vera.ttf"), 14);

@@ -27,7 +27,7 @@ namespace wstgui {
 class ScreenManager
 {
 public:
-  ScreenManager(wstsys::System& system, wstdisplay::OpenGLWindow& window, wstinput::InputManagerSDL& input);
+  ScreenManager(wstsystem::System& system, wstdisplay::OpenGLWindow& window, wstinput::InputManagerSDL& input);
   ~ScreenManager();
 
   /** Displays the previously set screen in until quit() is called */
@@ -71,7 +71,7 @@ private:
   enum class ScreenAction { NONE, POP_SCREEN, PUSH_SCREEN, CLEAR_SCREENS };
 
 private:
-  wstsys::System& m_system;
+  wstsystem::System& m_system;
   wstdisplay::OpenGLWindow& m_window;
   wstinput::InputManagerSDL& m_input;
 
