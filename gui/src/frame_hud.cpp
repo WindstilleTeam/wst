@@ -20,7 +20,7 @@
 
 #include <cmath>
 
-#include <wstdisplay/graphics_context.hpp>
+#include <wstdisplay/canvas.hpp>
 
 namespace wstgui {
 
@@ -33,7 +33,7 @@ FrameHud::FrameHud(Style& style) :
 }
 
 void
-FrameHud::draw(wstdisplay::GraphicsContext& gc)
+FrameHud::draw(wstdisplay::Canvas& canvas)
 {
   m_frame_counter += 1;
 
@@ -48,7 +48,7 @@ FrameHud::draw(wstdisplay::GraphicsContext& gc)
   if (m_last_fps != 0) {
     std::ostringstream out;
     out << "FPS: " << m_last_fps;
-    m_style.get_font()->draw(gc, glm::vec2(static_cast<float>(gc.size().width()) - 100.0f, 30.0f), out.str());
+    m_style.get_font()->draw(canvas, geom::fpoint(10.0f, 30.0f), out.str());
   }
 }
 

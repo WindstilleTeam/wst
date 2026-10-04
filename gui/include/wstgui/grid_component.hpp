@@ -63,7 +63,7 @@ public:
   GridComponent(int weight, int height, Component* parent);
   ~GridComponent() override;
 
-  void draw(wstdisplay::GraphicsContext& gc) override;
+  void draw(wstdisplay::Canvas& canvas) override;
   void update(float delta, const Controller& controller) override;
 
   void pack(std::unique_ptr<Component> component, int x, int y, int colspan = 1, int rowspan = 1);

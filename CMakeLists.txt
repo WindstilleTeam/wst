@@ -30,6 +30,7 @@ project(wst VERSION ${_project_version_cmake} LANGUAGES CXX C)
 option(WST_DISPLAY "Build the wstdisplay module" ON)
 option(WST_INPUT "Build the wstinput module" ON)
 option(WST_GUI "Build the wstgui module (requires display and input)" ON)
+option(WST_DEMOS "Build the demo applications (requires display)" ON)
 
 option(BUILD_TESTS "Build test cases" OFF)
 option(BUILD_EXTRA "Build extra stuff" OFF)
@@ -38,6 +39,10 @@ option(WERROR "Treat warnings as errors" OFF)
 
 if(WST_GUI AND NOT (WST_DISPLAY AND WST_INPUT))
   message(FATAL_ERROR "WST_GUI requires WST_DISPLAY and WST_INPUT")
+endif()
+
+if(BUILD_TESTS)
+  enable_testing()
 endif()
 
 if(WST_DISPLAY)
@@ -50,6 +55,10 @@ endif()
 
 if(WST_GUI)
   add_subdirectory(gui)
+endif()
+
+if(WST_DEMOS AND WST_DISPLAY)
+  add_subdirectory(demos)
 endif()
 
 # EOF #

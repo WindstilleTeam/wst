@@ -35,13 +35,13 @@ Label::~Label()
 }
 
 void
-Label::draw(wstdisplay::GraphicsContext& gc)
+Label::draw(wstdisplay::Canvas& canvas)
 {
-  //gc.fill_rect(rect, surf::Color(0.0f, 0.0f, 0.0f, 0.5f));
-  //gc.draw_rect(rect, surf::Color(1.0f, 1.0f, 1.0f, 0.5f));
+  //canvas.fill_rect(rect, surf::Color(0.0f, 0.0f, 0.0f, 0.5f));
+  //canvas.draw_rect(rect, surf::Color(1.0f, 1.0f, 1.0f, 0.5f));
 
   get_style().get_small_font()->draw(
-    gc,
+    canvas,
     glm::vec2(m_geometry.left() + 5/*+ rect.width()/2*/,
               m_geometry.top() + m_geometry.height()/2 + 3),
     label,

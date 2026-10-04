@@ -36,7 +36,7 @@ public:
   virtual void on_startup() {}
 
   /** Draw the current screen */
-  virtual void draw(wstdisplay::GraphicsContext& gc) =0;
+  virtual void draw(wstdisplay::Canvas& canvas) =0;
 
   /** Update the current screen by \a delta and with input from \a
       controller */

@@ -26,14 +26,14 @@ namespace wstgui {
 class Style
 {
 public:
-  Style(wstdisplay::TTFFont* font);
+  Style(wstdisplay::Font const* font);
   ~Style();
 
-  wstdisplay::TTFFont* get_font() const;
-  wstdisplay::TTFFont* get_small_font() const;
+  wstdisplay::Font const* get_font() const;
+  wstdisplay::Font const* get_small_font() const;
 
 private:
-  wstdisplay::TTFFont* m_font;
+  wstdisplay::Font const* m_font;
 
 private:
   Style(const Style&) = delete;

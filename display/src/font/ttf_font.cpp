@@ -1,255 +1,218 @@
-/*
-**  Windstille - A Sci-Fi Action-Adventure Game
-**  Copyright (C) 2005 Ingo Ruhnke <grumbel@gmail.com>
-**
-**  This program is free software: you can redistribute it and/or modify
-**  it under the terms of the GNU General Public License as published by
-**  the Free Software Foundation, either version 3 of the License, or
-**  (at your option) any later version.
-**
-**  This program is distributed in the hope that it will be useful,
-**  but WITHOUT ANY WARRANTY; without even the implied warranty of
-**  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-**  GNU General Public License for more details.
-**
-**  You should have received a copy of the GNU General Public License
-**  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Windstille Display Library
+// Copyright (C) 2005-2026 Ingo Ruhnke <grumbel@gmail.com>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
-#include <stdint.h>
-#include <vector>
-#include <stdexcept>
-#include <sstream>
+#include "font/ttf_font.hpp"
+
+#include <algorithm>
 #include <fstream>
+#include <stdexcept>
+#include <unordered_map>
+#include <vector>
 
 #include <ft2build.h>
-#include <geom/geom.hpp>
+#include FT_FREETYPE_H
 
-#include <wstdisplay/blitter.hpp>
-#include <wstdisplay/drawing_context.hpp>
-#include <wstdisplay/software_surface.hpp>
-#include <wstdisplay/scenegraph/vertex_array_drawable.hpp>
+#include <logmich/log.hpp>
+#include <surf/palette.hpp>
+#include <surf/software_surface.hpp>
 
-#include "scenegraph/text_drawable.hpp"
-#include "font/ttf_font.hpp"
+#include "blitter.hpp"
+#include "caps.hpp"
+#include "font/font_effect.hpp"
 #include "font/ttf_font_manager.hpp"
+#include "rect_packer.hpp"
+#include "texture.hpp"
 
 namespace wstdisplay {
 
-TTFCharacter::TTFCharacter(const geom::irect& pos_,
-                           const geom::frect& uv_,
-                           int advance_) :
-  pos(pos_),
-  uv(uv_),
-  advance(advance_)
+namespace {
+
+struct GlyphPage
 {
-}
+  TexturePtr texture;
+  RectPacker packer;
+};
+
+} // namespace
 
 class TTFFontImpl
 {
 public:
-  /** Array of characters available in this font, current limited to
-      256 characters, no full unicode */
-  std::vector<TTFCharacter> characters;
+  std::vector<char> buffer;
+  FT_Face face = nullptr;
+  int size = 0;
+  std::unique_ptr<FontEffect> effect;
+  float line_height = 0.0f;
 
-  /** The original size of the font in pixels */
-  int size;
-
-  /** OpenGL Texture which holds all the characters */
-  wstdisplay::TexturePtr texture;
+  std::vector<GlyphPage> pages;
+  geom::isize page_size;
+  mutable std::unordered_map<char32_t, Glyph> glyphs;
+  mutable std::unordered_map<char32_t, bool> missing;
 
   TTFFontImpl() :
-    characters(),
-    size(0),
-    texture()
+    buffer(),
+    effect(),
+    pages(),
+    page_size(512, 512),
+    glyphs(),
+    missing()
   {}
+
+  TTFFontImpl(TTFFontImpl const&) = delete;
+  TTFFontImpl& operator=(TTFFontImpl const&) = delete;
+
+  ~TTFFontImpl()
+  {
+    if (face) {
+      FT_Done_Face(face);
+    }
+  }
+
+  Glyph const* load_glyph(char32_t codepoint)
+  {
+    FT_UInt const index = FT_Get_Char_Index(face, codepoint);
+    if (index == 0 && codepoint != 0) {
+      return nullptr;
+    }
+
+    if (FT_Load_Glyph(face, index, FT_LOAD_RENDER)) {
+      log_warn("TTFFont: couldn't render U+{:04X}", static_cast<uint32_t>(codepoint));
+      return nullptr;
+    }
+
+    FT_GlyphSlot slot = face->glyph;
+    float const advance = static_cast<float>(slot->advance.x >> 6);
+
+    int const bitmap_w = static_cast<int>(slot->bitmap.width);
+    int const bitmap_h = static_cast<int>(slot->bitmap.rows);
+    if (bitmap_w == 0 || bitmap_h == 0) {
+      // whitespace
+      return &(glyphs[codepoint] = Glyph{nullptr, {}, {}, advance});
+    }
+
+
+    int const glyph_w = effect->get_glyph_width(bitmap_w);
+    int const glyph_h = effect->get_glyph_height(bitmap_h);
+
+    // one pixel of padding around each glyph, filled by generate_border()
+    surf::SoftwareSurface image = surf::SoftwareSurface::create(
+      surf::PixelFormat::RGBA8, geom::isize(glyph_w + 2, glyph_h + 2), surf::palette::transparent);
+    effect->blit(image, slot->bitmap, 1, 1);
+    generate_border(image, 1, 1, glyph_w, glyph_h);
+
+    auto [page, rect] = allocate(image.get_size());
+    page->texture->put(image, rect.topleft());
+
+    float const tw = static_cast<float>(page->texture->get_width());
+    float const th = static_cast<float>(page->texture->get_height());
+    geom::frect const uv(static_cast<float>(rect.left() + 1) / tw,
+                         static_cast<float>(rect.top() + 1) / th,
+                         static_cast<float>(rect.left() + 1 + glyph_w) / tw,
+                         static_cast<float>(rect.top() + 1 + glyph_h) / th);
+
+    float const x = static_cast<float>(effect->get_x_offset(slot->bitmap_left));
+    float const y = static_cast<float>(effect->get_y_offset(-slot->bitmap_top));
+    geom::frect const glyph_rect(x, y, x + static_cast<float>(glyph_w), y + static_cast<float>(glyph_h));
+
+    return &(glyphs[codepoint] = Glyph{page->texture.get(), uv, glyph_rect, advance});
+  }
+
+  std::pair<GlyphPage*, geom::irect> allocate(geom::isize const& glyph_size)
+  {
+    for (auto& page : pages) {
+      if (auto rect = page.packer.allocate(glyph_size)) {
+        return {&page, *rect};
+      }
+    }
+
+    pages.push_back(GlyphPage{Texture::create(page_size), RectPacker(page_size)});
+    auto rect = pages.back().packer.allocate(glyph_size);
+    if (!rect) {
+      throw std::runtime_error("TTFFont: glyph too large for atlas page");
+    }
+    return {&pages.back(), *rect};
+  }
 };
 
-TTFFont::TTFFont(TTFFontManager& mgr, std::filesystem::path const& filename, int size_, const FontEffect& effect) :
-  impl(new TTFFontImpl())
+TTFFont::TTFFont(TTFFontManager& mgr, std::filesystem::path const& filename, int size, FontEffect const& effect) :
+  impl(std::make_unique<TTFFontImpl>())
 {
-  assert(size_ > 0);
+  if (size <= 0) {
+    throw std::invalid_argument("TTFFont: size must be positive");
+  }
 
-  impl->size = size_;
+  impl->size = size;
+  impl->effect = effect.clone();
 
   std::ifstream fin(filename, std::ios::binary);
-  std::istreambuf_iterator<char> first(fin), last;
-  std::vector<char> buffer(first, last);
+  if (!fin) {
+    throw std::runtime_error("TTFFont: couldn't open " + filename.string());
+  }
+  impl->buffer.assign(std::istreambuf_iterator<char>(fin), std::istreambuf_iterator<char>());
 
-  FT_Face face;
   if (FT_New_Memory_Face(mgr.get_handle(),
-                         reinterpret_cast<FT_Byte*>(&*buffer.begin()), buffer.size(),
-                         0, &face))
+                         reinterpret_cast<FT_Byte const*>(impl->buffer.data()),
+                         static_cast<FT_Long>(impl->buffer.size()),
+                         0, &impl->face))
   {
-    std::ostringstream str;
-    str << "Couldn't load font: " << filename;
-    throw std::runtime_error(str.str());
+    throw std::runtime_error("TTFFont: couldn't load font: " + filename.string());
   }
 
-  FT_Set_Pixel_Sizes(face, impl->size, impl->size);
+  FT_Set_Pixel_Sizes(impl->face, static_cast<FT_UInt>(size), static_cast<FT_UInt>(size));
+  FT_Select_Charmap(impl->face, FT_ENCODING_UNICODE);
 
-  FT_Select_Charmap(face,  FT_ENCODING_UNICODE);
+  impl->line_height = static_cast<float>(impl->face->size->metrics.height >> 6) +
+    static_cast<float>(impl->effect->get_height(size) - size);
 
-  // FIXME: should calculate texture size, based on font size
-  surf::SoftwareSurface pixelbuffer = surf::SoftwareSurface::create(surf::PixelFormat::RGBA8, {1024, 1024});
+  // a page that fits a reasonable set of glyphs, larger fonts get larger pages
+  int const page = std::clamp(size * 16, 256, 2048);
+  impl->page_size = geom::isize(page, page);
 
-  int x_pos = 1;
-  int y_pos = 1;
-
-  // FIXME: Not really needed, instead we should sort the characters
-  // after glyph_height before rendering and then use the max_glyph_height for each row
-  int max_glyph_height = effect.get_height(impl->size);
-
-  // List of characters we want in the final font
-  std::vector<uint32_t> characters;
-  for(int i = 0; i < 256; i += 1)
-    characters.push_back(i);
-
-  // FIXME: Insert code to sort characters after glyph height
-  // FIXME: Insert code that calculates the needed texture size
-
-  // We limit ourself to 256 characters for the momemnt
-  for(std::vector<uint32_t>::iterator i = characters.begin(); i != characters.end(); ++i)
-  {
-    if (FT_Load_Char( face,  *i, FT_LOAD_RENDER))
-    {
-      // FIXME: What happens when character is not in font, should be handled more gentle
-      throw std::runtime_error("couldn't load char");
-    }
-    else
-    {
-      effect.blit(pixelbuffer, face->glyph->bitmap, x_pos, y_pos);
-
-      int glyph_width  = effect.get_glyph_width(static_cast<int>(face->glyph->bitmap.width));
-      int glyph_height = effect.get_glyph_height(static_cast<int>(face->glyph->bitmap.rows));
-
-      wstdisplay::generate_border(pixelbuffer, x_pos, y_pos, glyph_width, glyph_height);
-
-      geom::irect pos(geom::ipoint(effect.get_x_offset(face->glyph->bitmap_left),
-                     effect.get_y_offset(-face->glyph->bitmap_top)),
-               geom::isize(glyph_width, glyph_height));
-
-      geom::frect uv(static_cast<float>(x_pos) / static_cast<float>(pixelbuffer.get_width()),
-               static_cast<float>(y_pos) / static_cast<float>(pixelbuffer.get_height()),
-               static_cast<float>(x_pos + glyph_width)/static_cast<float>(pixelbuffer.get_width()),
-               static_cast<float>(y_pos + glyph_height)/static_cast<float>(pixelbuffer.get_height()));
-
-      impl->characters.push_back(TTFCharacter(pos, uv,
-                                              static_cast<int>(face->glyph->advance.x >> 6)));
-
-      // we leave a one pixel border around the letters which we fill with generate_border
-      x_pos += glyph_width + 2;
-      if (x_pos + max_glyph_height + 2 > pixelbuffer.get_width()) // FIXME: should use glyph_width of the next glyph instead of max_glyph_height
-      {
-        y_pos += max_glyph_height + 2;
-        x_pos = 1;
-      }
-
-      if (y_pos + max_glyph_height + 2 > pixelbuffer.get_height())
-        throw std::runtime_error("Font Texture to small");
-    }
+  for (char32_t cp = 32; cp < 256; ++cp) {
+    get_glyph(cp);
   }
-  FT_Done_Face(face);
-
-  impl->texture = wstdisplay::Texture::create(pixelbuffer);
 }
 
 TTFFont::~TTFFont()
 {
 }
 
-const TTFCharacter&
-TTFFont::get_character(int c) const
+Glyph const*
+TTFFont::get_glyph(char32_t codepoint) const
 {
-  assert(c >= 0 && c < 256);
-  return impl->characters[c];
+  auto it = impl->glyphs.find(codepoint);
+  if (it != impl->glyphs.end()) {
+    return &it->second;
+  }
+
+  if (impl->missing.contains(codepoint)) {
+    return nullptr;
+  }
+
+  Glyph const* glyph = impl->load_glyph(codepoint);
+  if (!glyph) {
+    impl->missing[codepoint] = true;
+  }
+  return glyph;
 }
 
-int
+float
 TTFFont::get_height() const
 {
-  return impl->size;
+  return static_cast<float>(impl->effect->get_height(impl->size));
 }
 
-void
-TTFFont::draw(wstdisplay::GraphicsContext& gc, const glm::vec2& pos_, const std::string& str, const surf::Color& color)
+float
+TTFFont::get_line_height() const
 {
-  // FIXME: Little bit hacky to throw it just in
-  glm::vec2 pos(truncf(pos_.x),
-                truncf(pos_.y));
-
-  wstdisplay::VertexArrayDrawable va;
-
-  va.set_blend_func(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  va.set_texture(impl->texture);
-
-  va.set_mode(GL_TRIANGLES);
-  for(std::string::const_iterator i = str.begin(); i != str.end(); ++i)
-  {
-    const TTFCharacter& character = impl->characters[*i];
-
-    // v1
-    va.color(color);
-    va.texcoord(character.uv.left(), character.uv.top());
-    va.vertex(pos.x + static_cast<float>(character.pos.left()),
-              pos.y + static_cast<float>(character.pos.top()));
-    // v4
-    va.color(color);
-    va.texcoord(character.uv.left(), character.uv.bottom());
-    va.vertex(pos.x + static_cast<float>(character.pos.left()),
-              pos.y + static_cast<float>(character.pos.bottom()));
-    // v2
-    va.color(color);
-    va.texcoord(character.uv.right(), character.uv.top());
-    va.vertex(pos.x + static_cast<float>(character.pos.right()),
-              pos.y + static_cast<float>(character.pos.top()));
-
-    // v4
-    va.color(color);
-    va.texcoord(character.uv.left(), character.uv.bottom());
-    va.vertex(pos.x + static_cast<float>(character.pos.left()),
-              pos.y + static_cast<float>(character.pos.bottom()));
-    // v3
-    va.color(color);
-    va.texcoord(character.uv.right(), character.uv.bottom());
-    va.vertex(pos.x + static_cast<float>(character.pos.right()),
-              pos.y + static_cast<float>(character.pos.bottom()));
-    // v2
-    va.color(color);
-    va.texcoord(character.uv.right(), character.uv.top());
-    va.vertex(pos.x + static_cast<float>(character.pos.right()),
-              pos.y + static_cast<float>(character.pos.top()));
-
-    pos.x += static_cast<float>(character.advance);
-  }
-  va.render(gc);
-}
-
-void
-TTFFont::draw_center(wstdisplay::GraphicsContext& gc, const glm::vec2& pos, const std::string& str, const surf::Color& color)
-{
-  draw(gc, glm::vec2(pos.x - static_cast<float>(get_width(str))/2.0f, pos.y), str, color);
-}
-
-void
-TTFFont::draw(wstdisplay::DrawingContext& ctx, const std::string& text, float x, float y, float z)
-{
-  ctx.draw(std::make_unique<TextDrawable>(*this, text, glm::vec2(x, y), z, ctx.get_modelview()));
+  return impl->line_height;
 }
 
 int
-TTFFont::get_width(const std::string& text) const
+TTFFont::get_pixel_size() const
 {
-  int width = 0;
-  for(std::string::const_iterator i = text.begin(); i != text.end(); ++i)
-    width += impl->characters[*i].advance;
-  return width;
-}
-
-wstdisplay::TexturePtr
-TTFFont::get_texture() const
-{
-  return impl->texture;
+  return impl->size;
 }
 
 } // namespace wstdisplay

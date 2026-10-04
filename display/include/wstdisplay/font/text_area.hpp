@@ -1,74 +1,58 @@
-/*
-**  Windstille - A Sci-Fi Action-Adventure Game
-**  Copyright (C) 2005 Ingo Ruhnke <grumbel@gmail.com>
-**
-**  This program is free software: you can redistribute it and/or modify
-**  it under the terms of the GNU General Public License as published by
-**  the Free Software Foundation, either version 3 of the License, or
-**  (at your option) any later version.
-**
-**  This program is distributed in the hope that it will be useful,
-**  but WITHOUT ANY WARRANTY; without even the implied warranty of
-**  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-**  GNU General Public License for more details.
-**
-**  You should have received a copy of the GNU General Public License
-**  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Windstille Display Library
+// Copyright (C) 2005-2026 Ingo Ruhnke <grumbel@gmail.com>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
-#ifndef HEADER_WINDSTILLE_DISPLAY_TEXT_AREA_HPP
-#define HEADER_WINDSTILLE_DISPLAY_TEXT_AREA_HPP
+#ifndef HEADER_WSTDISPLAY_FONT_TEXT_AREA_HPP
+#define HEADER_WSTDISPLAY_FONT_TEXT_AREA_HPP
 
 #include <memory>
 #include <string>
 
-#include <geom/geom.hpp>
-#include <wstdisplay/fwd.hpp>
+#include <glm/glm.hpp>
+#include <geom/rect.hpp>
+
+#include "../fwd.hpp"
 
 namespace wstdisplay {
 
 class TextAreaImpl;
 
-/** A class for managing multiple lines of text in combination with
-    special formating.
-*/
-class TextArea
+/** Word wrapped text in a rectangle with simple markup and optional
+    letter by letter display, e.g. for dialogs.
+
+    Markup: <b>red</b>, <i>blue</i>, <small>, <large>, <sin>wavy</sin>
+    and <sleep/> to pause the letter by letter display. */
+class TextArea final
 {
 public:
-  /** The area which the TextArea should cover */
-  TextArea(TTFFont* font, const geom::frect& rect, bool letter_by_letter);
+  TextArea(Font const* font, geom::frect const& rect, bool letter_by_letter);
   ~TextArea();
 
-  /** Set the rectangle into which the TextArea should fill its text */
-  void set_rect(const geom::frect& rect);
+  void set_rect(geom::frect const& rect);
+  geom::frect get_rect() const;
 
-  /** Sets the text to be displayed in the text box */
-  void set_text(const std::string& str);
-
-  /** Sets the default font to be used in the text box, can be changed
-      with special tags */
-  void set_font(wstdisplay::TTFFont* font);
+  void set_text(std::string const& str);
+  void set_font(Font const* font);
 
   /** Skips letter by letter display */
   void set_progress_complete();
-
-  bool is_progress_complete();
+  bool is_progress_complete() const;
 
   void update(float delta);
-  void draw(wstdisplay::GraphicsContext& gc);
+  void draw(Canvas& canvas, float z = 0.0f);
 
-  /** Return the rectangle that TextArea fills its text into */
-  geom::frect get_rect() const;
-
-  /** Return the position of the last character in the TextArea,
-      usefull to display a blinking cursor or things like that */
+  /** Position after the last drawn character, e.g. for a cursor */
   glm::vec2 get_cursor_pos() const;
 
   float get_scroll_offset() const;
-  void  set_scroll_offset(float s);
+  void set_scroll_offset(float s);
 
 private:
   std::unique_ptr<TextAreaImpl> impl;
+
+public:
+  TextArea(TextArea const&) = delete;
+  TextArea& operator=(TextArea const&) = delete;
 };
 
 } // namespace wstdisplay

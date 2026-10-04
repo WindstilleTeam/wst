@@ -22,7 +22,7 @@
 
 #include <logmich/log.hpp>
 #include <surf/color.hpp>
-#include <wstdisplay/graphics_context.hpp>
+#include <wstdisplay/canvas.hpp>
 #include <wstinput/controller.hpp>
 
 #include "controller_def.hpp"
@@ -43,10 +43,10 @@ GridComponent::~GridComponent()
 }
 
 void
-GridComponent::draw(wstdisplay::GraphicsContext& gc)
+GridComponent::draw(wstdisplay::Canvas& canvas)
 {
-  gc.fill_rect(m_geometry, surf::Color(0.0f, 0.0f, 0.0f, 0.5f));
-  gc.draw_rect(m_geometry, surf::Color(1.0f, 1.0f, 1.0f, 0.5f));
+  canvas.fill_rect(m_geometry, surf::Color(0.0f, 0.0f, 0.0f, 0.5f));
+  canvas.draw_rect(m_geometry, surf::Color(1.0f, 1.0f, 1.0f, 0.5f));
 
   for(int y = 0; y < grid.get_height(); ++y)
     for(int x = 0; x < grid.get_width(); ++x)
@@ -54,9 +54,9 @@ GridComponent::draw(wstdisplay::GraphicsContext& gc)
       if (grid(x, y).component)
       {
         if (x == pos.x && y == pos.y)
-          gc.fill_rect(grid(x, y).component->geometry(), surf::Color(1.0f, 1.0f, 1.0f, 0.5f));
+          canvas.fill_rect(grid(x, y).component->geometry(), surf::Color(1.0f, 1.0f, 1.0f, 0.5f));
 
-        grid(x, y).component->draw(gc);
+        grid(x, y).component->draw(canvas);
       }
     }
 }

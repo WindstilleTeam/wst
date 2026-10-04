@@ -1,54 +1,56 @@
 // Windstille Display Library
-// Copyright (C) 2002-2020 Ingo Ruhnke <grumbel@gmail.com>
-//
-// This program is free software: you can redistribute it and/or modify it
-// under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or (at your
-// option) any later version.
-//
-// This program is distributed in the hope that it will be useful, but
-// WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-// or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
-// License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with this program. If not, see <http://www.gnu.org/licenses/>.
+// Copyright (C) 2002-2026 Ingo Ruhnke <grumbel@gmail.com>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
-#ifndef HEADER_WINDSTILLE_DISPLAY_TEXTURE_PACKER_HPP
-#define HEADER_WINDSTILLE_DISPLAY_TEXTURE_PACKER_HPP
+#ifndef HEADER_WSTDISPLAY_TEXTURE_PACKER_HPP
+#define HEADER_WSTDISPLAY_TEXTURE_PACKER_HPP
 
+#include <filesystem>
 #include <vector>
 
-#include <geom/rect.hpp>
 #include <geom/size.hpp>
-#include <surf/fwd.hpp>
+#include <surf/software_surface.hpp>
 
-#include "surface.hpp"
+#include "fwd.hpp"
+#include "rect_packer.hpp"
+#include "texture.hpp"
 
 namespace wstdisplay {
 
-class Texture;
-class TexturePackerTexture;
-
-class TexturePacker
+/** Packs images onto shared texture pages (an atlas), so that
+    drawing different images doesn't require switching textures. Each
+    image gets a one pixel border of duplicated edge pixels to avoid
+    bleeding with linear filtering. */
+class TexturePacker final
 {
-private:
-  using Textures = std::vector<TexturePackerTexture*>;
-  geom::isize     texture_size;
-  Textures textures;
-
 public:
-  TexturePacker(const geom::isize& texture_size);
+  explicit TexturePacker(geom::isize const& page_size, TextureParams const& params = {});
   ~TexturePacker();
 
-  SurfacePtr upload(SoftwareSurface const& surface);
-  bool allocate(const geom::isize& size, geom::irect& rect, TexturePtr& out_texture);
+  /** Upload \a image onto a page, a new page is added when no page
+      has room. Throws if the image is larger than a page. */
+  SurfacePtr upload(surf::SoftwareSurface const& image);
 
-  void save_all_as_png() const;
+  geom::isize get_page_size() const { return m_page_size; }
+  std::vector<TexturePtr> get_pages() const;
+
+  /** Save every page as page-N.png into \a directory, for debugging */
+  void save_all_as_png(std::filesystem::path const& directory) const;
 
 private:
-  TexturePacker(const TexturePacker&);
-  TexturePacker& operator=(const TexturePacker&);
+  struct Page
+  {
+    TexturePtr texture;
+    RectPacker packer;
+  };
+
+  geom::isize m_page_size;
+  TextureParams m_params;
+  std::vector<Page> m_pages;
+
+public:
+  TexturePacker(TexturePacker const&) = delete;
+  TexturePacker& operator=(TexturePacker const&) = delete;
 };
 
 } // namespace wstdisplay

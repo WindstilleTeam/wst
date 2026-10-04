@@ -36,9 +36,9 @@ TextView::~TextView()
 }
 
 void
-TextView::draw(wstdisplay::GraphicsContext& gc)
+TextView::draw(wstdisplay::Canvas& canvas)
 {
-  text_area.draw(gc);
+  text_area.draw(canvas);
 }
 
 void
@@ -78,7 +78,7 @@ TextView::set_text(const std::string& text)
 }
 
 void
-TextView::set_font(wstdisplay::TTFFont* font)
+TextView::set_font(wstdisplay::Font const* font)
 {
   text_area.set_font(font);
 }

@@ -19,7 +19,7 @@
 #include "list_view.hpp"
 
 #include <wstinput/controller.hpp>
-#include <wstdisplay/graphics_context.hpp>
+#include <wstdisplay/canvas.hpp>
 
 #include "controller_def.hpp"
 #include "style.hpp"
@@ -39,9 +39,9 @@ ListView::~ListView()
 }
 
 void
-ListView::draw(wstdisplay::GraphicsContext& gc)
+ListView::draw(wstdisplay::Canvas& canvas)
 {
-  wstdisplay::TTFFont* font = get_style().get_font();
+  wstdisplay::Font const* font = get_style().get_font();
 
   float x = m_geometry.left();
   float y = m_geometry.top() + static_cast<float>(font->get_height());
@@ -50,11 +50,11 @@ ListView::draw(wstdisplay::GraphicsContext& gc)
   for(int i = 0; i < int(columns.size()); ++i)
   {
     // FIXME: Poor mans outline effect
-    font->draw_center(gc, glm::vec2(x + columns[i].width/2 + 1, y - 1), columns[i].title);
-    font->draw_center(gc, glm::vec2(x + columns[i].width/2 - 1, y - 1), columns[i].title);
-    font->draw_center(gc, glm::vec2(x + columns[i].width/2 + 1, y + 1), columns[i].title);
-    font->draw_center(gc, glm::vec2(x + columns[i].width/2 - 1, y + 1), columns[i].title);
-    font->draw_center(gc, glm::vec2(x + columns[i].width/2, y), columns[i].title, surf::Color(0.0f, 0.0f, 0.0f));
+    font->draw_center(canvas, glm::vec2(x + columns[i].width/2 + 1, y - 1), columns[i].title);
+    font->draw_center(canvas, glm::vec2(x + columns[i].width/2 - 1, y - 1), columns[i].title);
+    font->draw_center(canvas, glm::vec2(x + columns[i].width/2 + 1, y + 1), columns[i].title);
+    font->draw_center(canvas, glm::vec2(x + columns[i].width/2 - 1, y + 1), columns[i].title);
+    font->draw_center(canvas, glm::vec2(x + columns[i].width/2, y), columns[i].title, surf::Color(0.0f, 0.0f, 0.0f));
     x += columns[i].width;
   }
 
@@ -63,7 +63,7 @@ ListView::draw(wstdisplay::GraphicsContext& gc)
     x = m_geometry.left();
 
     if (j == current_item)
-      gc.fill_rect(geom::frect(x, y,
+      canvas.fill_rect(geom::frect(x, y,
                                m_geometry.right(), y + static_cast<float>(font->get_height())),
                          is_active() ? surf::Color(0.5f, 0.5f, 1.0f, 0.8f) : surf::Color(0.5f, 0.5f, 1.0f, 0.3f));
 
@@ -71,7 +71,7 @@ ListView::draw(wstdisplay::GraphicsContext& gc)
 
     for(int i = 0; i < int(items[j].columns.size()) && i < int(columns.size()); ++i)
     {
-      font->draw(gc, glm::vec2(x + padding, y), items[j].columns[i]);
+      font->draw(canvas, glm::vec2(x + padding, y), items[j].columns[i]);
 
       x += columns[i].width;
     }

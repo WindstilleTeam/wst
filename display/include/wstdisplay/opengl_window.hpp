@@ -1,41 +1,39 @@
 // Windstille Display Library
-// Copyright (C) 2002-2020 Ingo Ruhnke <grumbel@gmail.com>
-//
-// This program is free software: you can redistribute it and/or modify it
-// under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or (at your
-// option) any later version.
-//
-// This program is distributed in the hope that it will be useful, but
-// WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-// or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
-// License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with this program. If not, see <http://www.gnu.org/licenses/>.
+// Copyright (C) 2002-2026 Ingo Ruhnke <grumbel@gmail.com>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
-#ifndef HEADER_WINDSTILLE_DISPLAY_OPENGL_WINDOW_HPP
-#define HEADER_WINDSTILLE_DISPLAY_OPENGL_WINDOW_HPP
+#ifndef HEADER_WSTDISPLAY_OPENGL_WINDOW_HPP
+#define HEADER_WSTDISPLAY_OPENGL_WINDOW_HPP
 
 #include <filesystem>
 #include <memory>
+#include <string>
 
 #include <sigc++/signal.h>
 #include <SDL.h>
 
 #include <geom/size.hpp>
-#include <surf/fwd.hpp>
+#include <surf/software_surface.hpp>
 #include <wstsystem/fwd.hpp>
+
+#include "fwd.hpp"
 
 namespace wstdisplay {
 
-class GraphicsContext;
-class OpenGLWindowImpl;
-
+/** An SDL window with an OpenGL context and a Renderer */
 class OpenGLWindow final
 {
 public:
   enum class Mode { Fullscreen, FullscreenDesktop, Window };
+
+  enum class Api
+  {
+    /** GL 3.3 core, falling back to GLES 2.0. GLES 2.0 only on
+        Android and Emscripten. */
+    Auto,
+    GL33,
+    GLES2
+  };
 
   struct Params
   {
@@ -45,6 +43,10 @@ public:
     Mode mode = Mode::Window;
     bool resizable = false;
     int anti_aliasing = 0;
+    Api api = Api::Auto;
+    bool vsync = true;
+    /** Create the window hidden, e.g. for offscreen rendering */
+    bool hidden = false;
   };
 
 public:
@@ -53,25 +55,37 @@ public:
 
   void set_title(std::string const& title);
   void set_icon(std::filesystem::path const& filename);
-  void set_size(geom::isize const& size);
-  void set_mode(Mode mode);
-  Mode get_mode() const;
-  void set_gamma(float r, float g, float b);
 
+  void set_size(geom::isize const& size);
   geom::isize get_size() const;
 
-  GraphicsContext& get_gc() const;
+  /** Size of the drawable in pixels, differs from get_size() on high-DPI displays */
+  geom::isize get_drawable_size() const;
+
+  void set_mode(Mode mode);
+  Mode get_mode() const;
+
+  void set_vsync(bool vsync);
+  void set_gamma(float r, float g, float b);
+
+  Renderer& get_renderer() const;
 
   void swap_buffers();
 
+  /** Read back the window content, call before swap_buffers() */
   surf::SoftwareSurface screenshot() const;
 
   uint32_t get_id() const;
+  SDL_Window* get_sdl_window() const { return m_window; }
 
-  void handle_event(SDL_WindowEvent ev);
+  void handle_event(SDL_WindowEvent const& ev);
 
 public:
   sigc::signal<void(geom::isize const&)> sig_resized;
+
+private:
+  bool create(Params const& params, Api api);
+  void destroy();
 
 private:
   wstsys::System& m_system;
@@ -79,14 +93,11 @@ private:
   SDL_GLContext m_gl_context;
   geom::isize m_size;
   Mode m_mode;
-  bool m_resizable;
-  int m_anti_aliasing;
+  std::unique_ptr<Renderer> m_renderer;
 
-  std::unique_ptr<GraphicsContext> m_gc;
-
-private:
-  OpenGLWindow(const OpenGLWindow&);
-  OpenGLWindow& operator=(const OpenGLWindow&);
+public:
+  OpenGLWindow(OpenGLWindow const&) = delete;
+  OpenGLWindow& operator=(OpenGLWindow const&) = delete;
 };
 
 } // namespace wstdisplay

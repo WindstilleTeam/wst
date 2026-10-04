@@ -20,7 +20,7 @@
 
 namespace wstgui {
 
-Style::Style(wstdisplay::TTFFont* font) :
+Style::Style(wstdisplay::Font const* font) :
   m_font(font)
 {
 }
@@ -29,13 +29,13 @@ Style::~Style()
 {
 }
 
-wstdisplay::TTFFont*
+wstdisplay::Font const*
 Style::get_font() const
 {
   return m_font;
 }
 
-wstdisplay::TTFFont*
+wstdisplay::Font const*
 Style::get_small_font() const
 {
   return m_font;

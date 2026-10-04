@@ -63,7 +63,7 @@ public:
   ListView(Component* parent);
   ~ListView() override;
 
-  void draw(wstdisplay::GraphicsContext& gc) override;
+  void draw(wstdisplay::Canvas& canvas) override;
   void update(float delta, const Controller& controller) override;
 
   /** if width is -1 it will be automatically spaced */

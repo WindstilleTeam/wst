@@ -23,6 +23,8 @@
 #include FT_FREETYPE_H
 #include FT_GLYPH_H
 
+#include <memory>
+
 #include <surf/software_surface.hpp>
 
 namespace wstdisplay {
@@ -38,6 +40,8 @@ private:
 public:
   FontEffect() {}
   virtual ~FontEffect() {}
+
+  virtual std::unique_ptr<FontEffect> clone() const = 0;
 
   /** Returns the new height of the font after its transformation */
   virtual int get_height(int orig_font_size) const =0;

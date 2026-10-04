@@ -29,7 +29,7 @@ class FrameHud : public Screen
 public:
   FrameHud(Style& style);
 
-  void draw(wstdisplay::GraphicsContext& gc) override;
+  void draw(wstdisplay::Canvas& canvas) override;
   void update(float delta, const Controller& controller) override;
 
 private:

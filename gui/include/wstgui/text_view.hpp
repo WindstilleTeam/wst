@@ -35,12 +35,12 @@ public:
   TextView(Component* component);
   ~TextView() override;
 
-  void draw(wstdisplay::GraphicsContext& gc) override;
+  void draw(wstdisplay::Canvas& canvas) override;
   void update(float delta, const Controller& controller) override;
 
   void set_geometry(const geom::frect& rect) override;
   void set_text(const std::string& text);
-  void set_font(wstdisplay::TTFFont* font);
+  void set_font(wstdisplay::Font const* font);
 
 private:
   TextView (const TextView&);

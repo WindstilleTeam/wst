@@ -1,56 +1,105 @@
 // Windstille Display Library
-// Copyright (C) 2002-2020 Ingo Ruhnke <grumbel@gmail.com>
-//
-// This program is free software: you can redistribute it and/or modify it
-// under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or (at your
-// option) any later version.
-//
-// This program is distributed in the hope that it will be useful, but
-// WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-// or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
-// License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with this program. If not, see <http://www.gnu.org/licenses/>.
+// Copyright (C) 2002-2026 Ingo Ruhnke <grumbel@gmail.com>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
-#ifndef HEADER_WINDSTILLE_DISPLAY_COMPOSITOR_HPP
-#define HEADER_WINDSTILLE_DISPLAY_COMPOSITOR_HPP
+#ifndef HEADER_WSTDISPLAY_COMPOSITOR_HPP
+#define HEADER_WSTDISPLAY_COMPOSITOR_HPP
 
-#include <geom/size.hpp>
+#include <memory>
+#include <string>
+#include <string_view>
+#include <vector>
 
-#include "framebuffer.hpp"
+#include <surf/color.hpp>
+
+#include "blend.hpp"
+#include "canvas.hpp"
+#include "fwd.hpp"
 
 namespace wstdisplay {
 
-class GraphicContextState;
-class GraphicsContext;
-class SceneContext;
-class SceneGraph;
+/** Description of a render pass of the Compositor */
+struct PassDesc
+{
+  std::string name = {};
 
-class Compositor
+  /** Render into an offscreen buffer that is then combined with the
+      screen using composite_blend, e.g. a lightmap. Otherwise the
+      pass renders directly onto the screen. */
+  bool offscreen = false;
+
+  /** Size of the offscreen buffer relative to the screen */
+  float resolution = 1.0f;
+
+  /** The offscreen buffer is cleared to this color every frame, for
+      a lightmap this is the ambient light */
+  surf::Color clear_color = {0.0f, 0.0f, 0.0f, 0.0f};
+
+  Blend composite_blend = Blend::Alpha;
+
+  /** World space of the pass is screen pixels, the View is ignored.
+      For HUDs and editor overlays. */
+  bool screen_space = false;
+
+  bool enabled = true;
+};
+
+/** Renders a scene made up of several passes, each with a Canvas of
+    its own, in order. The passes are configurable, lighting_passes()
+    gives the classic color/light/highlight/overlay setup.
+
+    Typical use:
+
+      compositor.get_canvas("color").draw(...);
+      compositor.get_canvas("light").draw(light, pos);
+      compositor.render(renderer, view);  // clears the canvases */
+class Compositor final
 {
 public:
-  Compositor(const geom::isize& framebuffer_size, const geom::isize& viewport_size);
+  /** color: regular graphics
+      light: offscreen at 1/4 resolution, cleared to \a ambient and
+             multiplied with the screen, draw lights with Blend::Add
+      highlight: glows on top of the lighting, use Blend::Add
+      overlay: screen space, for HUD and controls */
+  static std::vector<PassDesc> lighting_passes(surf::Color const& ambient = {0.0f, 0.0f, 0.0f});
 
-  void render(GraphicsContext& gc, SceneContext& sc, SceneGraph* sg, const GraphicContextState& state);
+public:
+  explicit Compositor(std::vector<PassDesc> passes);
+  ~Compositor();
 
-  geom::isize get_framebuffer_size() const;
-  geom::isize get_viewport_size() const;
+  size_t get_pass_count() const { return m_passes.size(); }
+
+  /** Index of the pass \a name, throws if unknown */
+  size_t get_pass_index(std::string_view name) const;
+
+  PassDesc& get_pass(size_t index);
+  PassDesc& get_pass(std::string_view name);
+
+  Canvas& get_canvas(size_t index);
+  Canvas& get_canvas(std::string_view name);
+
+  void set_enabled(std::string_view name, bool enabled);
+
+  /** Render all enabled passes onto the renderer's current target and
+      clear all canvases */
+  void render(Renderer& renderer, View const& view);
+
+  /** Clear all canvases without rendering */
+  void clear();
 
 private:
-  void render_lightmap(GraphicsContext& gc);
+  struct Pass
+  {
+    PassDesc desc;
+    std::unique_ptr<Canvas> canvas;
+    FramebufferPtr framebuffer;
+  };
 
-private:
-  geom::isize m_framebuffer_size;
-  geom::isize m_viewport_size;
+  std::vector<Pass> m_passes;
 
-  FramebufferPtr m_screen;
-  FramebufferPtr m_lightmap;
-
-private:
-  Compositor(const Compositor&);
-  Compositor& operator=(const Compositor&);
+public:
+  Compositor(Compositor const&) = delete;
+  Compositor& operator=(Compositor const&) = delete;
 };
 
 } // namespace wstdisplay

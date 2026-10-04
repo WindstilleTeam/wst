@@ -31,7 +31,7 @@ public:
   GroupComponent(const std::string& title, Component* parent);
   ~GroupComponent() override;
 
-  void draw(wstdisplay::GraphicsContext& gc) override;
+  void draw(wstdisplay::Canvas& canvas) override;
   void update(float delta, const Controller& controller) override;
   void set_geometry(geom::frect const& rect) override;
 

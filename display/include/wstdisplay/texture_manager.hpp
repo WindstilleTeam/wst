@@ -1,55 +1,45 @@
 // Windstille Display Library
-// Copyright (C) 2002-2020 Ingo Ruhnke <grumbel@gmail.com>
-//
-// This program is free software: you can redistribute it and/or modify it
-// under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or (at your
-// option) any later version.
-//
-// This program is distributed in the hope that it will be useful, but
-// WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-// or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
-// License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with this program. If not, see <http://www.gnu.org/licenses/>.
+// Copyright (C) 2002-2026 Ingo Ruhnke <grumbel@gmail.com>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
-#ifndef HEADER_WINDSTILLE_DISPLAY_TEXTURE_MANAGER_HPP
-#define HEADER_WINDSTILLE_DISPLAY_TEXTURE_MANAGER_HPP
+#ifndef HEADER_WSTDISPLAY_TEXTURE_MANAGER_HPP
+#define HEADER_WSTDISPLAY_TEXTURE_MANAGER_HPP
 
-#include <string>
+#include <filesystem>
 #include <map>
-#include <glad/gl.h>
+#include <utility>
 
+#include "fwd.hpp"
 #include "texture.hpp"
 
 namespace wstdisplay {
 
-/** This class manages a map of image files to OpenGL textures. */
+/** Loads images into textures of their own and caches them, for
+    textures that can't live on an atlas, e.g. repeating patterns or
+    textures used by custom shaders. */
 class TextureManager final
 {
 public:
   TextureManager();
   ~TextureManager();
 
-  /**
-   * returns a texture containing the image specified with filename
-   * The TextureManager keeps track of loaded Textures and might return a
-   * reference to an existing texture.
-   * Only textures with power of 2 dimensions are supported here. Use
-   * SurfaceManager for images with other dimensions.
-   * Note: Texture is a refcounted class, store it with Ref<Texture>
-   */
-  TexturePtr get(std::filesystem::path const& filename);
+  /** Load \a filename, on failure the fallback texture is returned
+      if one is set, otherwise the error is rethrown */
+  TexturePtr get(std::filesystem::path const& filename, TextureParams const& params = {});
 
   void set_fallback(std::filesystem::path const& filename);
 
+  /** Forget textures that are only referenced by the cache */
   void cleanup();
 
 private:
-  using Textures = std::map<std::filesystem::path, TexturePtr>;
-  Textures textures;
+  using Key = std::pair<std::filesystem::path, std::pair<int, int>>;
+  std::map<Key, TexturePtr> m_textures;
   TexturePtr m_fallback;
+
+public:
+  TextureManager(TextureManager const&) = delete;
+  TextureManager& operator=(TextureManager const&) = delete;
 };
 
 } // namespace wstdisplay

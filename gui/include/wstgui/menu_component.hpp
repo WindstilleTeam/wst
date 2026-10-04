@@ -34,13 +34,13 @@ public:
   ~MenuComponent() override;
 
   void add_item(std::unique_ptr<MenuItem> item);
-  void draw(wstdisplay::GraphicsContext& gc) override;
+  void draw(wstdisplay::Canvas& canvas) override;
   void update(float delta, const Controller& controller) override;
 
   geom::fsize get_prefered_size() const override;
 
-  void set_font(wstdisplay::TTFFont* font_);
-  wstdisplay::TTFFont* get_font();
+  void set_font(wstdisplay::Font const* font_);
+  wstdisplay::Font const* get_font();
 
   void set_geometry(const geom::frect& rect) override;
 
@@ -57,7 +57,7 @@ private:
   std::vector<std::unique_ptr<MenuItem>> m_items;
 
   int m_current_item;
-  wstdisplay::TTFFont* m_font;
+  wstdisplay::Font const* m_font;
   bool m_allow_cancel;
 
   bool m_scroll_mode;

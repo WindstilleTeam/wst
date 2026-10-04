@@ -21,7 +21,7 @@
 #include <wstinput/controller.hpp>
 
 #include <logmich/log.hpp>
-#include <wstdisplay/graphics_context.hpp>
+#include <wstdisplay/canvas.hpp>
 
 #include "controller_def.hpp"
 
@@ -39,7 +39,7 @@ TabComponent::~TabComponent()
 }
 
 void
-TabComponent::draw(wstdisplay::GraphicsContext& gc)
+TabComponent::draw(wstdisplay::Canvas& canvas)
 {
   if (tabs.empty()) return;
 
@@ -51,13 +51,13 @@ TabComponent::draw(wstdisplay::GraphicsContext& gc)
                          geom::fsize(tab_width - 20.0f, static_cast<float>(get_style().get_font()->get_height()) + 6.0f));
 
     if (i == current_tab)
-      gc.fill_rounded_rect(tab_rect, 5.0f, surf::Color(1.0f, 1.0f, 1.0f, 0.5f));
+      canvas.fill_rounded_rect(tab_rect, 5.0f, surf::Color(1.0f, 1.0f, 1.0f, 0.5f));
     else
-      gc.fill_rounded_rect(tab_rect, 5.0f, surf::Color(0.0f, 0.0f, 0.0f, 0.5f));
+      canvas.fill_rounded_rect(tab_rect, 5.0f, surf::Color(0.0f, 0.0f, 0.0f, 0.5f));
 
-    gc.draw_rounded_rect(tab_rect, 5.0f, surf::Color(1.0f, 1.0f, 1.0f, 0.5f));
+    canvas.draw_rounded_rect(tab_rect, 5.0f, surf::Color(1.0f, 1.0f, 1.0f, 0.5f));
 
-    get_style().get_font()->draw_center(gc,
+    get_style().get_font()->draw_center(canvas,
                                       glm::vec2(m_geometry.left() + tab_width * static_cast<float>(i) + tab_width/2,
                                                 m_geometry.top() + static_cast<float>(get_style().get_font()->get_height())),
                                       tabs[i].label,
@@ -66,7 +66,7 @@ TabComponent::draw(wstdisplay::GraphicsContext& gc)
                                       : surf::Color(1.0f, 1.0f, 1.0f, 1.0f));
   }
 
-  tabs[current_tab].component->draw(gc);
+  tabs[current_tab].component->draw(canvas);
 }
 
 void

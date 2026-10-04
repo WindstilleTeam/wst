@@ -45,6 +45,10 @@ public:
   int get_ticks();
   void delay(int msec);
   void quit();
+  bool is_quit() const { return m_quit; }
+
+  /** Called by OpenGLWindow on destruction */
+  void remove_window(uint32_t id);
 
   sigc::signal<void(SDL_Event const&)>& sig_event() { return m_sig_event; }
 

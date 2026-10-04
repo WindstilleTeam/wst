@@ -16,7 +16,7 @@
 **  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <wstdisplay/graphics_context.hpp>
+#include <wstdisplay/canvas.hpp>
 
 #include "group_component.hpp"
 #include "style.hpp"
@@ -35,26 +35,26 @@ GroupComponent::~GroupComponent()
 }
 
 void
-GroupComponent::draw(wstdisplay::GraphicsContext& gc)
+GroupComponent::draw(wstdisplay::Canvas& canvas)
 {
-  gc.fill_rounded_rect(m_geometry, 5.0f, surf::Color(0.0f, 0.0f, 0.0f, 0.7f));
-  gc.draw_rounded_rect(m_geometry, 5.0f, surf::Color(1.0f, 1.0f, 1.0f, 0.5f));
+  canvas.fill_rounded_rect(m_geometry, 5.0f, surf::Color(0.0f, 0.0f, 0.0f, 0.7f));
+  canvas.draw_rounded_rect(m_geometry, 5.0f, surf::Color(1.0f, 1.0f, 1.0f, 0.5f));
 
   if (!m_title.empty())
   {
-    wstdisplay::TTFFont* font = get_style().get_font();
-    font->draw_center(gc,
+    wstdisplay::Font const* font = get_style().get_font();
+    font->draw_center(canvas,
                       glm::vec2(m_geometry.left() + m_geometry.width() / 2.0f,
                                 m_geometry.top()  + static_cast<float>(font->get_height()) + 5.0f),
                       m_title, surf::Color(1.0f, 1.0f, 1.0f));
 
-    gc.fill_rect(geom::frect(m_geometry.left()  + 8.0f, m_geometry.top() + static_cast<float>(font->get_height()) + 16.0f,
+    canvas.fill_rect(geom::frect(m_geometry.left()  + 8.0f, m_geometry.top() + static_cast<float>(font->get_height()) + 16.0f,
                              m_geometry.right() - 8.0f, m_geometry.top() + static_cast<float>(font->get_height()) + 18.0f),
                  surf::Color(1.0f, 1.0f, 1.0f, 0.5f));
   }
 
   if (m_child) {
-    m_child->draw(gc);
+    m_child->draw(canvas);
   }
 }
 

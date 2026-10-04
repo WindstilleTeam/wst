@@ -133,8 +133,7 @@ find_package(logmich REQUIRED)
 
 file(GLOB WSTDISPLAY_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
   src/*.cpp
-  src/font/*.?pp
-  src/scenegraph/*.cpp
+  src/font/*.cpp
   external/glad/src/gl.c
   )
 add_library(wstdisplay STATIC ${WSTDISPLAY_SOURCES})
@@ -146,10 +145,9 @@ target_include_directories(wstdisplay PRIVATE
   )
 target_include_directories(wstdisplay PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/external/glad/include>
   $<INSTALL_INTERFACE:include>
   )
-target_compile_options(wstdisplay PRIVATE ${WSTDISPLAY_WARNINGS_CXX_FLAGS})
+target_compile_options(wstdisplay PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${WSTDISPLAY_WARNINGS_CXX_FLAGS}>)
 # glad is C; silence some warnings
 set_source_files_properties(external/glad/src/gl.c PROPERTIES
   COMPILE_FLAGS "-Wno-pedantic -Wno-unused-function")
@@ -159,20 +157,20 @@ target_link_libraries(wstdisplay PUBLIC
   surf::surf
   logmich::logmich
   OpenGL::GL
-  OpenGL::GLU
   Freetype::Freetype
   PkgConfig::SDL2
   PkgConfig::SIGCXX
   Threads::Threads)
 
 if(BUILD_TESTS)
+  find_package(GTest REQUIRED)
+  include(GoogleTest)
   file(GLOB TEST_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
     test/*_test.cpp)
-  foreach(SRC ${TEST_SOURCES})
-    get_filename_component(SRC_BASENAME ${SRC} NAME_WE)
-    add_executable(${SRC_BASENAME} ${SRC})
-    target_link_libraries(${SRC_BASENAME} PRIVATE wstdisplay)
-  endforeach(SRC)
+  add_executable(test_wstdisplay ${TEST_SOURCES})
+  target_compile_options(test_wstdisplay PRIVATE ${WSTDISPLAY_WARNINGS_CXX_FLAGS})
+  target_link_libraries(test_wstdisplay PRIVATE wstdisplay GTest::gtest GTest::gtest_main)
+  gtest_discover_tests(test_wstdisplay)
 endif()
 
 if(BUILD_EXTRA)
@@ -195,10 +193,6 @@ install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/include/"
   PATTERN "*.hpp"
   )
 
-# GLAD headers (public, since wstdisplay headers include <glad/gl.h>)
-install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/external/glad/include/"
-  DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/"
-  )
 
 # Export and install library (inlined from former tinycmmc)
 install(TARGETS wstdisplay

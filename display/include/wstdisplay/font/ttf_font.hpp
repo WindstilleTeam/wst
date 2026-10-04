@@ -1,34 +1,14 @@
-/*
-**  Windstille - A Sci-Fi Action-Adventure Game
-**  Copyright (C) 2005 Ingo Ruhnke <grumbel@gmail.com>
-**
-**  This program is free software: you can redistribute it and/or modify
-**  it under the terms of the GNU General Public License as published by
-**  the Free Software Foundation, either version 3 of the License, or
-**  (at your option) any later version.
-**
-**  This program is distributed in the hope that it will be useful,
-**  but WITHOUT ANY WARRANTY; without even the implied warranty of
-**  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-**  GNU General Public License for more details.
-**
-**  You should have received a copy of the GNU General Public License
-**  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+// Windstille Display Library
+// Copyright (C) 2005-2026 Ingo Ruhnke <grumbel@gmail.com>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
-#ifndef HEADER_WINDSTILLE_FONT_TTF_FONT_HPP
-#define HEADER_WINDSTILLE_FONT_TTF_FONT_HPP
+#ifndef HEADER_WSTDISPLAY_FONT_TTF_FONT_HPP
+#define HEADER_WSTDISPLAY_FONT_TTF_FONT_HPP
 
-#include <glad/gl.h>
+#include <filesystem>
 #include <memory>
-#include <string>
 
-#include <geom/geom.hpp>
-
-#include <surf/color.hpp>
-#include <wstdisplay/fwd.hpp>
-#include <wstdisplay/texture.hpp>
-
+#include "font.hpp"
 #include "no_font_effect.hpp"
 
 namespace wstdisplay {
@@ -37,52 +17,30 @@ class FontEffect;
 class TTFFontImpl;
 class TTFFontManager;
 
-class TTFCharacter
+/** A TrueType font rendered with FreeType. Glyphs are rasterized on
+    first use into atlas pages, Latin-1 is prepared up front. */
+class TTFFont final : public Font
 {
 public:
-  /** The position of the image, relative to the current cursor
-      position in screen coordinates */
-  geom::irect pos;
+  TTFFont(TTFFontManager& mgr, std::filesystem::path const& file, int size,
+          FontEffect const& effect = NoFontEffect());
+  ~TTFFont() override;
 
-  /** The position of the character in a OpenGL texture, given in
-      uv-coordinates */
-  geom::frect uv;
+  Glyph const* get_glyph(char32_t codepoint) const override;
 
-  /** Amount of pixels that the cursor will advance after having
-      printed this character */
-  int advance;
+  /** The size given in the constructor, adjusted by the FontEffect */
+  float get_height() const override;
+  float get_line_height() const override;
 
-  TTFCharacter(const geom::irect& pos, const geom::frect& uv, int advance);
-};
-
-class TTFFont
-{
-public:
-  TTFFont(TTFFontManager& mgr, std::filesystem::path const& file, int size, const FontEffect& effect = NoFontEffect());
-  ~TTFFont();
-
-  /** */
-  int get_height() const;
-
-  /** Returns the width of a given piece of text, doesn't take
-      newlines into account */
-  int get_width(const std::string& text) const;
-
-  /** Returns the height as given in the constructor, this does *not*
-      take into account any possible resize effects done by
-      FontEffoct */
-  int get_size() const;
-
-  wstdisplay::TexturePtr get_texture() const;
-
-  const TTFCharacter& get_character(int c) const;
-  void draw(wstdisplay::GraphicsContext& gc, const glm::vec2& pos, const std::string& str, const surf::Color& color = surf::Color(1.0f, 1.0f, 1.0f));
-  void draw_center(wstdisplay::GraphicsContext& gc, const glm::vec2& pos, const std::string& str, const surf::Color& color = surf::Color(1.0f, 1.0f, 1.0f));
-
-  void draw(wstdisplay::DrawingContext& ctx, const std::string& text, float x, float y, float z);
+  /** The size given in the constructor */
+  int get_pixel_size() const;
 
 private:
   std::unique_ptr<TTFFontImpl> impl;
+
+public:
+  TTFFont(TTFFont const&) = delete;
+  TTFFont& operator=(TTFFont const&) = delete;
 };
 
 } // namespace wstdisplay

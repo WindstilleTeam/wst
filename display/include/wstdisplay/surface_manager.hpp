@@ -1,60 +1,70 @@
 // Windstille Display Library
-// Copyright (C) 2002-2020 Ingo Ruhnke <grumbel@gmail.com>
-//
-// This program is free software: you can redistribute it and/or modify it
-// under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or (at your
-// option) any later version.
-//
-// This program is distributed in the hope that it will be useful, but
-// WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-// or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
-// License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with this program. If not, see <http://www.gnu.org/licenses/>.
+// Copyright (C) 2002-2026 Ingo Ruhnke <grumbel@gmail.com>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
-#ifndef HEADER_WINDSTILLE_DISPLAY_SURFACE_MANAGER_HPP
-#define HEADER_WINDSTILLE_DISPLAY_SURFACE_MANAGER_HPP
+#ifndef HEADER_WSTDISPLAY_SURFACE_MANAGER_HPP
+#define HEADER_WSTDISPLAY_SURFACE_MANAGER_HPP
 
+#include <filesystem>
 #include <map>
 #include <memory>
-#include <string>
 #include <vector>
 
+#include <geom/size.hpp>
+#include <surf/software_surface.hpp>
+
+#include "fwd.hpp"
 #include "texture.hpp"
-#include "surface.hpp"
+#include "texture_packer.hpp"
 
 namespace wstdisplay {
 
-class TexturePacker;
-
-/** This class keeps a list of loaded surfaces and manages loading new ones */
+/** Loads images as Surfaces and caches them by filename. Images up
+    to a size limit are packed onto shared atlas pages, larger ones
+    get a texture of their own. */
 class SurfaceManager final
 {
 public:
+  struct Options
+  {
+    /** Size of an atlas page, clamped to GL_MAX_TEXTURE_SIZE */
+    geom::isize page_size = geom::isize(2048, 2048);
+
+    /** Images with a larger width or height get their own texture */
+    int max_atlas_image_size = 512;
+
+    /** Filtering of all textures, use Nearest for pixel art */
+    TextureParams params = {};
+  };
+
+public:
   SurfaceManager();
+  explicit SurfaceManager(Options const& options);
   ~SurfaceManager();
 
-  /** returns a surface containing the image specified with filename */
+  /** The surface for the image \a filename, loaded on first use */
   SurfacePtr get(std::filesystem::path const& filename);
 
-  /** Loads an image and splits it into several Surfaces sized width and height.
-      The created surfaces will be added to the surfaces vector. */
-  void load_grid(std::filesystem::path const& filename,
-                 std::vector<SurfacePtr>& surfaces, geom::isize const& size);
+  /** Upload \a image, not cached */
+  SurfacePtr create(surf::SoftwareSurface const& image);
 
-  TexturePtr create_texture(SoftwareSurface const& image,
-                            float* maxu, float* maxv);
+  /** Load an image and split it into cells of \a size, row by row */
+  std::vector<SurfacePtr> load_grid(std::filesystem::path const& filename, geom::isize const& size);
 
-  /** Removes all cached Sprites that are no longer in use */
+  /** Forget cached surfaces that are only referenced by the cache.
+      Atlas space is not reclaimed. */
   void cleanup();
 
-  void save_all_as_png() const;
+  TexturePacker& get_packer() { return m_packer; }
 
 private:
-  std::unique_ptr<TexturePacker> m_texture_packer;
+  Options m_options;
+  TexturePacker m_packer;
   std::map<std::filesystem::path, SurfacePtr> m_surfaces;
+
+public:
+  SurfaceManager(SurfaceManager const&) = delete;
+  SurfaceManager& operator=(SurfaceManager const&) = delete;
 };
 
 } // namespace wstdisplay

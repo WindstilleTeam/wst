@@ -22,8 +22,10 @@
 
 #include <surf/save.hpp>
 #include <wstinput/input_manager.hpp>
-#include <wstdisplay/graphics_context.hpp>
+#include <wstdisplay/canvas.hpp>
 #include <wstdisplay/opengl_window.hpp>
+#include <wstdisplay/renderer.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include <wstgui/screen.hpp>
 
 namespace wstgui {
@@ -45,7 +47,9 @@ ScreenManager::ScreenManager(wstsys::System& system, wstdisplay::OpenGLWindow& w
   m_huds(),
   m_sig_update(),
   m_sig_draw_begin(),
-  m_sig_draw_end()
+  m_sig_draw_end(),
+  m_canvas(std::make_unique<wstdisplay::Canvas>()),
+  m_clear_color(0.0f, 0.0f, 0.0f)
 {
   m_system.sig_event().connect([this](SDL_Event const& ev){ handle_event(ev); });
 }
@@ -98,7 +102,7 @@ ScreenManager::run()
     m_sig_update(delta);
     m_system.update();
 
-    draw(m_window.get_gc());
+    draw();
 
     apply_pending_actions();
 
@@ -107,23 +111,41 @@ ScreenManager::run()
 }
 
 void
-ScreenManager::draw(wstdisplay::GraphicsContext& gc)
+ScreenManager::draw()
 {
-  m_sig_draw_begin(gc);
+  wstdisplay::Renderer& renderer = m_window.get_renderer();
+  geom::isize const window_size = m_window.get_size();
+  geom::isize const drawable_size = m_window.get_drawable_size();
+
+  wstdisplay::Canvas& canvas = *m_canvas;
+  canvas.clear();
+
+  m_sig_draw_begin(canvas);
 
   if (!m_screens.empty()) {
-    m_screens.back()->draw(gc);
+    m_screens.back()->draw(canvas);
   }
 
   if (!m_overlay_screens.empty()) {
-    m_overlay_screens.back()->draw(gc);
+    m_overlay_screens.back()->draw(canvas);
   }
 
   for(Screen* hud : m_huds) {
-    hud->draw(gc);
+    hud->draw(canvas);
   }
 
-  m_sig_draw_end(gc);
+  m_sig_draw_end(canvas);
+
+  // the GUI is laid out in window coordinates, scale to the drawable for high-DPI
+  glm::mat4 const scale = glm::scale(glm::mat4(1.0f),
+                                     glm::vec3(static_cast<float>(drawable_size.width()) / static_cast<float>(window_size.width()),
+                                               static_cast<float>(drawable_size.height()) / static_cast<float>(window_size.height()),
+                                               1.0f));
+
+  renderer.begin_frame(drawable_size);
+  renderer.clear(m_clear_color);
+  renderer.render(canvas, scale, scale);
+  renderer.end_frame();
 
   m_window.swap_buffers();
 }

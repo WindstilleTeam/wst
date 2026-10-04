@@ -96,7 +96,6 @@ System::update()
     {
       case SDL_QUIT:
         // FIXME: This should be a bit more gentle, but will do for now
-        std::cout << "Ctrl-c or Window-close pressed, game is going to quit" << std::endl;
         m_quit = true;
         break;
 
@@ -105,8 +104,6 @@ System::update()
           auto it = m_windows.find(event.window.windowID);
           if (it != m_windows.end()) {
             it->second->handle_event(event.window);
-          } else {
-            log_error("unknown windows id: {}", event.window.windowID);
           }
         }
         break;
@@ -177,7 +174,7 @@ System::update()
         break;
 
       default:
-        std::cout << "System: unknown event: " << event.type << std::endl;
+        log_debug("System: unhandled event: {}", event.type);
         break;
     }
   }
@@ -193,6 +190,12 @@ void
 System::delay(int msec)
 {
   SDL_Delay(msec);
+}
+
+void
+System::remove_window(uint32_t id)
+{
+  m_windows.erase(id);
 }
 
 void

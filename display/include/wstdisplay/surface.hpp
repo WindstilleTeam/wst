@@ -1,83 +1,54 @@
 // Windstille Display Library
-// Copyright (C) 2002-2020 Ingo Ruhnke <grumbel@gmail.com>
-//
-// This program is free software: you can redistribute it and/or modify it
-// under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or (at your
-// option) any later version.
-//
-// This program is distributed in the hope that it will be useful, but
-// WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-// or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
-// License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with this program. If not, see <http://www.gnu.org/licenses/>.
+// Copyright (C) 2002-2026 Ingo Ruhnke <grumbel@gmail.com>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
-#ifndef HEADER_WINDSTILLE_DISPLAY_SURFACE_HPP
-#define HEADER_WINDSTILLE_DISPLAY_SURFACE_HPP
+#ifndef HEADER_WSTDISPLAY_SURFACE_HPP
+#define HEADER_WSTDISPLAY_SURFACE_HPP
+
+#include <memory>
 
 #include <geom/rect.hpp>
+#include <surf/software_surface.hpp>
 
+#include "fwd.hpp"
 #include "texture.hpp"
 
 namespace wstdisplay {
 
-class GraphicsContext;
-class SurfaceDrawingParameters;
-class Surface;
-
-using SurfacePtr = std::shared_ptr<Surface>;
-
-/**
- * Surface class. This class basically holds a reference to an opengl texture
- * along with texture coordinates that specify a rectangle on that texture.
- * Several surface may share a single texture (but have different texture
- * coordinates then)
- */
-class Surface
+/** A rectangular region of a Texture, the basic unit of drawing.
+    Several surfaces can share a texture (atlas pages, sprite sheets),
+    which is what allows drawing them in a single batch. */
+class Surface final
 {
 public:
-  /**
-   * Create a new Surface object from a Texture
-   * @param texture The Texture to use
-   * @param uv The rectangle of the texture to use in (0-1) notation
-   * @param width  Width of the surface on the screen
-   * @param height Height of the surface on the screen
-   */
-  static SurfacePtr create(TexturePtr texture, const geom::frect& uv, const geom::fsize& size);
-  static SurfacePtr create(surf::SoftwareSurface surface);
-  static SurfacePtr create(geom::isize const& size);
+  /** @param uv    the region on the texture in [0,1] notation
+      @param size  the size of the surface in pixels */
+  static SurfacePtr create(TexturePtr texture, geom::frect const& uv, geom::fsize const& size);
+
+  /** A surface covering the whole \a texture */
+  static SurfacePtr create(TexturePtr texture);
+
+  /** Upload \a image into a texture of its own */
+  static SurfacePtr create(surf::SoftwareSurface const& image, TextureParams const& params = {});
+
+  Surface(TexturePtr texture, geom::frect const& uv, geom::fsize const& size);
+
+  /** A surface for the pixel rectangle \a rect of this surface,
+      sharing the texture */
+  SurfacePtr region(geom::frect const& rect) const;
+
+  TexturePtr const& get_texture() const { return m_texture; }
+
+  /** Texture coordinates of the surface rectangle */
+  geom::frect const& get_uv() const { return m_uv; }
+
+  geom::fsize get_size() const { return m_size; }
+  float get_width() const { return m_size.width(); }
+  float get_height() const { return m_size.height(); }
 
 private:
-  Surface(TexturePtr texture, const geom::frect& uv, const geom::fsize& size);
-  Surface(geom::isize const& size);
-
-public:
-  ~Surface();
-
-  float get_width()  const;
-  float get_height() const;
-  geom::fsize get_size() const;
-
-  TexturePtr get_texture() const;
-
-  /** Returns texture coordinates for the Surface rectangle */
-  geom::frect get_uv() const;
-
-  void draw(GraphicsContext& gc, geom::fpoint const& pos) const;
-  void draw(GraphicsContext& gc, geom::frect const& dstrect) const;
-  void draw(GraphicsContext& gc, geom::frect const& srcrect, geom::frect const& dstrect) const;
-  void draw(GraphicsContext& gc, SurfaceDrawingParameters const& params) const;
-
-private:
-  /** Texture on which the surface is located */
   TexturePtr m_texture;
-
-  /** uv coordinates of the Surface in [0,1] range */
   geom::frect m_uv;
-
-  /** The size of the Surface in pixels */
   geom::fsize m_size;
 };
 

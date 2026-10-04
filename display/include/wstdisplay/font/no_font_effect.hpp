@@ -30,6 +30,8 @@ public:
   NoFontEffect() {}
   ~NoFontEffect() override {}
 
+  std::unique_ptr<FontEffect> clone() const override { return std::make_unique<NoFontEffect>(*this); }
+
   int get_height(int orig_font_size) const override { return orig_font_size; }
 
   int get_glyph_width(int orig_glyph_width) const override   { return orig_glyph_width; }

@@ -1,65 +1,49 @@
-
 // Windstille Display Library
-// Copyright (C) 2002-2020 Ingo Ruhnke <grumbel@gmail.com>
-//
-// This program is free software: you can redistribute it and/or modify it
-// under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or (at your
-// option) any later version.
-//
-// This program is distributed in the hope that it will be useful, but
-// WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-// or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
-// License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with this program. If not, see <http://www.gnu.org/licenses/>.
+// Copyright (C) 2002-2026 Ingo Ruhnke <grumbel@gmail.com>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
 #ifndef HEADER_WSTDISPLAY_FWD_HPP
 #define HEADER_WSTDISPLAY_FWD_HPP
 
+#include <memory>
+
 namespace wstdisplay {
 
+class BitmapFont;
 class BorderFontEffect;
+class Canvas;
 class Compositor;
-class ControlDrawable;
-class Drawable;
-class DrawableGroup;
-class DrawingContext;
-class DrawingParameters;
-class FillScreenDrawable;
-class FillScreenPatternDrawable;
+class Font;
 class FontEffect;
 class Framebuffer;
-class GLVertexArrays;
-class GradientDrawable;
-class GraphicContextState;
-class GraphicsContext;
-class NavigationGraphDrawable;
+class Material;
+class Mesh;
 class NoFontEffect;
-class OpenGLState;
 class OpenGLWindow;
-class Renderbuffer;
-class SceneContext;
-class SceneGraph;
-class ScissorDrawable;
-class ShaderDrawable;
-class ShaderObject;
+class Renderer;
 class ShaderProgram;
-class ShockwaveDrawable;
-class StencilDrawable;
+class StaticBatch;
 class Surface;
-class SurfaceDrawable;
-class SurfaceDrawingParameters;
 class SurfaceManager;
-class SurfaceQuadDrawable;
 class TTFFont;
 class TTFFontManager;
 class TextArea;
 class Texture;
 class TextureManager;
 class TexturePacker;
-class VertexArrayDrawable;
+class View;
+
+struct Caps;
+struct DrawParams;
+struct RenderStats;
+struct Vertex;
+
+using FramebufferPtr = std::shared_ptr<Framebuffer>;
+using MaterialPtr = std::shared_ptr<Material>;
+using MeshPtr = std::shared_ptr<Mesh>;
+using ShaderProgramPtr = std::shared_ptr<ShaderProgram>;
+using SurfacePtr = std::shared_ptr<Surface>;
+using TexturePtr = std::shared_ptr<Texture>;
 
 } // namespace wstdisplay
 

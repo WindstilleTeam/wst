@@ -26,6 +26,7 @@
 
 #include <SDL.h>
 #include <sigc++/signal.h>
+#include <surf/color.hpp>
 
 #include <wstdisplay/fwd.hpp>
 #include <wstgui/fwd.hpp>
@@ -69,13 +70,16 @@ public:
 
   void bind_key(SDL_Keycode code, std::function<void()> callback);
 
+  /** Color the screen is cleared to before drawing */
+  void set_clear_color(surf::Color const& color) { m_clear_color = color; }
+
   sigc::signal<void (float)>& sig_update() { return m_sig_update; };
-  sigc::signal<void (wstdisplay::GraphicsContext&)>& sig_draw_begin() { return m_sig_draw_begin; };
-  sigc::signal<void (wstdisplay::GraphicsContext&)>& sig_draw_end() { return m_sig_draw_end; };
+  sigc::signal<void (wstdisplay::Canvas&)>& sig_draw_begin() { return m_sig_draw_begin; };
+  sigc::signal<void (wstdisplay::Canvas&)>& sig_draw_end() { return m_sig_draw_end; };
 
 private:
   void apply_pending_actions();
-  void draw(wstdisplay::GraphicsContext& gc);
+  void draw();
   void handle_event(const SDL_Event& event);
 
 private:
@@ -103,8 +107,11 @@ private:
   std::vector<Screen*> m_huds;
 
   sigc::signal<void (float)> m_sig_update;
-  sigc::signal<void (wstdisplay::GraphicsContext&)> m_sig_draw_begin;
-  sigc::signal<void (wstdisplay::GraphicsContext&)> m_sig_draw_end;
+  sigc::signal<void (wstdisplay::Canvas&)> m_sig_draw_begin;
+  sigc::signal<void (wstdisplay::Canvas&)> m_sig_draw_end;
+
+  std::unique_ptr<wstdisplay::Canvas> m_canvas;
+  surf::Color m_clear_color;
 
 public:
   ScreenManager (const ScreenManager&) = delete;

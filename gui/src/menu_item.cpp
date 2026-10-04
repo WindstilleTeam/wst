@@ -18,7 +18,7 @@
 
 #include "menu_item.hpp"
 
-#include <wstdisplay/graphics_context.hpp>
+#include <wstdisplay/canvas.hpp>
 
 #include "menu_component.hpp"
 #include "style.hpp"
@@ -32,15 +32,15 @@ MenuItem::MenuItem(MenuComponent* parent_, const std::string& label_)
 {}
 
 void
-MenuItem::draw(wstdisplay::GraphicsContext& gc, const geom::frect& rect, bool is_active)
+MenuItem::draw(wstdisplay::Canvas& canvas, const geom::frect& rect, bool is_active)
 {
   surf::Color font_color;
-  wstdisplay::TTFFont* font = parent->get_font();
+  wstdisplay::Font const* font = parent->get_font();
 
   if (is_active)
   {
-    gc.fill_rounded_rect(rect, 5.0f, surf::Color(0.5f, 0.5f, 0.5f, 0.75f));
-    gc.draw_rounded_rect(rect, 5.0f, surf::Color(1.0f, 1.0f, 1.0f, 1.0f));
+    canvas.fill_rounded_rect(rect, 5.0f, surf::Color(0.5f, 0.5f, 0.5f, 0.75f));
+    canvas.draw_rounded_rect(rect, 5.0f, surf::Color(1.0f, 1.0f, 1.0f, 1.0f));
     font_color = surf::Color(1.0f, 1.0f, 1.0f);
     fade_timer = 2.0f;
   }
@@ -48,8 +48,8 @@ MenuItem::draw(wstdisplay::GraphicsContext& gc, const geom::frect& rect, bool is
   {
     if (fade_timer != 0.0f)
     {
-      //gc.fill_rounded_rect(rect, 5.0f, surf::Color(0.5f, 0.5f, 0.5f, 0.75f * fade_timer));
-      //gc.draw_rounded_rect(rect, 5.0f, surf::Color(1.0f, 1.0f, 1.0f, 1.0f * fade_timer));
+      //canvas.fill_rounded_rect(rect, 5.0f, surf::Color(0.5f, 0.5f, 0.5f, 0.75f * fade_timer));
+      //canvas.draw_rounded_rect(rect, 5.0f, surf::Color(1.0f, 1.0f, 1.0f, 1.0f * fade_timer));
       font_color = surf::Color(0.75f + 0.25f * std::clamp(fade_timer, 0.0f, 1.0f),
                          0.75f + 0.25f * std::clamp(fade_timer, 0.0f, 1.0f),
                          0.75f + 0.25f * std::clamp(fade_timer, 0.0f, 1.0f),
@@ -61,7 +61,7 @@ MenuItem::draw(wstdisplay::GraphicsContext& gc, const geom::frect& rect, bool is
     }
   }
 
-  font->draw(gc, glm::vec2(rect.left() + static_cast<float>(font->get_height()),
+  font->draw(canvas, glm::vec2(rect.left() + static_cast<float>(font->get_height()),
                            rect.top() + static_cast<float>(font->get_height())/2.0f + rect.height() / 2.0f - 2.0f),
              label, font_color);
 }
@@ -118,10 +118,10 @@ EnumMenuItem::decr()
 }
 
 void
-EnumMenuItem::draw(wstdisplay::GraphicsContext& gc, const geom::frect& rect, bool is_active)
+EnumMenuItem::draw(wstdisplay::Canvas& canvas, const geom::frect& rect, bool is_active)
 {
-  MenuItem::draw(gc, rect, is_active);
-  wstdisplay::TTFFont* font = parent->get_font();
+  MenuItem::draw(canvas, rect, is_active);
+  wstdisplay::Font const* font = parent->get_font();
   surf::Color font_color;
   if (is_active)
   {
@@ -132,7 +132,7 @@ EnumMenuItem::draw(wstdisplay::GraphicsContext& gc, const geom::frect& rect, boo
     font_color = surf::Color(0.75f, 0.75f, 0.75f, 1.0f);
   }
 
-  font->draw(gc,
+  font->draw(canvas,
              glm::vec2(rect.right() - static_cast<float>(font->get_height())      - static_cast<float>(font->get_width(labels[index].label)),
                        rect.top()   + static_cast<float>(font->get_height())/2.0f + rect.height() / 2.0f - 2.0f),
              labels[index].label,
@@ -174,9 +174,9 @@ SliderMenuItem::incr()
 }
 
 void
-SliderMenuItem::draw(wstdisplay::GraphicsContext& gc, const geom::frect& rect, bool is_active)
+SliderMenuItem::draw(wstdisplay::Canvas& canvas, const geom::frect& rect, bool is_active)
 {
-  MenuItem::draw(gc, rect, is_active);
+  MenuItem::draw(canvas, rect, is_active);
   float total_width = 200.0f;
   float width = total_width * static_cast<float>(value) / static_cast<float>(max_value - min_value);
 
@@ -190,12 +190,12 @@ SliderMenuItem::draw(wstdisplay::GraphicsContext& gc, const geom::frect& rect, b
     color = surf::Color(0.75f, 0.75f, 0.75f, 1.0f);
   }
 
-  gc.fill_rounded_rect(geom::frect(glm::vec2(rect.right() - 4.0f - total_width, rect.top() + 4.0f),
+  canvas.fill_rounded_rect(geom::frect(glm::vec2(rect.right() - 4.0f - total_width, rect.top() + 4.0f),
                                    geom::fsize(width, rect.height() - 8)),
                              5.0f,
                              surf::Color(0.75f*color.r, 0.75f*color.g, 0.75f*color.b, color.a));
 
-  gc.draw_rounded_rect(geom::frect(glm::vec2(rect.right() - 4.0f - total_width, rect.top() + 4.0f),
+  canvas.draw_rounded_rect(geom::frect(glm::vec2(rect.right() - 4.0f - total_width, rect.top() + 4.0f),
                                    geom::fsize(total_width, rect.height() - 8)),
                              5.0f,
                              color);
@@ -216,9 +216,9 @@ ButtonMenuItem::click()
 }
 
 void
-ButtonMenuItem::draw(wstdisplay::GraphicsContext& gc, const geom::frect& rect, bool is_active)
+ButtonMenuItem::draw(wstdisplay::Canvas& canvas, const geom::frect& rect, bool is_active)
 {
-  MenuItem::draw(gc, rect, is_active);
+  MenuItem::draw(canvas, rect, is_active);
 }
 
 } // namespace wstgui

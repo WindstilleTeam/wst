@@ -38,6 +38,8 @@ public:
   BorderFontEffect(int size, bool outline);
   ~BorderFontEffect() override;
 
+  std::unique_ptr<FontEffect> clone() const override { return std::make_unique<BorderFontEffect>(*this); }
+
   int get_height(int orig_font_size) const override;
 
   int get_glyph_width(int orig_glyph_width) const override;

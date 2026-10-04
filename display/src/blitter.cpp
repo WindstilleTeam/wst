@@ -20,11 +20,11 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "software_surface.hpp"
+#include <surf/software_surface.hpp>
 
 namespace wstdisplay {
 
-void generate_border(SoftwareSurface& surface,
+void generate_border(surf::SoftwareSurface& surface,
                      int x_pos, int y_pos, int width, int height)
 {
   assert(surface.get_format() == surf::PixelFormat::RGBA8);

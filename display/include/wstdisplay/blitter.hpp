@@ -17,7 +17,7 @@
 #ifndef HEADER_WINDSTILLE_DISPLAY_BLITTER_HPP
 #define HEADER_WINDSTILLE_DISPLAY_BLITTER_HPP
 
-#include "software_surface.hpp"
+#include <surf/software_surface.hpp>
 
 namespace wstdisplay {
 
@@ -31,7 +31,7 @@ namespace wstdisplay {
     X 4 5 6 X  / 4 4 5 6 6
     X X X X X    4 4 5 6 6
 */
-void generate_border(SoftwareSurface& surface, int x_pos, int y_pos, int width, int height);
+void generate_border(surf::SoftwareSurface& surface, int x_pos, int y_pos, int width, int height);
 
 } // namespace wstdisplay
 

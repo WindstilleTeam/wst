@@ -208,9 +208,6 @@ int main(int argc, char** argv)
     vbox->set_geometry(geom::grow(geom::frect(geom::fpoint(0.0f, 0.0f),
                                               geom::fsize(size)), -100.0f));
     anchor->set_geometry(geom::frect(geom::fsize(size)));
-    glViewport(0, 0, size.width(), size.height());
-    auto& gc = window->get_gc();
-    gc.set_ortho(size);
   });
 
   screen.push_screen(std::move(gui_manager));
@@ -219,25 +216,8 @@ int main(int argc, char** argv)
     screen.quit();
   });
 
-  screen.sig_draw_begin().connect([](wstdisplay::GraphicsContext& gc){
-    gc.clear(surf::palette::black);
-  });
   screen.run();
 
-#if 0
-  bool quit = false;
-  while (!quit) {
-    system.update();
-
-    auto& gc = window->get_gc();
-    gc.clear(surf::palette::black);
-    gui_manager->draw(gc);
-    menu->get_root()->draw(gc);
-    window->swap_buffers();
-
-    gui_manager->update(1.0f / 60, Controller());
-  }
-#endif
 
   return 0;
 }

@@ -1,70 +1,161 @@
 // Windstille Display Library
-// Copyright (C) 2002-2020 Ingo Ruhnke <grumbel@gmail.com>
-//
-// This program is free software: you can redistribute it and/or modify it
-// under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or (at your
-// option) any later version.
-//
-// This program is distributed in the hope that it will be useful, but
-// WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-// or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
-// License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with this program. If not, see <http://www.gnu.org/licenses/>.
+// Copyright (C) 2002-2026 Ingo Ruhnke <grumbel@gmail.com>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
 #include "shader_program.hpp"
 
-#include <assert.h>
-#include <iostream>
+#include <fstream>
+#include <sstream>
 #include <stdexcept>
+#include <string>
 #include <vector>
 
-#include "assert_gl.hpp"
-#include "assert_gl.hpp"
-#include "shader_object.hpp"
+#include "gl.hpp"
 
 namespace wstdisplay {
+
+namespace {
+
+char const gles2_vert_preamble[] =
+  "#version 100\n"
+  "precision highp float;\n"
+  "#line 1\n";
+
+char const gles2_frag_preamble[] =
+  "#version 100\n"
+  "#ifdef GL_FRAGMENT_PRECISION_HIGH\n"
+  "precision highp float;\n"
+  "#else\n"
+  "precision mediump float;\n"
+  "#endif\n"
+  "#line 1\n";
+
+char const gl33_vert_preamble[] =
+  "#version 330 core\n"
+  "#define attribute in\n"
+  "#define varying out\n"
+  "#define texture2D texture\n"
+  "#line 1\n";
+
+char const gl33_frag_preamble[] =
+  "#version 330 core\n"
+  "#define varying in\n"
+  "#define texture2D texture\n"
+  "#define gl_FragColor wst_FragColor\n"
+  "out vec4 wst_FragColor;\n"
+  "#line 1\n";
+
+std::string read_file(std::filesystem::path const& filename)
+{
+  std::ifstream in(filename, std::ios::binary);
+  if (!in) {
+    throw std::runtime_error("ShaderProgram: couldn't open " + filename.string());
+  }
+  std::ostringstream str;
+  str << in.rdbuf();
+  return str.str();
+}
+
+GLuint compile(GLenum type, std::string_view source)
+{
+  bool const gles = detail::current_caps().is_gles();
+  char const* preamble = nullptr;
+  if (type == GL_VERTEX_SHADER) {
+    preamble = gles ? gles2_vert_preamble : gl33_vert_preamble;
+  } else {
+    preamble = gles ? gles2_frag_preamble : gl33_frag_preamble;
+  }
+
+  GLuint shader = glCreateShader(type);
+  char const* sources[] = { preamble, source.data() };
+  GLint const lengths[] = { -1, static_cast<GLint>(source.size()) };
+  glShaderSource(shader, 2, sources, lengths);
+  glCompileShader(shader);
+
+  GLint status = GL_FALSE;
+  glGetShaderiv(shader, GL_COMPILE_STATUS, &status);
+  if (status != GL_TRUE) {
+    GLint length = 0;
+    glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &length);
+    std::vector<char> log(static_cast<size_t>(std::max(length, 1)));
+    glGetShaderInfoLog(shader, static_cast<GLsizei>(log.size()), nullptr, log.data());
+    glDeleteShader(shader);
+    throw std::runtime_error(std::string("ShaderProgram: failed to compile ") +
+                             (type == GL_VERTEX_SHADER ? "vertex" : "fragment") +
+                             " shader:\n" + log.data());
+  }
+
+  return shader;
+}
+
+} // namespace
+
+ShaderProgramPtr
+ShaderProgram::from_source(std::string_view vert_source, std::string_view frag_source)
+{
+  return ShaderProgramPtr(new ShaderProgram(vert_source, frag_source));
+}
 
 ShaderProgramPtr
 ShaderProgram::from_file(std::filesystem::path const& vert_filename,
                          std::filesystem::path const& frag_filename)
 {
-  ShaderProgramPtr prog(new ShaderProgram());
-
-  prog->attach(ShaderObject::from_file(GL_VERTEX_SHADER, vert_filename));
-  prog->attach(ShaderObject::from_file(GL_FRAGMENT_SHADER, frag_filename));
-
-  prog->link();
-
-  return prog;
+  return from_source(read_file(vert_filename), read_file(frag_filename));
 }
 
-ShaderProgramPtr
-ShaderProgram::from_string(std::string_view vert_source,
-                           std::string_view frag_source)
+ShaderProgram::ShaderProgram(std::string_view vert_source, std::string_view frag_source) :
+  m_handle(0),
+  m_mvp_location(-1),
+  m_texture_locations(),
+  m_uniform_locations()
 {
-  ShaderProgramPtr prog(new ShaderProgram);
+  GLuint const vert = compile(GL_VERTEX_SHADER, vert_source);
+  GLuint frag = 0;
+  try {
+    frag = compile(GL_FRAGMENT_SHADER, frag_source);
+  } catch (...) {
+    glDeleteShader(vert);
+    throw;
+  }
 
-  prog->attach(ShaderObject::from_string(GL_VERTEX_SHADER, vert_source));
-  prog->attach(ShaderObject::from_string(GL_FRAGMENT_SHADER, frag_source));
-
-  prog->link();
-
-  return prog;
-}
-
-ShaderProgramPtr
-ShaderProgram::create()
-{
-  return ShaderProgramPtr(new ShaderProgram());
-}
-
-ShaderProgram::ShaderProgram() :
- m_handle(0)
-{
   m_handle = glCreateProgram();
+  glAttachShader(m_handle, vert);
+  glAttachShader(m_handle, frag);
+
+  glBindAttribLocation(m_handle, static_cast<GLuint>(Attrib::Position), "a_position");
+  glBindAttribLocation(m_handle, static_cast<GLuint>(Attrib::Texcoord), "a_texcoord");
+  glBindAttribLocation(m_handle, static_cast<GLuint>(Attrib::Color), "a_color");
+  glBindAttribLocation(m_handle, static_cast<GLuint>(Attrib::Normal), "a_normal");
+
+  glLinkProgram(m_handle);
+  glDeleteShader(vert);
+  glDeleteShader(frag);
+
+  GLint status = GL_FALSE;
+  glGetProgramiv(m_handle, GL_LINK_STATUS, &status);
+  if (status != GL_TRUE) {
+    GLint length = 0;
+    glGetProgramiv(m_handle, GL_INFO_LOG_LENGTH, &length);
+    std::vector<char> log(static_cast<size_t>(std::max(length, 1)));
+    glGetProgramInfoLog(m_handle, static_cast<GLsizei>(log.size()), nullptr, log.data());
+    glDeleteProgram(m_handle);
+    throw std::runtime_error(std::string("ShaderProgram: failed to link:\n") + log.data());
+  }
+
+  m_mvp_location = glGetUniformLocation(m_handle, "u_mvp");
+
+  // samplers are bound to fixed units once
+  glUseProgram(m_handle);
+  for (int unit = 0; unit < max_textures; ++unit) {
+    std::string const name = "u_texture" + std::to_string(unit);
+    m_texture_locations[unit] = glGetUniformLocation(m_handle, name.c_str());
+    if (m_texture_locations[unit] != -1) {
+      glUniform1i(m_texture_locations[unit], unit);
+    }
+  }
+  glUseProgram(0);
+
+  WST_CHECK_GL("linking shader program");
 }
 
 ShaderProgram::~ShaderProgram()
@@ -72,173 +163,17 @@ ShaderProgram::~ShaderProgram()
   glDeleteProgram(m_handle);
 }
 
-void
-ShaderProgram::attach(ShaderObjectPtr obj)
+int
+ShaderProgram::get_uniform_location(std::string_view name) const
 {
-  glAttachShader(m_handle, obj->get_handle());
-  assert_gl();
-}
-
-void
-ShaderProgram::link()
-{
-  glLinkProgram(m_handle);
-  if (!get_link_status())
-  {
-    throw std::runtime_error(get_info_log());
+  auto it = m_uniform_locations.find(name);
+  if (it != m_uniform_locations.end()) {
+    return it->second;
   }
-}
 
-GLint
-ShaderProgram::get_uniform_location(const char* name) const
-{
-  GLint loc;
-
-  loc = glGetUniformLocation(m_handle, name);
-
-  if (loc == -1)
-    std::cout << "No such uniform named \"%s\"\n" << name << std::endl;
-
-  assert_gl();
-
-  return loc;
-}
-
-GLint
-ShaderProgram::get_attrib_location(const char* name) const
-{
-  GLint loc;
-
-  loc = glGetAttribLocation(m_handle, name);
-
-  if (loc == -1)
-    std::cout << "No such attrib named \"%s\"\n" << name << std::endl;
-
-  assert_gl();
-
-  return loc;
-}
-
-GLuint
-ShaderProgram::get_handle() const
-{
-  return m_handle;
-}
-
-void
-ShaderProgram::set_uniform1f(const char* name, GLfloat v0)
-{
-  GLint location = glGetUniformLocation(m_handle, name);
-  if (location == -1)
-    std::cout << "No such uniform named \"" << name << "\"" << std::endl;
-  else
-    glUniform1f(location, v0);
-}
-
-void
-ShaderProgram::set_uniform2f(const char* name, GLfloat v0, GLfloat v1)
-{
-  GLint location = glGetUniformLocation(m_handle, name);
-  if (location == -1)
-    std::cout << "No such uniform named \"" << name << "\"" << std::endl;
-  else
-    glUniform2f(location, v0, v1);
-}
-
-void
-ShaderProgram::set_uniform3f(const char* name, GLfloat v0, GLfloat v1, GLfloat v2)
-{
-  GLint location = glGetUniformLocation(m_handle, name);
-  if (location == -1)
-    std::cout << "No such uniform named \"" << name << "\"" << std::endl;
-  else
-    glUniform3f(location, v0, v1, v2);
-}
-
-void
-ShaderProgram::set_uniform4f(const char* name, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3)
-{
-  GLint location = glGetUniformLocation(m_handle, name);
-  if (location == -1)
-    std::cout << "No such uniform named \"" << name << "\"" << std::endl;
-  else
-    glUniform4f(location, v0, v1, v2, v3);
-}
-
-void
-ShaderProgram::set_uniform1i(const char* name, GLint v0)
-{
-  GLint location = glGetUniformLocation(m_handle, name);
-  if (location == -1)
-    std::cout << "No such uniform named \"" << name << "\"" << std::endl;
-  else
-    glUniform1i(location, v0);
-}
-
-void
-ShaderProgram::set_uniform2i(const char* name, GLint v0, GLint v1)
-{
-  GLint location = glGetUniformLocation(m_handle, name);
-  if (location == -1)
-    std::cout << "No such uniform named \"" << name << "\"" << std::endl;
-  else
-    glUniform2i(location, v0, v1);
-}
-
-void
-ShaderProgram::set_uniform3i(const char* name, GLint v0, GLint v1, GLint v2)
-{
-  GLint location = glGetUniformLocation(m_handle, name);
-  if (location == -1)
-    std::cout << "No such uniform named \"" << name << "\"" << std::endl;
-  else
-    glUniform3i(location, v0, v1, v2);
-}
-
-void
-ShaderProgram::set_uniform4i(const char* name, GLint v0, GLint v1, GLint v2, GLint v3)
-{
-  GLint location = glGetUniformLocation(m_handle, name);
-  if (location == -1)
-    std::cout << "No such uniform named \"" << name << "\"" << std::endl;
-  else
-    glUniform4i(location, v0, v1, v2, v3);
-}
-
-void
-ShaderProgram::bind_frag_data_location(GLuint color_number, const char* name)
-{
-  assert(glBindFragDataLocation);
-  glBindFragDataLocation(m_handle, color_number, name);
-  assert_gl();
-}
-
-bool
-ShaderProgram::get_link_status() const
-{
-  int status;
-  glGetProgramiv(m_handle, GL_LINK_STATUS, &status);
-  return (status == GL_TRUE);
-}
-
-std::string
-ShaderProgram::get_info_log() const
-{
-  int info_log_len = 0;
-  int charsWritten  = 0;
-
-  glGetProgramiv(m_handle, GL_INFO_LOG_LENGTH, &info_log_len);
-
-  if (info_log_len > 0)
-  {
-    std::vector<GLchar> info_log(info_log_len);
-    glGetProgramInfoLog(m_handle, info_log_len, &charsWritten, info_log.data());
-    return info_log.data();
-  }
-  else
-  {
-    return std::string("<empty>");
-  }
+  int const location = glGetUniformLocation(m_handle, std::string(name).c_str());
+  m_uniform_locations.emplace(std::string(name), location);
+  return location;
 }
 
 } // namespace wstdisplay

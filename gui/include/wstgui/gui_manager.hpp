@@ -21,7 +21,7 @@
 
 #include <memory>
 
-#include <wstdisplay/graphics_context.hpp>
+#include <wstdisplay/canvas.hpp>
 #include <wstinput/controller.hpp>
 
 #include "fwd.hpp"
@@ -35,7 +35,7 @@ public:
   GUIManager(Style& style);
   ~GUIManager() override;
 
-  void draw(wstdisplay::GraphicsContext& gc) override;
+  void draw(wstdisplay::Canvas& canvas) override;
   void update(float delta, const wstinput::Controller& controller) override;
 
   RootComponent* get_root() const;

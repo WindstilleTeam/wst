@@ -1,67 +1,48 @@
 // Windstille Display Library
-// Copyright (C) 2002-2020 Ingo Ruhnke <grumbel@gmail.com>
-//
-// This program is free software: you can redistribute it and/or modify it
-// under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or (at your
-// option) any later version.
-//
-// This program is distributed in the hope that it will be useful, but
-// WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-// or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
-// License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with this program. If not, see <http://www.gnu.org/licenses/>.
+// Copyright (C) 2002-2026 Ingo Ruhnke <grumbel@gmail.com>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
-#ifndef HEADER_WINDSTILLE_DISPLAY_FRAMEBUFFER_HPP
-#define HEADER_WINDSTILLE_DISPLAY_FRAMEBUFFER_HPP
+#ifndef HEADER_WSTDISPLAY_FRAMEBUFFER_HPP
+#define HEADER_WSTDISPLAY_FRAMEBUFFER_HPP
+
+#include <cstdint>
 
 #include <geom/size.hpp>
 
+#include "fwd.hpp"
 #include "texture.hpp"
-#include "renderbuffer.hpp"
 
 namespace wstdisplay {
 
-class Framebuffer;
-using FramebufferPtr = std::shared_ptr<Framebuffer>;
-
-class Framebuffer
+/** An offscreen render target backed by an RGBA texture */
+class Framebuffer final
 {
 public:
-  static FramebufferPtr create_with_texture(GLenum target, geom::isize const& size, int multisample = 0);
-  static FramebufferPtr create(geom::isize const& size, int multisample = 0);
-  static FramebufferPtr create_hdr(geom::isize const& size, int multisample = 0);
+  /** @param stencil  also attach a stencil buffer */
+  static FramebufferPtr create(geom::isize const& size, TextureParams const& params = {},
+                               bool stencil = false);
+
+private:
+  Framebuffer(geom::isize const& size, TextureParams const& params, bool stencil);
 
 public:
   ~Framebuffer();
 
-  int get_width()  const;
-  int get_height() const;
-  geom::isize get_size() const;
-  TexturePtr get_texture();
+  geom::isize get_size() const { return m_texture->get_size(); }
+  int get_width() const { return m_texture->get_width(); }
+  int get_height() const { return m_texture->get_height(); }
 
-  GLuint get_handle() const;
-
-  /** @param mask GL_COLOR_BUFFER_BIT, GL_DEPTH_BUFFER_BIT and GL_STENCIL_BUFFER_BIT
-      @param filter GL_NEAREST or GL_LINEAR. */
-  void blit(geom::irect const& srcrect, geom::irect const& dstrect,
-            GLbitfield mask, GLenum filter);
+  TexturePtr const& get_texture() const { return m_texture; }
+  uint32_t get_handle() const { return m_handle; }
 
 private:
-  Framebuffer();
-  void check_completness();
-  void create_internal(GLenum format, geom::isize const& size, int multisample);
-  void create_with_texture_internal(GLenum target, geom::isize const& size, int multisample);
-
-private:
-  GLuint m_handle;
-  geom::isize   m_size;
-
+  uint32_t m_handle;
+  uint32_t m_stencil_buffer;
   TexturePtr m_texture;
-  RenderbufferPtr m_color_buffer;
-  RenderbufferPtr m_depth_stencil_buffer;
+
+public:
+  Framebuffer(Framebuffer const&) = delete;
+  Framebuffer& operator=(Framebuffer const&) = delete;
 };
 
 } // namespace wstdisplay

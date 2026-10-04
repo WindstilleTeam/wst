@@ -19,7 +19,7 @@
 #include "menu_component.hpp"
 
 #include <wstinput/controller.hpp>
-#include <wstdisplay/graphics_context.hpp>
+#include <wstdisplay/canvas.hpp>
 
 #include "controller_def.hpp"
 #include "menu_item.hpp"
@@ -56,7 +56,7 @@ MenuComponent::add_item(std::unique_ptr<MenuItem> item)
 }
 
 void
-MenuComponent::draw(wstdisplay::GraphicsContext& gc)
+MenuComponent::draw(wstdisplay::Canvas& canvas)
 {
   float step = item_height();
 
@@ -64,7 +64,7 @@ MenuComponent::draw(wstdisplay::GraphicsContext& gc)
   { // we can only display a subset of items and have to scroll
     for(int i = 0; i < m_num_displayable_items; ++i)
     {
-      m_items[i + m_scroll_offset]->draw(gc,
+      m_items[i + m_scroll_offset]->draw(canvas,
                                          geom::frect(m_geometry.left(), m_geometry.top() + static_cast<float>(i) * step + 2.0f,
                                                      m_geometry.right() - 32.0f, m_geometry.top() + static_cast<float>(i+1) * step - 2.0f),
                                          is_active() && (i + m_scroll_offset == m_current_item));
@@ -74,12 +74,12 @@ MenuComponent::draw(wstdisplay::GraphicsContext& gc)
     float scrollbar_height = (m_geometry.height() - 4.0f) * static_cast<float>(m_num_displayable_items) / static_cast<float>(m_items.size());
     float scrollbar_incr   = (m_geometry.height() - 4.0f) * static_cast<float>(m_scroll_offset) / static_cast<float>(m_items.size());
 
-    gc.fill_rounded_rect(geom::frect(m_geometry.right() - 24, m_geometry.top() + 2.0f + scrollbar_incr,
+    canvas.fill_rounded_rect(geom::frect(m_geometry.right() - 24, m_geometry.top() + 2.0f + scrollbar_incr,
                                      m_geometry.right() - 2,  m_geometry.top() + 2.0f + scrollbar_incr + scrollbar_height),
                          5.0f,
                          surf::Color(0.5f, 0.5f, 0.5f, 0.75f));
 
-    gc.draw_rounded_rect(geom::frect(m_geometry.right() - 24, m_geometry.top() + 2.0f,
+    canvas.draw_rounded_rect(geom::frect(m_geometry.right() - 24, m_geometry.top() + 2.0f,
                                      m_geometry.right() - 2,  m_geometry.bottom() - 2.0f),
                          5.0f,
                          surf::Color(1.0f, 1.0f, 1.0f, 1.0f));
@@ -88,7 +88,7 @@ MenuComponent::draw(wstdisplay::GraphicsContext& gc)
   { // all items fit on the screen
     for(size_t i = 0; i < m_items.size(); ++i)
     {
-      m_items[i]->draw(gc,
+      m_items[i]->draw(canvas,
                        geom::frect(m_geometry.left(), m_geometry.top() + static_cast<float>(i) * step + 2.0f,
                                    m_geometry.right(), m_geometry.top() + static_cast<float>(i+1) * step - 2.0f),
                        is_active() && (int(i) == m_current_item));
@@ -177,12 +177,12 @@ MenuComponent::update(float delta, const Controller& controller)
 }
 
 void
-MenuComponent::set_font(wstdisplay::TTFFont* font_)
+MenuComponent::set_font(wstdisplay::Font const* font_)
 {
   m_font = font_;
 }
 
-wstdisplay::TTFFont*
+wstdisplay::Font const*
 MenuComponent::get_font()
 {
   return m_font;

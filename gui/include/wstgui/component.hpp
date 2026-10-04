@@ -43,7 +43,7 @@ public:
   /** Called when the Component receives focus */
   virtual void on_activation() {}
 
-  virtual void draw(wstdisplay::GraphicsContext& gc) =0;
+  virtual void draw(wstdisplay::Canvas& canvas) =0;
   virtual void update(float delta, const Controller& controller) =0;
 
   virtual geom::frect geometry() const;

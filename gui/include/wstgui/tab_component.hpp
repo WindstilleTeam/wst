@@ -67,7 +67,7 @@ public:
   TabComponent(Component* parent);
   ~TabComponent() override;
 
-  void draw(wstdisplay::GraphicsContext& gc) override;
+  void draw(wstdisplay::Canvas& canvas) override;
   void update(float delta, const Controller& controller) override;
 
   void pack(const std::string& name, Component* component);

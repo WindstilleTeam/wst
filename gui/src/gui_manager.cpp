@@ -36,12 +36,12 @@ GUIManager::~GUIManager()
 }
 
 void
-GUIManager::draw(wstdisplay::GraphicsContext& gc)
+GUIManager::draw(wstdisplay::Canvas& canvas)
 {
-  m_root->draw(gc);
+  m_root->draw(canvas);
 
   if (m_focus_component) {
-    gc.fill_rect(m_focus_component->geometry(), surf::Color(1.0f, 0.0f, 0.0f, 0.5f));
+    canvas.fill_rect(m_focus_component->geometry(), surf::Color(1.0f, 0.0f, 0.0f, 0.5f));
   }
 }
 

@@ -1,234 +1,236 @@
 // Windstille Display Library
-// Copyright (C) 2002-2020 Ingo Ruhnke <grumbel@gmail.com>
-//
-// This program is free software: you can redistribute it and/or modify it
-// under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or (at your
-// option) any later version.
-//
-// This program is distributed in the hope that it will be useful, but
-// WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-// or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
-// License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with this program. If not, see <http://www.gnu.org/licenses/>.
+// Copyright (C) 2002-2026 Ingo Ruhnke <grumbel@gmail.com>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
 #include "opengl_window.hpp"
 
-#include <iostream>
-#include <glad/gl.h>
+#include <bit>
+#include <stdexcept>
 
-#include <glm/glm.hpp>
-#include <glm/ext.hpp>
+#include <logmich/log.hpp>
+#include <surf/software_surface.hpp>
 
-#include "opengl_state.hpp"
-#include "graphics_context.hpp"
-#include "assert_gl.hpp"
-
-namespace {
-
-std::string get_gl_string(GLenum name)
-{
-  const GLubyte* ret = glGetString(name);
-  if (ret == nullptr) {
-    return "(null)";
-  } else {
-    return reinterpret_cast<char const*>(ret);
-  }
-}
-
-} // namespace
+#include "renderer.hpp"
+#include "system.hpp"
 
 namespace wstdisplay {
 
-OpenGLWindow::OpenGLWindow(wstsys::System& system,
-                           Params const& params) :
+OpenGLWindow::OpenGLWindow(wstsys::System& system, Params const& params) :
   sig_resized(),
   m_system(system),
   m_window(nullptr),
   m_gl_context(nullptr),
   m_size(params.size),
   m_mode(params.mode),
-  m_resizable(params.resizable),
-  m_anti_aliasing(params.anti_aliasing),
-  m_gc()
+  m_renderer()
 {
-  assert(m_window == nullptr);
+  std::vector<Api> apis;
+  switch (params.api)
+  {
+    case Api::Auto:
+#if defined(__ANDROID__) || defined(__EMSCRIPTEN__)
+      apis = { Api::GLES2 };
+#else
+      apis = { Api::GL33, Api::GLES2 };
+#endif
+      break;
 
-  //SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, 1); // vsync
+    case Api::GL33:
+      apis = { Api::GL33 };
+      break;
+
+    case Api::GLES2:
+      apis = { Api::GLES2 };
+      break;
+  }
+
+  bool created = false;
+  for (Api const api : apis) {
+    if (create(params, api)) {
+      created = true;
+      break;
+    }
+  }
+
+  if (!created) {
+    throw std::runtime_error(std::string("OpenGLWindow: couldn't create an OpenGL context: ") + SDL_GetError());
+  }
+
+  if (!params.icon.empty()) {
+    set_icon(params.icon);
+  }
+}
+
+bool
+OpenGLWindow::create(Params const& params, Api api)
+{
+  SDL_GL_ResetAttributes();
   SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-
-  // FIXME: Should make this configurable, as Matrox G450 can't do it,
-  // but works 'fine' without it
-  SDL_GL_SetAttribute(SDL_GL_RED_SIZE,     8);
-  SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE,   8);
-  SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE,    8);
-  SDL_GL_SetAttribute(SDL_GL_BUFFER_SIZE, 32);
-
+  SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
+  SDL_GL_SetAttribute(SDL_GL_GREEN_SIZE, 8);
+  SDL_GL_SetAttribute(SDL_GL_BLUE_SIZE, 8);
   SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
 
-  if (m_anti_aliasing != 0)
-  {
-    SDL_GL_SetAttribute( SDL_GL_MULTISAMPLEBUFFERS, 1 ); // boolean value, either it's enabled or not
-    SDL_GL_SetAttribute( SDL_GL_MULTISAMPLESAMPLES, m_anti_aliasing ); // 0, 2, or 4 for number of samples
+  if (params.anti_aliasing != 0) {
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+    SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, params.anti_aliasing);
   }
 
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-
-  uint32_t flags = SDL_WINDOW_OPENGL;
-
-  if (m_mode == Mode::Fullscreen) {
-    flags |= SDL_WINDOW_FULLSCREEN;
-  } else if (m_mode == Mode::FullscreenDesktop) {
-    flags |= SDL_WINDOW_FULLSCREEN;
+  if (api == Api::GLES2) {
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_ES);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 2);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 0);
+  } else {
+    SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
   }
 
-  if (m_resizable) {
+  uint32_t flags = SDL_WINDOW_OPENGL | SDL_WINDOW_ALLOW_HIGHDPI;
+  if (params.mode == Mode::Fullscreen) {
+    flags |= SDL_WINDOW_FULLSCREEN;
+  } else if (params.mode == Mode::FullscreenDesktop) {
+    flags |= SDL_WINDOW_FULLSCREEN_DESKTOP;
+  }
+  if (params.resizable) {
     flags |= SDL_WINDOW_RESIZABLE;
   }
+  if (params.hidden) {
+    flags |= SDL_WINDOW_HIDDEN;
+  }
+
+  char const* api_name = (api == Api::GLES2) ? "GLES 2.0" : "GL 3.3 core";
 
   m_window = SDL_CreateWindow(params.title.c_str(),
                               SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-                              m_size.width(), m_size.height(),
+                              params.size.width(), params.size.height(),
                               flags);
   if (m_window == nullptr) {
-    throw std::runtime_error("Display:: Couldn't create window");
+    log_warn("OpenGLWindow: couldn't create window for {}: {}", api_name, SDL_GetError());
+    return false;
   }
 
   m_gl_context = SDL_GL_CreateContext(m_window);
   if (m_gl_context == nullptr) {
-    throw std::runtime_error("Display:: failed to create GLContext");
+    log_warn("OpenGLWindow: couldn't create {} context: {}", api_name, SDL_GetError());
+    destroy();
+    return false;
   }
 
-  int glad_version = gladLoadGL(reinterpret_cast<GLADloadfunc>(SDL_GL_GetProcAddress));
-  if (!glad_version) {
-    throw std::runtime_error("Display:: failed to initialize GLAD");
+  set_vsync(params.vsync);
+
+  try {
+    m_renderer = std::make_unique<Renderer>(&SDL_GL_GetProcAddress);
+  } catch (std::exception const& err) {
+    log_warn("OpenGLWindow: couldn't initialize renderer on {}: {}", api_name, err.what());
+    destroy();
+    return false;
   }
 
-  std::cout << "GLAD loaded OpenGL "
-            << GLAD_VERSION_MAJOR(glad_version) << "."
-            << GLAD_VERSION_MINOR(glad_version) << std::endl;
-  std::cout << "GL_VENDOR: " << get_gl_string(GL_VENDOR) << std::endl;
-  std::cout << "GL_RENDERER: " << get_gl_string(GL_RENDERER) << std::endl;
-  std::cout << "GL_VERSION: " << get_gl_string(GL_VERSION) << std::endl;
-  std::cout << "GL_SHADING_LANGUAGE_VERSION: " << get_gl_string(GL_SHADING_LANGUAGE_VERSION) << std::endl;
+  m_size = get_size();
+  return true;
+}
 
-  if (m_anti_aliasing) {
-    glEnable(GL_MULTISAMPLE);
+void
+OpenGLWindow::destroy()
+{
+  m_renderer.reset();
+  if (m_gl_context != nullptr) {
+    SDL_GL_DeleteContext(m_gl_context);
+    m_gl_context = nullptr;
   }
-
-  assert_gl();
-
-  OpenGLState::init();
-  glViewport(0, 0, m_size.width(), m_size.height());
-
-  m_gc = std::make_unique<GraphicsContext>();
-  m_gc->set_ortho(m_size);
-
-  if ((false)) // disabled for the moment, as it seems to do more harm then good
-  { // Magic pixel center constant, without that textures drawn in
-    // pixel coordinates might end up blurry
-    m_gc->translate(0.375f, 0.375f, 0.0f);
+  if (m_window != nullptr) {
+    SDL_DestroyWindow(m_window);
+    m_window = nullptr;
   }
-
-  assert_gl();
 }
 
 OpenGLWindow::~OpenGLWindow()
 {
-  if (m_gl_context != nullptr) {
-    SDL_GL_DeleteContext(m_gl_context);
+  if (m_window) {
+    m_system.remove_window(get_id());
   }
-
-  if (m_window != nullptr) {
-    SDL_DestroyWindow(m_window);
-  }
+  destroy();
 }
 
 void
 OpenGLWindow::set_title(std::string const& title)
 {
-  if (m_window != nullptr) {
-    SDL_SetWindowTitle(m_window, title.c_str());
-  }
+  SDL_SetWindowTitle(m_window, title.c_str());
 }
 
 void
 OpenGLWindow::set_icon(std::filesystem::path const& filename)
 {
-  assert(m_window != nullptr);
-
   surf::SoftwareSurface const pixeldata = surf::SoftwareSurface::from_file(filename);
+  bool const rgb = pixeldata.get_format() == surf::PixelFormat::RGB8;
 
-  SDL_Surface* sdl_surface;
+  // byte order R, G, B, A in memory
+  uint32_t rmask, gmask, bmask, amask;
   if constexpr (std::endian::native == std::endian::big) {
-    sdl_surface = SDL_CreateRGBSurfaceFrom(const_cast<uint8_t*>(static_cast<uint8_t const*>(pixeldata.get_data())),
-                                           pixeldata.get_width(),
-                                           pixeldata.get_height(),
-                                           pixeldata.get_format() == surf::PixelFormat::RGB8 ? 24 : 32,
-                                           pixeldata.get_pitch(),
-                                           0xff000000,
-                                           0x00ff0000,
-                                           0x0000ff00,
-                                           pixeldata.get_format() == surf::PixelFormat::RGB8 ? 0x00000000 : 0x000000ff);
+    rmask = rgb ? 0xff0000 : 0xff000000;
+    gmask = rgb ? 0x00ff00 : 0x00ff0000;
+    bmask = rgb ? 0x0000ff : 0x0000ff00;
+    amask = rgb ? 0 : 0x000000ff;
   } else {
-    sdl_surface = SDL_CreateRGBSurfaceFrom(const_cast<uint8_t*>(static_cast<uint8_t const*>(pixeldata.get_data())),
-                                           pixeldata.get_width(),
-                                           pixeldata.get_height(),
-                                           pixeldata.get_format() == surf::PixelFormat::RGB8 ? 24 : 32,
-                                           pixeldata.get_pitch(),
-                                           0x000000ff,
-                                           0x0000ff00,
-                                           0x00ff0000,
-                                           pixeldata.get_format() == surf::PixelFormat::RGB8 ? 0x00000000 : 0xff000000);
+    rmask = 0x000000ff;
+    gmask = 0x0000ff00;
+    bmask = 0x00ff0000;
+    amask = rgb ? 0 : 0xff000000;
   }
 
-  SDL_SetWindowIcon(m_window, sdl_surface);
-
-  SDL_FreeSurface(sdl_surface);
+  SDL_Surface* sdl_surface = SDL_CreateRGBSurfaceFrom(const_cast<void*>(pixeldata.get_data()),
+                                                      pixeldata.get_width(), pixeldata.get_height(),
+                                                      rgb ? 24 : 32, pixeldata.get_pitch(),
+                                                      rmask, gmask, bmask, amask);
+  if (sdl_surface) {
+    SDL_SetWindowIcon(m_window, sdl_surface);
+    SDL_FreeSurface(sdl_surface);
+  }
 }
 
 void
 OpenGLWindow::set_size(geom::isize const& size)
 {
-  m_size = size;
+  SDL_SetWindowSize(m_window, size.width(), size.height());
+  m_size = get_size();
 }
 
 geom::isize
 OpenGLWindow::get_size() const
 {
-  if (m_window != nullptr) {
-    int w, h;
-    SDL_GetWindowSize(m_window, &w, &h);
-    return geom::isize(w, h);
-  } else {
-    return m_size;
-  }
+  int w, h;
+  SDL_GetWindowSize(m_window, &w, &h);
+  return geom::isize(w, h);
+}
+
+geom::isize
+OpenGLWindow::get_drawable_size() const
+{
+  int w, h;
+  SDL_GL_GetDrawableSize(m_window, &w, &h);
+  return geom::isize(w, h);
 }
 
 void
 OpenGLWindow::set_mode(Mode mode)
 {
   m_mode = mode;
+  switch (m_mode)
+  {
+    case Mode::FullscreenDesktop:
+      SDL_SetWindowFullscreen(m_window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+      break;
 
-  if (m_window != nullptr) {
-    switch (m_mode)
-    {
-      case Mode::FullscreenDesktop:
-        SDL_SetWindowFullscreen(m_window, SDL_WINDOW_FULLSCREEN_DESKTOP);
-        break;
+    case Mode::Fullscreen:
+      SDL_SetWindowFullscreen(m_window, SDL_WINDOW_FULLSCREEN);
+      break;
 
-      case Mode::Fullscreen:
-        SDL_SetWindowFullscreen(m_window, SDL_WINDOW_FULLSCREEN);
-        break;
-
-      case Mode::Window:
-        SDL_SetWindowFullscreen(m_window, 0);
-        break;
-    }
+    case Mode::Window:
+      SDL_SetWindowFullscreen(m_window, 0);
+      break;
   }
 }
 
@@ -239,48 +241,35 @@ OpenGLWindow::get_mode() const
 }
 
 void
-OpenGLWindow::set_gamma(float r, float g, float b)
+OpenGLWindow::set_vsync(bool vsync)
 {
-  if (m_window != nullptr) {
-    if (SDL_SetWindowBrightness(m_window, (r+g+b)/3.0f) == -1)
-    {
-      // Couldn't set gamma
-    }
+  if (SDL_GL_SetSwapInterval(vsync ? 1 : 0) != 0) {
+    log_debug("OpenGLWindow: couldn't set swap interval: {}", SDL_GetError());
   }
 }
 
-GraphicsContext&
-OpenGLWindow::get_gc() const
+void
+OpenGLWindow::set_gamma(float r, float g, float b)
 {
-  assert(m_gc != nullptr);
+  SDL_SetWindowBrightness(m_window, (r + g + b) / 3.0f);
+}
 
-  return *m_gc;
+Renderer&
+OpenGLWindow::get_renderer() const
+{
+  return *m_renderer;
 }
 
 void
 OpenGLWindow::swap_buffers()
 {
-  assert(m_window != nullptr);
-
   SDL_GL_SwapWindow(m_window);
 }
 
 surf::SoftwareSurface
 OpenGLWindow::screenshot() const
 {
-  assert(m_gc != nullptr);
-
-  GLint viewport[4];
-  glGetIntegerv(GL_VIEWPORT, viewport);
-
-  geom::isize size(viewport[2] / 4 * 4, viewport[3]);
-  surf::SoftwareSurface surface = surf::SoftwareSurface::create(surf::PixelFormat::RGB8, size);
-
-  glPixelStorei(GL_PACK_ALIGNMENT, 1);
-  glReadPixels(0, 0, surface.get_width(), surface.get_height(), GL_RGB, GL_UNSIGNED_BYTE, surface.get_data());
-  assert_gl();
-
-  return surface;
+  return m_renderer->read_pixels();
 }
 
 uint32_t
@@ -290,59 +279,16 @@ OpenGLWindow::get_id() const
 }
 
 void
-OpenGLWindow::handle_event(SDL_WindowEvent window)
+OpenGLWindow::handle_event(SDL_WindowEvent const& window)
 {
   switch (window.event)
   {
-    case SDL_WINDOWEVENT_SHOWN:
-      break;
-
-    case SDL_WINDOWEVENT_HIDDEN:
-      break;
-
-    case SDL_WINDOWEVENT_EXPOSED:
-      break;
-
-    case SDL_WINDOWEVENT_MOVED:
-      break;
-
-    case SDL_WINDOWEVENT_RESIZED:
+    case SDL_WINDOWEVENT_SIZE_CHANGED:
       m_size = geom::isize(window.data1, window.data2);
-      glViewport(0, 0, m_size.width(), m_size.height());
       sig_resized(m_size);
       break;
 
-    case SDL_WINDOWEVENT_SIZE_CHANGED:
-      break;
-
-    case SDL_WINDOWEVENT_MINIMIZED:
-      break;
-
-    case SDL_WINDOWEVENT_MAXIMIZED:
-      break;
-
-    case SDL_WINDOWEVENT_RESTORED:
-      break;
-
-    case SDL_WINDOWEVENT_ENTER:
-      break;
-
-    case SDL_WINDOWEVENT_LEAVE:
-      break;
-
-    case SDL_WINDOWEVENT_FOCUS_GAINED:
-      break;
-
-    case SDL_WINDOWEVENT_FOCUS_LOST:
-      break;
-
-    case SDL_WINDOWEVENT_CLOSE:
-      break;
-
-    case SDL_WINDOWEVENT_TAKE_FOCUS:
-      break;
-
-    case SDL_WINDOWEVENT_HIT_TEST:
+    default:
       break;
   }
 }

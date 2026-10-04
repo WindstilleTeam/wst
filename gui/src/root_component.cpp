@@ -39,11 +39,11 @@ RootComponent::~RootComponent()
 }
 
 void
-RootComponent::draw(wstdisplay::GraphicsContext& gc)
+RootComponent::draw(wstdisplay::Canvas& canvas)
 {
   for (auto i = m_children.begin(); i != m_children.end(); ++i)
   {
-    (*i)->draw(gc);
+    (*i)->draw(canvas);
   }
 }
 

@@ -33,7 +33,7 @@ public:
   RootComponent(Style& style);
   ~RootComponent() override;
 
-  void draw(wstdisplay::GraphicsContext& gc) override;
+  void draw(wstdisplay::Canvas& canvas) override;
   void update(float delta, const Controller& controller) override;
 
   /** Set the chidren that shall recieve input */

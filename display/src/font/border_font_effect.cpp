@@ -18,7 +18,7 @@
 
 #include <stdint.h>
 
-#include <wstdisplay/software_surface.hpp>
+#include <surf/software_surface.hpp>
 
 #include "font/border_font_effect.hpp"
 

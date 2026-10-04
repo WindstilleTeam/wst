@@ -19,7 +19,7 @@
 #include "slider.hpp"
 
 #include <surf/color.hpp>
-#include <wstdisplay/graphics_context.hpp>
+#include <wstdisplay/canvas.hpp>
 #include <wstinput/controller.hpp>
 
 #include "controller_def.hpp"
@@ -67,10 +67,10 @@ Slider::set_step(int step_)
 }
 
 void
-Slider::draw(wstdisplay::GraphicsContext& gc)
+Slider::draw(wstdisplay::Canvas& canvas)
 {
-  gc.fill_rect(m_geometry, surf::Color(0.0f, 0.0f, 0.0f, 0.5f));
-  gc.draw_rect(m_geometry, surf::Color(1.0f, 1.0f, 1.0f, 0.5f));
+  canvas.fill_rect(m_geometry, surf::Color(0.0f, 0.0f, 0.0f, 0.5f));
+  canvas.draw_rect(m_geometry, surf::Color(1.0f, 1.0f, 1.0f, 0.5f));
 
   float width = 30.0f;
   geom::frect slider_rect(glm::vec2(m_geometry.left() + (m_geometry.width() - width) * (static_cast<float>(pos-min)/static_cast<float>(max - min)),
@@ -78,12 +78,12 @@ Slider::draw(wstdisplay::GraphicsContext& gc)
                           geom::fsize(width, m_geometry.height() - 4.0f));
   if (is_active())
   {
-    gc.fill_rect(slider_rect, surf::Color(1.0f, 1.0f, 1.0f, 0.5f));
-    gc.draw_rect(slider_rect, surf::Color(1.0f, 1.0f, 1.0f, 1.0f));
+    canvas.fill_rect(slider_rect, surf::Color(1.0f, 1.0f, 1.0f, 0.5f));
+    canvas.draw_rect(slider_rect, surf::Color(1.0f, 1.0f, 1.0f, 1.0f));
   }
   else
   {
-    gc.draw_rect(slider_rect, surf::Color(1.0f, 1.0f, 1.0f, 0.5f));
+    canvas.draw_rect(slider_rect, surf::Color(1.0f, 1.0f, 1.0f, 0.5f));
   }
 }
 

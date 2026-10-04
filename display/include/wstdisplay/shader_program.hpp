@@ -1,75 +1,73 @@
 // Windstille Display Library
-// Copyright (C) 2002-2020 Ingo Ruhnke <grumbel@gmail.com>
-//
-// This program is free software: you can redistribute it and/or modify it
-// under the terms of the GNU Lesser General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or (at your
-// option) any later version.
-//
-// This program is distributed in the hope that it will be useful, but
-// WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
-// or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General Public
-// License for more details.
-//
-// You should have received a copy of the GNU Lesser General Public License
-// along with this program. If not, see <http://www.gnu.org/licenses/>.
+// Copyright (C) 2002-2026 Ingo Ruhnke <grumbel@gmail.com>
+// SPDX-License-Identifier: LGPL-3.0-or-later
 
-#ifndef HEADER_WINDSTILLE_DISPLAY_SHADER_PROGRAM_HPP
-#define HEADER_WINDSTILLE_DISPLAY_SHADER_PROGRAM_HPP
+#ifndef HEADER_WSTDISPLAY_SHADER_PROGRAM_HPP
+#define HEADER_WSTDISPLAY_SHADER_PROGRAM_HPP
 
-#include <glad/gl.h>
+#include <cstdint>
+#include <filesystem>
+#include <map>
 #include <memory>
+#include <string>
 #include <string_view>
 
-#include "shader_object.hpp"
+#include "fwd.hpp"
 
 namespace wstdisplay {
 
-class ShaderObject;
-class ShaderProgram;
-using ShaderProgramPtr = std::shared_ptr<ShaderProgram>;
+/** Fixed attribute locations, bound before linking, so every program
+    can be fed from the same vertex layout */
+enum class Attrib : uint32_t
+{
+  Position = 0, // vec2 a_position (vec3 for meshes)
+  Texcoord = 1, // vec2 a_texcoord
+  Color = 2,    // vec4 a_color
+  Normal = 3    // vec3 a_normal, meshes only
+};
 
-class ShaderProgram
+/** A linked vertex+fragment shader.
+
+    Shaders are written in GLSL ES 1.00 (the GLES 2.0 dialect) without
+    a #version line, they are translated to GLSL 3.30 core on desktop
+    GL by a prepended preamble. Use 'attribute', 'varying',
+    'texture2D()' and 'gl_FragColor' as in GLSL ES 1.00.
+
+    Built-in names:
+    - attributes: a_position, a_texcoord, a_color, a_normal
+    - uniforms: u_mvp (mat4), u_texture0 .. u_texture3 (sampler2D) */
+class ShaderProgram final
 {
 public:
-  static ShaderProgramPtr create();
+  static constexpr int max_textures = 4;
+
+  static ShaderProgramPtr from_source(std::string_view vert_source, std::string_view frag_source);
   static ShaderProgramPtr from_file(std::filesystem::path const& vert_filename,
                                     std::filesystem::path const& frag_filename);
-  static ShaderProgramPtr from_string(std::string_view vert_source,
-                                      std::string_view frag_source);
 
 private:
-  ShaderProgram();
+  ShaderProgram(std::string_view vert_source, std::string_view frag_source);
 
 public:
   ~ShaderProgram();
 
-  void attach(ShaderObjectPtr obj);
-  void link();
+  /** Location of the uniform \a name or -1, results are cached */
+  int get_uniform_location(std::string_view name) const;
 
-  std::string get_info_log() const;
-  bool get_link_status() const;
+  int get_mvp_location() const { return m_mvp_location; }
+  int get_texture_location(int unit) const { return m_texture_locations[unit]; }
 
-  GLint get_uniform_location(const char* name) const;
-  GLint get_attrib_location(const char* name) const;
-  GLuint get_handle() const;
-
-  // FIXME: All these only work when you call
-  // glUseProgram(shader_program.get_handle()); before them
-  void set_uniform1f(const char* name, GLfloat v0);
-  void set_uniform2f(const char* name, GLfloat v0, GLfloat v1);
-  void set_uniform3f(const char* name, GLfloat v0, GLfloat v1, GLfloat v2);
-  void set_uniform4f(const char* name, GLfloat v0, GLfloat v1, GLfloat v2, GLfloat v3);
-
-  void set_uniform1i(const char* name, GLint v0);
-  void set_uniform2i(const char* name, GLint v0, GLint v1);
-  void set_uniform3i(const char* name, GLint v0, GLint v1, GLint v2);
-  void set_uniform4i(const char* name, GLint v0, GLint v1, GLint v2, GLint v3);
-
-  void bind_frag_data_location(GLuint color_number, const char* name);
+  uint32_t get_handle() const { return m_handle; }
 
 private:
-  GLuint m_handle;
+  uint32_t m_handle;
+  int m_mvp_location;
+  int m_texture_locations[max_textures];
+  mutable std::map<std::string, int, std::less<>> m_uniform_locations;
+
+public:
+  ShaderProgram(ShaderProgram const&) = delete;
+  ShaderProgram& operator=(ShaderProgram const&) = delete;
 };
 
 } // namespace wstdisplay
