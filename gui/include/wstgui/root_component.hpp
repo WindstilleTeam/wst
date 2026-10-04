@@ -22,14 +22,18 @@ public:
   void update(float delta, const Controller& controller) override;
 
   /** Set the chidren that shall recieve input */
+  /** Give \a child, which must have been added, the input focus */
   void set_focus(Component* child);
 
+  /** Add \a child, it gets the focus if it is active */
   void add_child(std::unique_ptr<Component> child);
 
   Component* get_focus() const { return m_focus; }
 
   Component* query(geom::fpoint const& pos) const;
 
+  /** False once the focused component was deactivated, e.g. a menu
+      was cancelled, which closes the GUIManager */
   bool is_active() const override;
 
   Style& get_style() const override;

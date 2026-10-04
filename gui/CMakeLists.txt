@@ -158,6 +158,16 @@ if(BUILD_EXTRA)
   endforeach(SRC)
 endif()
 
+if(BUILD_TESTS)
+  find_package(GTest REQUIRED)
+  include(GoogleTest)
+  file(GLOB TEST_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} test/*_test.cpp)
+  add_executable(test_wstgui ${TEST_SOURCES})
+  target_compile_options(test_wstgui PRIVATE ${WARNINGS_CXX_FLAGS})
+  target_link_libraries(test_wstgui PRIVATE wstgui GTest::gtest GTest::gtest_main)
+  gtest_discover_tests(test_wstgui)
+endif()
+
 # Export and install library (inlined from former tinycmmc)
 install(TARGETS wstgui
   EXPORT wstgui

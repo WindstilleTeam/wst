@@ -47,20 +47,22 @@ RootComponent::update(float delta, const Controller& controller)
 bool
 RootComponent::is_active() const
 {
-  return true;
-
-#if 0
-  if (m_focus)
+  // cancelling the focused component, e.g. a menu, closes the GUI;
+  // without focus there is nothing that could be cancelled
+  if (m_focus) {
     return m_focus->is_active();
-  else
-    return false;
-#endif
+  }
+  return true;
 }
 
 void
 RootComponent::add_child(std::unique_ptr<Component> child)
 {
-  m_focus = child.get();
+  // the most recently added component that takes input gets the
+  // focus, e.g. a menu, but not a label added after it
+  if (child->is_active()) {
+    m_focus = child.get();
+  }
   m_children.emplace_back(std::move(child));
 }
 
