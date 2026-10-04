@@ -18,12 +18,15 @@ namespace wstdisplay {
 class Framebuffer final
 {
 public:
-  /** @param stencil  also attach a stencil buffer */
+  /** @param depth    also attach a depth buffer, needed for Mesh depth testing
+      @param stencil  also attach a stencil buffer */
   static FramebufferPtr create(geom::isize const& size, TextureParams const& params = {},
-                               bool stencil = false);
+                               bool depth = false, bool stencil = false);
 
 private:
-  Framebuffer(geom::isize const& size, TextureParams const& params, bool stencil);
+  Framebuffer(geom::isize const& size, TextureParams const& params, bool depth, bool stencil);
+  void attach_renderbuffer(uint32_t& handle, uint32_t format, uint32_t attachment, geom::isize const& size);
+  void destroy();
 
 public:
   ~Framebuffer();
@@ -37,6 +40,7 @@ public:
 
 private:
   uint32_t m_handle;
+  uint32_t m_depth_buffer;
   uint32_t m_stencil_buffer;
   TexturePtr m_texture;
 

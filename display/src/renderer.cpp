@@ -80,6 +80,9 @@ void main()
 
 constexpr GLuint invalid_handle = 0xffffffffu;
 
+/** Meshes can extend this far in front of and behind the screen, in pixels */
+constexpr float depth_range = 4096.0f;
+
 } // namespace
 
 class Renderer::Impl
@@ -168,10 +171,11 @@ public:
     geom::isize const size = target_size();
     float const w = static_cast<float>(size.width());
     float const h = static_cast<float>(size.height());
+    // the depth range leaves room for meshes, 2D geometry is at z = 0
     if (target) {
-      return glm::ortho(0.0f, w, 0.0f, h, -1.0f, 1.0f);
+      return glm::ortho(0.0f, w, 0.0f, h, -depth_range, depth_range);
     } else {
-      return glm::ortho(0.0f, w, h, 0.0f, -1.0f, 1.0f);
+      return glm::ortho(0.0f, w, h, 0.0f, -depth_range, depth_range);
     }
   }
 

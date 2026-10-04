@@ -39,6 +39,9 @@ static_assert(sizeof(MeshVertex) == 36);
     a_normal and u_model (mat4, the model transform without the
     view/projection), a_position is a vec3.
 
+    Positions are in pixels like everything else, z extends towards
+    the viewer and is limited to [-4096, 4096].
+
     Changing vertices re-uploads them on the next draw, which is fine
     for keyframe animation. */
 class Mesh final
