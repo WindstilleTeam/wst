@@ -4,6 +4,7 @@
 #include "input_bindings.hpp"
 
 #include <algorithm>
+#include <cstdlib>
 
 #include <logmich/log.hpp>
 #include <prio/reader.hpp>
@@ -15,11 +16,9 @@ using namespace prio;
 
 namespace wstinput {
 
-// FIXME: this should be configurable and per axis
-constexpr int g_dead_zone = 0;
-
 InputBindings::InputBindings(InputManagerSDL& manager) :
   m_manager(manager),
+  m_dead_zone(8000),
   m_joystick_button_bindings(),
   m_joystick_button_axis_bindings(),
   m_joystick_axis_bindings(),
@@ -67,9 +66,9 @@ InputBindings::load(std::filesystem::path const& filename,
         bind_joystick_button(controller_description.get_definition(key).id,
                              device, button);
       } else if (button_obj.get_name() == "joystick-axis-button") {
-        int  device;
-        int  axis;
-        bool up;
+        int  device = 0;
+        int  axis = 0;
+        bool up = false;
 
         button_map.read("device", device);
         button_map.read("axis", axis);
@@ -92,7 +91,8 @@ InputBindings::load(std::filesystem::path const& filename,
 
         bind_keyboard_button(controller_description.get_definition(key).id,
                              m_manager.string_to_keyid(key_text));
-      } else {
+      } else if (!button_obj.get_name().empty()) {
+        // an empty element leaves the button unbound
         log_error("InputManagerSDL: Unknown tag: {}", button_obj.get_name());
       }
     }
@@ -137,7 +137,7 @@ InputBindings::load(std::filesystem::path const& filename,
         bind_wiimote_axis(controller_description.get_definition(key).id,
                           device, axis);
       }
-      else
+      else if (!axis_obj.get_name().empty())
       {
         log_error("InputManagerSDL: Unknown tag: {}", axis_obj.get_name());
       }
@@ -190,8 +190,6 @@ InputBindings::bind_joystick_hat_axis(int /*event*/, int /*device*/, int /*axis*
 void
 InputBindings::bind_joystick_button_axis(int event, int device, int minus, int plus)
 {
-  m_manager.ensure_open_joystick(device);
-
   JoystickButtonAxisBinding binding;
 
   binding.event  = event;
@@ -205,8 +203,6 @@ InputBindings::bind_joystick_button_axis(int event, int device, int minus, int p
 void
 InputBindings::bind_joystick_axis(int event, int device, int axis, bool invert)
 {
-  m_manager.ensure_open_joystick(device);
-
   JoystickAxisBinding binding;
 
   binding.event  = event;
@@ -220,8 +216,6 @@ InputBindings::bind_joystick_axis(int event, int device, int axis, bool invert)
 void
 InputBindings::bind_joystick_button(int event, int device, int button)
 {
-  m_manager.ensure_open_joystick(device);
-
   JoystickButtonBinding binding;
 
   binding.event  = event;
@@ -234,8 +228,6 @@ InputBindings::bind_joystick_button(int event, int device, int button)
 void
 InputBindings::bind_joystick_axis_button(int event, int device, int axis, bool up)
 {
-  m_manager.ensure_open_joystick(device);
-
   JoystickAxisButtonBinding binding;
 
   binding.event  = event;
@@ -351,23 +343,13 @@ InputBindings::dispatch_event(SDL_Event const& event, Controller& controller) co
       dispatch_mouse_wheel_event(event.wheel, controller);
       break;
 
+    // joysticks are dispatched by InputManagerSDL, which knows the
+    // device numbers
     case SDL_JOYAXISMOTION:
-      dispatch_joy_axis_event(event.jaxis, controller);
-      break;
-
     case SDL_JOYBALLMOTION:
-      // event.jball
-      break;
-
     case SDL_JOYHATMOTION:
-      // event.jhat
-      break;
-
     case SDL_JOYBUTTONUP:
     case SDL_JOYBUTTONDOWN:
-      dispatch_joy_button_event(event.jbutton, controller);
-      break;
-
     case SDL_QUIT:
     case SDL_WINDOWEVENT:
     case SDL_SYSWMEVENT:
@@ -489,78 +471,44 @@ InputBindings::dispatch_mouse_wheel_event(SDL_MouseWheelEvent const& wheel, Cont
 }
 
 void
-InputBindings::dispatch_joy_button_event(const SDL_JoyButtonEvent& button, Controller& controller) const
+InputBindings::dispatch_joystick_button(int device, int button, bool down, Controller& controller) const
 {
-  for (std::vector<JoystickButtonBinding>::const_iterator i = m_joystick_button_bindings.begin();
-       i != m_joystick_button_bindings.end();
-       ++i)
-  {
-    if (button.which  == i->device &&
-        button.button == i->button)
-    {
-      controller.add_button_event(i->event, button.state);
+  for (JoystickButtonBinding const& binding : m_joystick_button_bindings) {
+    if (binding.device == device && binding.button == button) {
+      controller.add_button_event(binding.event, down);
     }
   }
 
-  for (std::vector<JoystickButtonAxisBinding>::const_iterator i = m_joystick_button_axis_bindings.begin();
-       i != m_joystick_button_axis_bindings.end();
-       ++i)
-  {
-    if (button.which  == i->device)
-    {
-      if (button.button == i->minus)
-      {
-        controller.add_axis_event(i->event, button.state ? -1.0f : 0.0f);
-      }
-      else if (button.button == i->plus)
-      {
-        controller.add_axis_event(i->event, button.state ?  1.0f : 0.0f);
+  for (JoystickButtonAxisBinding const& binding : m_joystick_button_axis_bindings) {
+    if (binding.device == device) {
+      if (button == binding.minus) {
+        controller.add_axis_event(binding.event, down ? -1.0f : 0.0f);
+      } else if (button == binding.plus) {
+        controller.add_axis_event(binding.event, down ? 1.0f : 0.0f);
       }
     }
   }
 }
 
 void
-InputBindings::dispatch_joy_axis_event(const SDL_JoyAxisEvent& event, Controller& controller) const
+InputBindings::dispatch_joystick_axis(int device, int axis, int value, Controller& controller) const
 {
-  for (std::vector<JoystickAxisBinding>::const_iterator i = m_joystick_axis_bindings.begin();
-       i != m_joystick_axis_bindings.end();
-       ++i)
-  {
-    if (event.which  == i->device &&
-        event.axis   == i->axis)
-    {
-      if (abs(event.value) > g_dead_zone)
-      {
-        controller.add_axis_event(i->event, static_cast<float>(event.value) / (i->invert ? -32768.0f : 32768.0f));
-      }
-      else
-      {
-        controller.add_axis_event(i->event, 0);
+  for (JoystickAxisBinding const& binding : m_joystick_axis_bindings) {
+    if (binding.device == device && binding.axis == axis) {
+      if (std::abs(value) > m_dead_zone) {
+        controller.add_axis_event(binding.event, static_cast<float>(value) / (binding.invert ? -32768.0f : 32768.0f));
+      } else {
+        controller.add_axis_event(binding.event, 0.0f);
       }
     }
   }
 
-  for(std::vector<JoystickAxisButtonBinding>::const_iterator i = m_joystick_axis_button_bindings.begin();
-      i != m_joystick_axis_button_bindings.end();
-      ++i)
-  {
-    if (event.which == i->device &&
-        event.axis  == i->axis)
-    {
-      if (i->up)
-      { // signal button press when axis is up
-        if (event.value < -g_dead_zone)
-          controller.add_button_event(i->event, true);
-        else
-          controller.add_button_event(i->event, false);
-      }
-      else
-      { // signal button press when axis is down
-        if (event.value > g_dead_zone)
-          controller.add_button_event(i->event, true);
-        else
-          controller.add_button_event(i->event, false);
+  for (JoystickAxisButtonBinding const& binding : m_joystick_axis_button_bindings) {
+    if (binding.device == device && binding.axis == axis) {
+      bool const down = binding.up ? (value < -m_dead_zone) : (value > m_dead_zone);
+      // axes report every small motion, only report the button when it changes
+      if (down != controller.get_button_state(binding.event)) {
+        controller.add_button_event(binding.event, down);
       }
     }
   }

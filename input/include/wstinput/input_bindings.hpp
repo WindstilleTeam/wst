@@ -123,18 +123,28 @@ public:
 
   void clear();
 
+  /** Stick values with a smaller magnitude count as centered, in the
+      range of SDL axis values (32767), the default is 8000 */
+  void set_dead_zone(int dead_zone) { m_dead_zone = dead_zone; }
+  int get_dead_zone() const { return m_dead_zone; }
+
+  /** Keyboard, mouse and text events */
   void dispatch_event(SDL_Event const& event, Controller& controller) const;
+
+  /** Joystick input by the device number used in the bindings, see
+      InputManagerSDL for the button and axis layout */
+  void dispatch_joystick_button(int device, int button, bool down, Controller& controller) const;
+  void dispatch_joystick_axis(int device, int axis, int value, Controller& controller) const;
 
 private:
   void dispatch_key_event(SDL_KeyboardEvent const& key, Controller& controller) const;
   void dispatch_mouse_button_event(SDL_MouseButtonEvent const& button, Controller& controller) const;
   void dispatch_mouse_motion_event(SDL_MouseMotionEvent const& motion, Controller& controller) const;
   void dispatch_mouse_wheel_event(SDL_MouseWheelEvent const& wheel, Controller& controller) const;
-  void dispatch_joy_button_event(SDL_JoyButtonEvent const& button, Controller& controller) const;
-  void dispatch_joy_axis_event(SDL_JoyAxisEvent const& button, Controller& controller) const;
 
 private:
   InputManagerSDL& m_manager;
+  int m_dead_zone;
 
   std::vector<JoystickButtonBinding>     m_joystick_button_bindings;
   std::vector<JoystickButtonAxisBinding> m_joystick_button_axis_bindings;

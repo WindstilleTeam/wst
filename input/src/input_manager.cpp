@@ -1,6 +1,7 @@
 // SPDX-FileCopyrightText: 2005-2020 Ingo Ruhnke <grumbel@gmail.com>
 // SPDX-License-Identifier: LGPL-3.0-or-later
 
+#include <algorithm>
 #include <sstream>
 
 #include <logmich/log.hpp>
@@ -19,9 +20,13 @@ InputManagerSDL::InputManagerSDL(ControllerDescription const& controller_descrip
   m_controller_description(controller_description),
   m_controller(controller_description.get_max_id() + 1),
   m_bindings(*this),
-  m_joysticks(),
+  m_pads(),
   m_keyidmapping()
 {
+  if (SDL_InitSubSystem(SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER) < 0) {
+    log_error("InputManagerSDL: couldn't initialize joystick support: {}", SDL_GetError());
+  }
+
   log_debug("Keyboard keys:");
   for (int i = 0; i < SDL_NUM_SCANCODES; ++i) {
     const char* key_name = SDL_GetScancodeName(static_cast<SDL_Scancode>(i));
@@ -31,6 +36,11 @@ InputManagerSDL::InputManagerSDL(ControllerDescription const& controller_descrip
   }
 
   stop_text_input();
+
+  // pads attached later are opened on SDL_JOYDEVICEADDED
+  for (int index = 0; index < SDL_NumJoysticks(); ++index) {
+    open_pad(index);
+  }
 
 #ifdef HAVE_CWIID
   // FIXME: doesn't really belong here
@@ -44,6 +54,11 @@ InputManagerSDL::InputManagerSDL(ControllerDescription const& controller_descrip
 
 InputManagerSDL::~InputManagerSDL()
 {
+  for (Pad& pad : m_pads) {
+    close_pad(pad);
+  }
+  SDL_QuitSubSystem(SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER);
+
 #ifdef HAVE_CWIID
   Wiimote::deinit();
 #endif
@@ -78,28 +93,152 @@ InputManagerSDL::string_to_keyid(const std::string& str) const
 }
 
 void
-InputManagerSDL::ensure_open_joystick(int device)
+InputManagerSDL::open_pad(int index)
 {
-  if (device >= int(m_joysticks.size()))
-    m_joysticks.resize(device + 1, nullptr);
+  if (find_device(SDL_JoystickGetDeviceInstanceID(index)) >= 0) {
+    return;
+  }
 
-  if (!m_joysticks[device])
-  {
-    if (SDL_Joystick* joystick = SDL_JoystickOpen(device))
-    {
-      m_joysticks[device] = joystick;
-    }
-    else
-    {
-      log_error("InputManagerSDL: Couldn't open joystick device: {}", device);
+  auto it = std::find_if(m_pads.begin(), m_pads.end(), [](Pad const& pad) { return !pad.joystick; });
+  if (it == m_pads.end()) {
+    it = m_pads.insert(m_pads.end(), Pad{});
+  }
+  int const device = static_cast<int>(it - m_pads.begin());
+  Pad& pad = *it;
+
+  if (SDL_IsGameController(index)) {
+    if (SDL_GameController* controller = SDL_GameControllerOpen(index)) {
+      pad.controller = controller;
+      pad.joystick = SDL_GameControllerGetJoystick(controller);
+      pad.instance_id = SDL_JoystickInstanceID(pad.joystick);
+      log_info("InputManagerSDL: game controller {}: {}", device, SDL_GameControllerName(controller));
+      return;
     }
   }
+
+  if (SDL_Joystick* joystick = SDL_JoystickOpen(index)) {
+    pad.joystick = joystick;
+    pad.instance_id = SDL_JoystickInstanceID(joystick);
+    log_info("InputManagerSDL: joystick {}: {}", device, SDL_JoystickName(joystick));
+  } else {
+    log_error("InputManagerSDL: couldn't open joystick {}: {}", index, SDL_GetError());
+  }
+}
+
+void
+InputManagerSDL::close_pad(Pad& pad)
+{
+  if (pad.controller) {
+    SDL_GameControllerClose(pad.controller);
+  } else if (pad.joystick) {
+    SDL_JoystickClose(pad.joystick);
+  }
+  pad = Pad{};
+}
+
+int
+InputManagerSDL::find_device(SDL_JoystickID instance_id) const
+{
+  for (size_t i = 0; i < m_pads.size(); ++i) {
+    if (m_pads[i].joystick && m_pads[i].instance_id == instance_id) {
+      return static_cast<int>(i);
+    }
+  }
+  return -1;
+}
+
+void
+InputManagerSDL::dispatch_hat(int device, Uint8 value)
+{
+  Pad& pad = m_pads[static_cast<size_t>(device)];
+
+  // the same button numbers as the D-pad of a game controller
+  constexpr std::pair<Uint8, int> directions[] = {
+    {SDL_HAT_UP, SDL_CONTROLLER_BUTTON_DPAD_UP},
+    {SDL_HAT_DOWN, SDL_CONTROLLER_BUTTON_DPAD_DOWN},
+    {SDL_HAT_LEFT, SDL_CONTROLLER_BUTTON_DPAD_LEFT},
+    {SDL_HAT_RIGHT, SDL_CONTROLLER_BUTTON_DPAD_RIGHT},
+  };
+  for (auto const& [mask, button] : directions) {
+    bool const down = (value & mask) != 0;
+    if (down != ((pad.hat & mask) != 0)) {
+      m_bindings.dispatch_joystick_button(device, button, down, m_controller);
+    }
+  }
+  pad.hat = value;
 }
 
 void
 InputManagerSDL::on_event(const SDL_Event& event)
 {
-  m_bindings.dispatch_event(event, m_controller);
+  switch (event.type)
+  {
+    case SDL_JOYDEVICEADDED:
+      // 'which' is the device index here, a controller sends this too
+      open_pad(event.jdevice.which);
+      break;
+
+    case SDL_JOYDEVICEREMOVED: {
+      // 'which' is the instance id, a controller sends both removed events
+      int const device = find_device(event.jdevice.which);
+      if (device >= 0) {
+        log_info("InputManagerSDL: joystick {} removed", device);
+        close_pad(m_pads[static_cast<size_t>(device)]);
+      }
+      break;
+    }
+
+    // a pad opened as game controller also sends JOY* events, they
+    // are only used for plain joysticks so each input counts once
+
+    case SDL_JOYAXISMOTION: {
+      int const device = find_device(event.jaxis.which);
+      if (device >= 0 && !m_pads[static_cast<size_t>(device)].controller) {
+        m_bindings.dispatch_joystick_axis(device, event.jaxis.axis, event.jaxis.value, m_controller);
+      }
+      break;
+    }
+
+    case SDL_JOYBUTTONDOWN:
+    case SDL_JOYBUTTONUP: {
+      int const device = find_device(event.jbutton.which);
+      if (device >= 0 && !m_pads[static_cast<size_t>(device)].controller) {
+        m_bindings.dispatch_joystick_button(device, event.jbutton.button,
+                                            event.jbutton.state == SDL_PRESSED, m_controller);
+      }
+      break;
+    }
+
+    case SDL_JOYHATMOTION: {
+      int const device = find_device(event.jhat.which);
+      if (device >= 0 && !m_pads[static_cast<size_t>(device)].controller && event.jhat.hat == 0) {
+        dispatch_hat(device, event.jhat.value);
+      }
+      break;
+    }
+
+    case SDL_CONTROLLERAXISMOTION: {
+      int const device = find_device(event.caxis.which);
+      if (device >= 0) {
+        m_bindings.dispatch_joystick_axis(device, event.caxis.axis, event.caxis.value, m_controller);
+      }
+      break;
+    }
+
+    case SDL_CONTROLLERBUTTONDOWN:
+    case SDL_CONTROLLERBUTTONUP: {
+      int const device = find_device(event.cbutton.which);
+      if (device >= 0) {
+        m_bindings.dispatch_joystick_button(device, event.cbutton.button,
+                                            event.cbutton.state == SDL_PRESSED, m_controller);
+      }
+      break;
+    }
+
+    default:
+      m_bindings.dispatch_event(event, m_controller);
+      break;
+  }
 }
 
 void

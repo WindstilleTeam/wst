@@ -128,6 +128,16 @@ if(CWIID_LIBRARY)
   target_link_libraries(wstinput PUBLIC ${CWIID_LIBRARY})
 endif()
 
+if(BUILD_TESTS)
+  find_package(GTest REQUIRED)
+  include(GoogleTest)
+  file(GLOB TEST_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} test/*_test.cpp)
+  add_executable(test_wstinput ${TEST_SOURCES})
+  target_compile_options(test_wstinput PRIVATE ${WSTINPUT_WARNINGS_CXX_FLAGS})
+  target_link_libraries(test_wstinput PRIVATE wstinput GTest::gtest GTest::gtest_main)
+  gtest_discover_tests(test_wstinput)
+endif()
+
 # Export and install library (inlined from former tinycmmc)
 install(TARGETS wstinput
   EXPORT wstinput
