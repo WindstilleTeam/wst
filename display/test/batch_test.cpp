@@ -157,4 +157,56 @@ TEST(BatchTest, object_commands_pass_through)
   EXPECT_EQ(object.matrix[3][0], 5.0f);
 }
 
+TEST(BatchTest, unordered_layer_groups_by_state)
+{
+  Canvas canvas;
+  canvas.set_layer_unordered(1.0f);
+
+  // interleaved in an ordered layer: one batch per draw
+  for (int i = 0; i < 6; ++i) {
+    canvas.draw_quads(i % 2 == 0 ? tex_a : tex_b, quad(static_cast<float>(i), 0));
+  }
+
+  // interleaved in an unordered layer: grouped by texture
+  canvas.set_z(1.0f);
+  for (int i = 0; i < 6; ++i) {
+    canvas.draw_quads(i % 2 == 0 ? tex_b : tex_a, quad(static_cast<float>(10 + i), 0));
+  }
+
+  BatchList batches;
+  build_batches(canvas, batches);
+  ASSERT_EQ(batches.batches.size(), 8u);
+  EXPECT_EQ(batches.batches[6].texture, tex_a);
+  EXPECT_EQ(batches.batches[6].index_count, 18u);
+  EXPECT_EQ(batches.batches[7].texture, tex_b);
+
+  // draws with equal state keep their order
+  EXPECT_EQ(batches.vertices[24].x, 11.0f);
+  EXPECT_EQ(batches.vertices[28].x, 13.0f);
+  EXPECT_EQ(batches.vertices[32].x, 15.0f);
+  EXPECT_EQ(batches.vertices[36].x, 10.0f);
+}
+
+TEST(BatchTest, unordered_layer_keeps_z_order)
+{
+  Canvas canvas;
+  canvas.set_layer_unordered(0.0f);
+  canvas.set_z(1.0f);
+  canvas.draw_quads(tex_a, quad(0, 0));
+  canvas.set_z(0.0f);
+  canvas.draw_quads(tex_b, quad(1, 0));
+  canvas.draw_quads(tex_a, quad(2, 0));
+
+  BatchList batches;
+  build_batches(canvas, batches);
+
+  // z = 0 regrouped by texture, z = 1 still drawn last
+  ASSERT_EQ(batches.batches.size(), 3u);
+  EXPECT_EQ(batches.batches[0].texture, tex_a);
+  EXPECT_EQ(batches.batches[1].texture, tex_b);
+  EXPECT_EQ(batches.batches[2].texture, tex_a);
+  EXPECT_EQ(batches.vertices[0].x, 2.0f);
+  EXPECT_EQ(batches.vertices[8].x, 0.0f);
+}
+
 /* EOF */

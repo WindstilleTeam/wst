@@ -194,9 +194,10 @@ TEST(CanvasTest, fill_screen_uses_clip_space)
   EXPECT_EQ(canvas.get_space(), Space::World);
 }
 
-TEST(CanvasTest, clear_resets_state)
+TEST(CanvasTest, clear_resets_state_but_keeps_layers)
 {
   Canvas canvas;
+  canvas.set_layer_unordered(5.0f);
   canvas.save();
   canvas.translate(5, 5);
   canvas.set_z(5.0f);
@@ -209,6 +210,8 @@ TEST(CanvasTest, clear_resets_state)
   EXPECT_EQ(canvas.get_z(), 0.0f);
   EXPECT_EQ(canvas.get_clip_rects().size(), 1u);
   EXPECT_THROW(canvas.restore(), std::logic_error);
+  EXPECT_TRUE(canvas.is_layer_unordered(5.0f));
+  EXPECT_FALSE(canvas.is_layer_unordered(0.0f));
 }
 
 TEST(CanvasTest, packed_color_byte_order)

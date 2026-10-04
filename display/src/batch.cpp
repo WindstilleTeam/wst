@@ -5,12 +5,19 @@
 
 #include <algorithm>
 #include <numeric>
+#include <tuple>
 
 namespace wstdisplay {
 
 namespace {
 
 constexpr size_t max_segment_vertices = 0x10000;
+
+/** Order of commands within an unordered layer, groups equal state */
+auto state_key(Canvas::Command const& cmd)
+{
+  return std::make_tuple(cmd.type, cmd.space, cmd.clip, cmd.material, cmd.texture, cmd.blend);
+}
 
 bool same_state(Batch const& batch, Canvas::Command const& cmd)
 {
@@ -31,6 +38,7 @@ BatchList::clear()
   indices.clear();
   batches.clear();
   order.clear();
+  unordered.clear();
 }
 
 void
@@ -45,10 +53,36 @@ build_batches(Canvas const& canvas, BatchList& out)
   out.order.resize(commands.size());
   std::iota(out.order.begin(), out.order.end(), 0u);
 
+  // look up the layer mode once per command instead of in the comparator
+  out.unordered.resize(commands.size());
+  bool any_unordered = false;
+  for (size_t i = 0; i < commands.size(); ++i) {
+    bool const unordered = (i > 0 && commands[i].z == commands[i - 1].z) ?
+      (out.unordered[i - 1] != 0) :
+      canvas.is_layer_unordered(commands[i].z);
+    out.unordered[i] = unordered ? 1 : 0;
+    any_unordered |= unordered;
+  }
+
   auto const by_z = [&commands](uint32_t a, uint32_t b) {
     return commands[a].z < commands[b].z;
   };
-  if (!std::is_sorted(out.order.begin(), out.order.end(), by_z)) {
+
+  // all commands with equal z share the layer mode, which keeps this
+  // a strict weak ordering
+  auto const by_z_and_state = [&commands, &out](uint32_t a, uint32_t b) {
+    if (commands[a].z != commands[b].z) {
+      return commands[a].z < commands[b].z;
+    } else if (out.unordered[a]) {
+      return state_key(commands[a]) < state_key(commands[b]);
+    } else {
+      return false;
+    }
+  };
+
+  if (any_unordered) {
+    std::stable_sort(out.order.begin(), out.order.end(), by_z_and_state);
+  } else if (!std::is_sorted(out.order.begin(), out.order.end(), by_z)) {
     std::stable_sort(out.order.begin(), out.order.end(), by_z);
   }
 

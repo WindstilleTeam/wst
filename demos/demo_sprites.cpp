@@ -4,10 +4,12 @@
 // Sprite benchmark: many bouncing sprites of a few kinds.
 //
 //   --count N   number of sprites (default 20000)
-//   --no-atlas, --group, --fancy  start with the toggles below set
+//   --no-atlas, --group, --unordered, --fancy
+//               start with the toggles below set
 //   + / -       add / remove 5000 sprites
 //   a           toggle atlas vs. one texture per sprite kind
 //   z           toggle grouping the kinds by z
+//   u           toggle an unordered layer, which groups by texture
 //   r           toggle rotation and tinting
 
 #include <cmath>
@@ -72,6 +74,7 @@ public:
     m_rng(42),
     m_use_atlas(true),
     m_group_by_z(false),
+    m_unordered(false),
     m_fancy(false)
   {}
 
@@ -83,7 +86,8 @@ public:
       m_use_atlas = false;
     } else if (arg == "--group") {
       m_group_by_z = true;
-
+    } else if (arg == "--unordered") {
+      m_unordered = true;
     } else if (arg == "--fancy") {
       m_fancy = true;
     } else {
@@ -97,7 +101,7 @@ public:
     return "  --count N            number of sprites\n"
            "  --no-atlas           one texture per sprite kind\n"
            "  --group              group sprite kinds by z\n"
-
+           "  --unordered          let the renderer group by texture\n"
            "  --fancy              rotate and tint the sprites\n";
   }
 
@@ -157,6 +161,7 @@ public:
 
         case SDLK_a: m_use_atlas = !m_use_atlas; break;
         case SDLK_z: m_group_by_z = !m_group_by_z; break;
+        case SDLK_u: m_unordered = !m_unordered; break;
         case SDLK_r: m_fancy = !m_fancy; break;
         default: break;
       }
@@ -181,9 +186,9 @@ public:
 
   std::string get_info() const override
   {
-    return std::format("{} sprites, atlas: {}, grouped by z: {}, rotation/tint: {}\n"
-                       "keys: +/- count, a atlas, z grouping, r rotation",
-                       m_sprites.size(), m_use_atlas, m_group_by_z, m_fancy);
+    return std::format("{} sprites, atlas: {}, grouped by z: {}, unordered: {}, rotation/tint: {}\n"
+                       "keys: +/- count, a atlas, z grouping, u unordered, r rotation",
+                       m_sprites.size(), m_use_atlas, m_group_by_z, m_unordered, m_fancy);
   }
 
   void draw(Renderer& renderer) override
@@ -191,6 +196,10 @@ public:
     auto const& kinds = m_use_atlas ? m_atlas_kinds : m_texture_kinds;
 
     m_canvas.clear();
+    for (size_t kind = 0; kind < kinds.size(); ++kind) {
+      m_canvas.set_layer_unordered(static_cast<float>(kind), m_unordered);
+    }
+
     for (auto const& s : m_sprites)
     {
       Surface const& surface = kinds[static_cast<size_t>(s.kind)];
@@ -221,6 +230,7 @@ private:
   std::mt19937 m_rng;
   bool m_use_atlas;
   bool m_group_by_z;
+  bool m_unordered;
   bool m_fancy;
 };
 

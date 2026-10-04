@@ -79,7 +79,7 @@ struct ObjectDraw
     order, and neighboring commands with the same texture, material,
     blend mode, clip rect and space are merged into a single GPU draw
     call. Putting surfaces on shared atlas pages is what makes
-    batching effective.
+    batching effective, layers marked unordered batch even better.
 
     How draws are recorded is controlled by the canvas state: the
     transform, the clip rect, z, the blend mode, the material and the
@@ -146,7 +146,8 @@ public:
 public:
   Canvas();
 
-  /** Remove all commands and reset the state */
+  /** Remove all commands and reset the state. The layer
+      configuration (set_layer_unordered()) is kept. */
   void clear();
 
   bool empty() const { return m_commands.empty(); }
@@ -196,6 +197,17 @@ public:
       coordinates and intersected with the current clip rect. A
       rotated rect clips to its bounding box. Undone by restore(). */
   void clip(geom::frect const& rect);
+  /*} */
+
+  /*{ Layers */
+  /** Allow the renderer to reorder the draws with z equal to \a z
+      for better batching, for layers where draws don't overlap or
+      their order doesn't matter, e.g. particles, tiles or text.
+      Within an unordered layer draws are grouped by material,
+      texture and blend mode, draws with equal state keep their
+      order. Kept across clear(). */
+  void set_layer_unordered(float z, bool unordered = true);
+  bool is_layer_unordered(float z) const;
   /*} */
 
   /*{ Surfaces */
@@ -335,6 +347,9 @@ private:
 
   State m_state;
   std::vector<State> m_state_stack;
+
+  /** Sorted z values of the unordered layers */
+  std::vector<float> m_unordered_layers;
 
   /** Scratch buffers for building shapes */
   std::vector<glm::vec2> m_points;

@@ -43,12 +43,14 @@ struct BatchList
 
   /** Scratch space for sorting */
   std::vector<uint32_t> order = {};
+  std::vector<uint8_t> unordered = {};
 
   void clear();
 };
 
 /** Sort the commands of \a canvas by z (stable) and merge neighboring
-    commands with equal state into batches. Indices are rebased so
+    commands with equal state into batches. Commands in unordered
+    layers are additionally grouped by state. Indices are rebased so
     that no batch references more than 65536 vertices. */
 void build_batches(Canvas const& canvas, BatchList& out);
 

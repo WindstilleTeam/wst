@@ -58,7 +58,7 @@ statistics, F12 takes a screenshot.
 | Demo                       | Shows                                                         |
 |----------------------------|---------------------------------------------------------------|
 | `wst-demo-shapes`          | every Canvas primitive, transforms, clipping, z order, text, effect color |
-| `wst-demo-sprites`         | sprite benchmark, atlas vs. separate textures (`--count N`)   |
+| `wst-demo-sprites`         | sprite benchmark, atlas vs. separate textures, unordered layers (`--count N`) |
 | `wst-demo-text`            | TTF fonts, border effect, BitmapFont, TextArea markup         |
 | `wst-demo-lighting`        | Compositor lighting passes, camera zoom and rotation          |
 | `wst-demo-tilemap`         | StaticBatch chunks vs. per frame recording, parallax layers   |
@@ -174,6 +174,11 @@ rect and coordinate space. In practice:
   each other, lines and outlines are drawn as quads.
 - Equal z keeps submission order. Use z to group things, e.g. one z
   per layer, interleaving textures within a z breaks batches.
+- Layers whose draws don't depend on their order (particles, tiles,
+  text, HUD icons) can be marked with
+  `canvas.set_layer_unordered(z)`, the renderer then groups their
+  draws by material, texture and blend mode. In `wst-demo-sprites
+  --no-atlas` this halves the frame time.
 - Per draw shader parameters go through `DrawParams::effect`, not
   through separate materials.
 
@@ -269,7 +274,8 @@ Notes per game:
 
 - **SuperTux Origins**: `Canvas`/`Painter`/`DrawingRequest` map almost
   one to one onto `wstdisplay::Canvas`, `int layer` becomes
-  `canvas.set_z()`. Hit flashes use `DrawParams::effect`. The lightmap becomes a Compositor pass.
+  `canvas.set_z()`, layers like particles can be unordered. Hit flashes
+  use `DrawParams::effect`. The lightmap becomes a Compositor pass.
   `Rectf` can move to `geom::frect`, geom has `from_center()`,
   `anchor_point()` and `with_left()` and friends for the setters.
   `Sprite::draw()` advancing the animation goes away, `AnimState` +

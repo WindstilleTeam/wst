@@ -42,6 +42,7 @@ Canvas::Canvas() :
   m_objects(),
   m_state(),
   m_state_stack(),
+  m_unordered_layers(),
   m_points(),
   m_scratch_indices()
 {
@@ -201,6 +202,28 @@ Canvas::clip(geom::frect const& rect)
 
   m_clip_rects.push_back(ClipRect{clip_rect, m_state.space});
   m_state.clip = static_cast<uint16_t>(m_clip_rects.size() - 1);
+}
+
+/*} */
+
+/*{ Layers */
+
+void
+Canvas::set_layer_unordered(float z, bool unordered)
+{
+  auto it = std::lower_bound(m_unordered_layers.begin(), m_unordered_layers.end(), z);
+  bool const present = (it != m_unordered_layers.end() && *it == z);
+  if (unordered && !present) {
+    m_unordered_layers.insert(it, z);
+  } else if (!unordered && present) {
+    m_unordered_layers.erase(it);
+  }
+}
+
+bool
+Canvas::is_layer_unordered(float z) const
+{
+  return std::binary_search(m_unordered_layers.begin(), m_unordered_layers.end(), z);
 }
 
 /*} */
