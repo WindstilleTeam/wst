@@ -55,6 +55,14 @@ public:
 
   void show(ScreenManager& screen_manager);
 
+  /** Finish the menu and return it as a component to add to \a parent
+      given in the constructor, no more items can be added afterwards */
+  std::unique_ptr<GroupComponent> create_group();
+
+private:
+  /** Shrink the group around the preferred size of the menu */
+  void layout();
+
 private:
   std::unique_ptr<GUIManager> m_manager;
   std::unique_ptr<GroupComponent> m_group;

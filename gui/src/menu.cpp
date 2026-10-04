@@ -93,32 +93,45 @@ Menu::get_root() const
 }
 
 void
+Menu::layout()
+{
+  geom::frect const rect = m_group->geometry();
+
+  glm::vec2 const center((rect.left() + rect.right()) / 2.0f,
+                         (rect.top() + rect.bottom()) / 2.0f);
+
+  geom::fsize const size(m_menu->get_prefered_size().width(),
+                         m_menu->get_prefered_size().height() +
+                         (m_group->has_title() ?
+                          static_cast<float>(m_menu->get_font()->get_height()) + 18.0f :
+                          0.0f));
+
+  m_group->set_geometry(geom::frect(glm::vec2(center.x - size.width() / 2.0f,
+                                              center.y - size.height() / 2.0f),
+                                    size));
+
+  m_menu->set_geometry(m_group->get_child_rect());
+}
+
+void
 Menu::show(ScreenManager& screen_manager)
 {
   assert(m_manager.get());
 
-  {
-    geom::frect rect = m_group->geometry();
-
-    glm::vec2 center((rect.left() + rect.right()) / 2.0f,
-                     (rect.top() + rect.bottom()) / 2.0f);
-
-    geom::fsize size(m_menu->get_prefered_size().width(),
-                     m_menu->get_prefered_size().height() +
-                     (m_group->has_title() ?
-                      static_cast<float>(m_manager->get_style().get_font()->get_height()) + 18.0f :
-                      0.0f));
-
-    m_group->set_geometry(geom::frect(glm::vec2(center.x - size.width()/2.0f,
-                                                   center.y - size.height()/2.0f),
-                                         size));
-
-    m_menu->set_geometry(m_group->get_child_rect());
-  }
-
+  layout();
   m_group->pack(std::move(m_menu));
   m_manager->get_root()->add_child(std::move(m_group));
   screen_manager.push_overlay(std::move(m_manager));
+}
+
+std::unique_ptr<GroupComponent>
+Menu::create_group()
+{
+  assert(!m_manager.get());
+
+  layout();
+  m_group->pack(std::move(m_menu));
+  return std::move(m_group);
 }
 
 } // namespace wstgui

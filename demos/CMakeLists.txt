@@ -13,6 +13,13 @@ target_compile_definitions(wstdemo PRIVATE
 target_compile_options(wstdemo PRIVATE ${WST_WARNINGS_CXX_FLAGS})
 
 file(GLOB DEMO_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} demo_*.cpp)
+
+# demos using more than wstdisplay
+if(TARGET wstgui::wstgui)
+  set(DEMO_EXTRA_LIBS_demo_gui wstgui::wstgui)
+else()
+  list(REMOVE_ITEM DEMO_SOURCES demo_gui.cpp)
+endif()
 foreach(SRC ${DEMO_SOURCES})
   get_filename_component(NAME ${SRC} NAME_WE)
   string(REPLACE "_" "-" EXE_NAME "wst-${NAME}")
