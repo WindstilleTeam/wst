@@ -11,6 +11,7 @@
 
 #include <glm/glm.hpp>
 #include <geom/fwd.hpp>
+#include <geom/point.hpp>
 #include <geom/rect.hpp>
 #include <surf/color.hpp>
 
@@ -33,7 +34,8 @@ enum class Space : uint8_t
       unaffected by the View, for HUDs and overlays */
   Screen,
 
-  /** Normalized device coordinates, [-1,1] covers the target */
+  /** Normalized device coordinates, [-1,1] covers the target, y
+      points up. For full screen effects, see fill_screen(). */
   Clip
 };
 
@@ -71,18 +73,28 @@ struct ObjectDraw
 /** Records drawing commands for later rendering with a Renderer.
 
     All draws are recorded as plain data: vertices go into one shared
-    vertex array and each draw adds a small Command referencing them.
-    Before rendering the commands are stably sorted by z, so draws
-    with equal z keep their submission order, and neighboring
-    commands with the same texture, material, blend mode and clip
-    rect are merged into a single GPU draw call. Putting surfaces on
-    shared atlas pages is what makes batching effective.
+    vertex array and each draw adds a small Command referencing them
+    and the resources by handle. Before rendering the commands are
+    stably sorted by z, so draws with equal z keep their submission
+    order, and neighboring commands with the same texture, material,
+    blend mode, clip rect and space are merged into a single GPU draw
+    call. Putting surfaces on shared atlas pages is what makes
+    batching effective.
 
-    Textures and materials are referenced by raw pointer and must stay
-    alive until the canvas has been rendered or cleared.
+    How draws are recorded is controlled by the canvas state: the
+    transform, the clip rect, z, the blend mode, the material and the
+    coordinate space. save() and restore() (or a Canvas::Scope)
+    bracket temporary changes, like in the HTML canvas:
 
-    The canvas keeps a 2D transform stack that is applied to vertices
-    when they are recorded, and a clip rect stack. */
+      Canvas::Scope scope(canvas);
+      canvas.set_z(10.0f);
+      canvas.set_blend(Blend::Add);
+      canvas.translate(pos.x(), pos.y());
+      canvas.draw(glow, geom::fpoint(0, 0));
+
+    Resources are referenced by handle, a draw using a resource that
+    has been destroyed and collected by the time the canvas is
+    rendered is skipped. */
 class Canvas final
 {
 public:
@@ -115,128 +127,160 @@ public:
       16-bit indices are enough (GLES 2.0) */
   static constexpr uint32_t max_command_vertices = 0xffff;
 
+  /** Saves the canvas state on construction and restores it when
+      going out of scope */
+  class Scope final
+  {
+  public:
+    explicit Scope(Canvas& canvas) : m_canvas(canvas) { m_canvas.save(); }
+    ~Scope() { m_canvas.restore(); }
+
+  private:
+    Canvas& m_canvas;
+
+  public:
+    Scope(Scope const&) = delete;
+    Scope& operator=(Scope const&) = delete;
+  };
+
 public:
   Canvas();
 
-  /** Remove all commands, the transform and clip stack are reset */
+  /** Remove all commands and reset the state */
   void clear();
 
   bool empty() const { return m_commands.empty(); }
 
-  /*{ Transform */
-  void push_transform();
-  void pop_transform();
-  void reset_transform();
+  /*{ State */
+  /** Push the state: transform, clip rect, z, blend mode, material
+      and space */
+  void save();
+
+  /** Pop the state pushed by the matching save() */
+  void restore();
+
+  /** Depth of the following draws, higher z is drawn on top. Draws
+      with equal z are drawn in submission order. */
+  void set_z(float z) { m_state.z = z; }
+  float get_z() const { return m_state.z; }
+
+  /** Blend mode of the following draws, Blend::Alpha by default */
+  void set_blend(Blend blend) { m_state.blend = blend; }
+  Blend get_blend() const { return m_state.blend; }
+
+  /** Custom shader of the following draws, null for the default */
+  void set_material(MaterialId material) { m_state.material = material; }
+  MaterialId get_material() const { return m_state.material; }
+
+  /** Coordinate space of the following draws, World by default */
+  void set_space(Space space) { m_state.space = space; }
+  Space get_space() const { return m_state.space; }
+  /*} */
+
+  /*{ Transform, applied to vertices when they are recorded */
   void translate(float x, float y);
   void scale(float x, float y);
 
-  /** Rotate by \a degrees around the current origin */
+  /** Rotate by \a degrees around the current origin, clockwise on
+      screen */
   void rotate(float degrees);
 
   void set_transform(glm::mat3 const& transform);
   void mult_transform(glm::mat3 const& transform);
-  glm::mat3 const& get_transform() const { return m_transform_stack.back(); }
+  void reset_transform();
+  glm::mat3 const& get_transform() const { return m_state.transform; }
   /*} */
 
   /*{ Clipping */
-  /** Clip all following draws to \a rect, given in current canvas
+  /** Clip the following draws to \a rect, given in current canvas
       coordinates and intersected with the current clip rect. A
-      rotated rect clips to its bounding box. */
-  void push_clip(geom::frect const& rect);
-  void pop_clip();
+      rotated rect clips to its bounding box. Undone by restore(). */
+  void clip(geom::frect const& rect);
   /*} */
-
-  /** Coordinate space for the following draws, World by default */
-  void set_space(Space space) { m_space = space; }
-  Space get_space() const { return m_space; }
 
   /*{ Surfaces */
-  void draw(Surface const& surface, geom::fpoint const& pos, float z = 0.0f);
-  void draw(Surface const& surface, DrawParams const& params, float z = 0.0f);
+  void draw(Surface const& surface, geom::fpoint const& pos);
+  void draw(Surface const& surface, DrawParams const& params);
 
-  /** Stretch the surface to \a dstrect */
+  /** Stretch the surface to \a dstrect, use Surface::region() to
+      draw a part of it */
   void draw(Surface const& surface, geom::frect const& dstrect,
-            surf::Color const& color = {1.0f, 1.0f, 1.0f}, Blend blend = Blend::Alpha, float z = 0.0f);
+            surf::Color const& color = {1.0f, 1.0f, 1.0f});
 
-  /** Draw the pixel rectangle \a srcrect of the surface into \a dstrect */
-  void draw(Surface const& surface, geom::frect const& srcrect, geom::frect const& dstrect,
-            surf::Color const& color = {1.0f, 1.0f, 1.0f}, Blend blend = Blend::Alpha, float z = 0.0f);
-
-  /** Fill \a rect by repeating \a texture, \a offset shifts the
-      pattern. Needs a power-of-two texture on GLES 2.0 without
-      GL_OES_texture_npot. */
+  /** Fill \a rect by repeating \a pattern, \a offset shifts it. The
+      surface must cover its whole texture, which needs
+      TextureWrap::Repeat and, on GLES 2.0 without
+      GL_OES_texture_npot, power-of-two dimensions. */
   void fill_pattern(Surface const& pattern, geom::frect const& rect, geom::foffset const& offset = {},
-                    surf::Color const& color = {1.0f, 1.0f, 1.0f}, float z = 0.0f);
+                    surf::Color const& color = {1.0f, 1.0f, 1.0f});
   /*} */
 
-  /*{ Shapes, lines are drawn as quads of the given width */
-  void fill_screen(surf::Color const& color, float z = 0.0f);
+  /*{ Shapes, lines are drawn as quads of the given width, circles
+      and arcs get enough segments to look round at their size */
+  /** Cover the whole target, in Clip space, unaffected by the
+      transform */
+  void fill_screen(surf::Color const& color);
 
-  void fill_rect(geom::frect const& rect, surf::Color const& color, float z = 0.0f);
-  void draw_rect(geom::frect const& rect, surf::Color const& color, float z = 0.0f, float width = 1.0f);
+  void fill_rect(geom::frect const& rect, surf::Color const& color);
+  void draw_rect(geom::frect const& rect, surf::Color const& color, float width = 1.0f);
 
-  void fill_rounded_rect(geom::frect const& rect, float radius, surf::Color const& color, float z = 0.0f);
-  void draw_rounded_rect(geom::frect const& rect, float radius, surf::Color const& color,
-                         float z = 0.0f, float width = 1.0f);
+  void fill_rounded_rect(geom::frect const& rect, float radius, surf::Color const& color);
+  void draw_rounded_rect(geom::frect const& rect, float radius, surf::Color const& color, float width = 1.0f);
 
-  void fill_quad(geom::fquad const& quad, surf::Color const& color, float z = 0.0f);
-  void draw_quad(geom::fquad const& quad, surf::Color const& color, float z = 0.0f, float width = 1.0f);
+  void fill_quad(geom::fquad const& quad, surf::Color const& color);
+  void draw_quad(geom::fquad const& quad, surf::Color const& color, float width = 1.0f);
 
   void fill_triangle(geom::fpoint const& p1, geom::fpoint const& p2, geom::fpoint const& p3,
-                     surf::Color const& color, float z = 0.0f);
+                     surf::Color const& color);
 
-  void draw_line(geom::fpoint const& p1, geom::fpoint const& p2, surf::Color const& color,
-                 float z = 0.0f, float width = 1.0f);
+  /** Fill a convex polygon */
+  void fill_polygon(std::span<geom::fpoint const> points, surf::Color const& color);
 
-  /** Draw a connected line through \a points, closed if \a loop */
-  void draw_polyline(std::span<geom::fpoint const> points, surf::Color const& color,
-                     bool loop = false, float z = 0.0f, float width = 1.0f);
+  /** Draw the outline of a polygon, closing it */
+  void draw_polygon(std::span<geom::fpoint const> points, surf::Color const& color, float width = 1.0f);
 
-  void fill_circle(geom::fpoint const& center, float radius, surf::Color const& color,
-                   float z = 0.0f, int segments = 32);
-  void draw_circle(geom::fpoint const& center, float radius, surf::Color const& color,
-                   float z = 0.0f, float width = 1.0f, int segments = 32);
+  void draw_line(geom::fpoint const& p1, geom::fpoint const& p2, surf::Color const& color, float width = 1.0f);
+
+  /** Draw a connected, open line through \a points */
+  void draw_polyline(std::span<geom::fpoint const> points, surf::Color const& color, float width = 1.0f);
+
+  void fill_circle(geom::fpoint const& center, float radius, surf::Color const& color);
+  void draw_circle(geom::fpoint const& center, float radius, surf::Color const& color, float width = 1.0f);
 
   /** Angles in degrees, clockwise starting at the positive x axis */
-  void fill_arc(geom::fpoint const& center, float radius, float start, float end,
-                surf::Color const& color, float z = 0.0f, int segments = 32);
+  void fill_arc(geom::fpoint const& center, float radius, float start, float end, surf::Color const& color);
   void draw_arc(geom::fpoint const& center, float radius, float start, float end,
-                surf::Color const& color, float z = 0.0f, float width = 1.0f, int segments = 32);
+                surf::Color const& color, float width = 1.0f);
 
   /** Fill with a color per corner */
   void fill_gradient(geom::frect const& rect,
                      surf::Color const& top_left, surf::Color const& top_right,
-                     surf::Color const& bottom_right, surf::Color const& bottom_left,
-                     float z = 0.0f);
-  void fill_vertical_gradient(geom::frect const& rect, surf::Color const& top,
-                              surf::Color const& bottom, float z = 0.0f);
-  void fill_horizontal_gradient(geom::frect const& rect, surf::Color const& left,
-                                surf::Color const& right, float z = 0.0f);
+                     surf::Color const& bottom_right, surf::Color const& bottom_left);
+  void fill_vertical_gradient(geom::frect const& rect, surf::Color const& top, surf::Color const& bottom);
+  void fill_horizontal_gradient(geom::frect const& rect, surf::Color const& left, surf::Color const& right);
   /*} */
 
-  /*{ Text, \a pos is the left end of the baseline of the first line */
+  /*{ Text, \a pos is the left/center/right end of the baseline of
+      the first line, depending on \a align */
   void draw_text(Font const& font, geom::fpoint const& pos, std::string_view text,
-                 surf::Color const& color = {1.0f, 1.0f, 1.0f}, TextAlign align = TextAlign::Left,
-                 float z = 0.0f);
+                 surf::Color const& color = {1.0f, 1.0f, 1.0f}, TextAlign align = TextAlign::Left);
   /*} */
 
   /*{ Raw geometry, vertices are in current canvas coordinates */
-  void draw_triangles(TextureId texture, std::span<Vertex const> vertices,
-                      std::span<uint16_t const> indices, Blend blend = Blend::Alpha,
-                      float z = 0.0f, MaterialId material = {});
+  /** \a texture null draws untextured */
+  void draw_triangles(TextureId texture, std::span<Vertex const> vertices, std::span<uint16_t const> indices);
 
   /** Four vertices per quad, in order top-left, top-right,
       bottom-right, bottom-left */
-  void draw_quads(TextureId texture, std::span<Vertex const> vertices,
-                  Blend blend = Blend::Alpha, float z = 0.0f, MaterialId material = {});
+  void draw_quads(TextureId texture, std::span<Vertex const> vertices);
 
   /** Draw the prebuilt geometry of \a batch with the current
-      transform, the batch must stay alive until rendering */
-  void draw(StaticBatchId batch, float z = 0.0f);
+      transform */
+  void draw(StaticBatchId batch);
 
   /** Draw \a mesh with \a transform applied on top of the current
-      canvas transform, the mesh must stay alive until rendering */
-  void draw(MeshId mesh, glm::mat4 const& transform, float z = 0.0f);
+      canvas transform */
+  void draw(MeshId mesh, glm::mat4 const& transform);
   /*} */
 
   /*{ Recorded data */
@@ -252,38 +296,49 @@ public:
   /*} */
 
 private:
+  struct State
+  {
+    glm::mat3 transform = glm::mat3(1.0f);
+    bool identity = true;
+    uint16_t clip = 0;
+    float z = 0.0f;
+    Blend blend = Blend::Alpha;
+    Space space = Space::World;
+    MaterialId material = {};
+  };
+
   /** Append a command, reusing the previous one if all state matches.
       Returns the vertices to fill, indices are given relative to the
       first returned vertex. */
-  Vertex* add(TextureId texture, MaterialId material, Blend blend, float z,
-              uint32_t vertex_count, std::span<uint16_t const> indices);
-  Vertex* add_quads(TextureId texture, MaterialId material, Blend blend, float z,
-                    uint32_t quad_count);
+  Vertex* add(TextureId texture, uint32_t vertex_count, std::span<uint16_t const> indices);
+  Vertex* add_quads(TextureId texture, uint32_t quad_count);
+  void add_object(CommandType type, ObjectDraw const& object);
 
-  void add_object(CommandType type, ObjectDraw const& object, float z);
+  /** One quad covering \a rect in canvas coordinates */
+  void add_rect(TextureId texture, geom::frect const& rect, geom::frect const& uv, PackedColor color);
 
   glm::vec2 apply(float x, float y) const;
   void transform_vertices(Vertex* vertices, size_t count) const;
 
-  void add_polygon_fill(std::span<glm::vec2 const> points, PackedColor color, float z);
-  void add_line_strip(std::span<glm::vec2 const> points, bool loop, PackedColor color, float z, float width);
+  /** Number of segments for an arc of \a radius covering \a degrees */
+  int segments_for(float radius, float degrees) const;
+
+  void add_polygon_fill(std::span<glm::vec2 const> points, PackedColor color);
+  void add_line_strip(std::span<glm::vec2 const> points, bool loop, PackedColor color, float width);
 
 private:
   std::vector<Command> m_commands;
   std::vector<Vertex> m_vertices;
   std::vector<uint16_t> m_indices;
-
-  std::vector<glm::mat3> m_transform_stack;
-  bool m_identity;
-
   std::vector<ClipRect> m_clip_rects;
   std::vector<ObjectDraw> m_objects;
-  std::vector<uint16_t> m_clip_stack;
 
-  Space m_space;
+  State m_state;
+  std::vector<State> m_state_stack;
 
-  /** scratch buffer for building outlines */
+  /** Scratch buffers for building shapes */
   std::vector<glm::vec2> m_points;
+  std::vector<uint16_t> m_scratch_indices;
 
 public:
   Canvas(Canvas const&) = delete;

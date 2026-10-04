@@ -35,11 +35,11 @@ ListView::draw(wstdisplay::Canvas& canvas)
   for(int i = 0; i < int(columns.size()); ++i)
   {
     // FIXME: Poor mans outline effect
-    font->draw_center(canvas, glm::vec2(x + columns[i].width/2 + 1, y - 1), columns[i].title);
-    font->draw_center(canvas, glm::vec2(x + columns[i].width/2 - 1, y - 1), columns[i].title);
-    font->draw_center(canvas, glm::vec2(x + columns[i].width/2 + 1, y + 1), columns[i].title);
-    font->draw_center(canvas, glm::vec2(x + columns[i].width/2 - 1, y + 1), columns[i].title);
-    font->draw_center(canvas, glm::vec2(x + columns[i].width/2, y), columns[i].title, surf::Color(0.0f, 0.0f, 0.0f));
+    font->draw(canvas, glm::vec2(x + columns[i].width/2 + 1, y - 1), columns[i].title, surf::Color(1.0f, 1.0f, 1.0f), wstdisplay::TextAlign::Center);
+    font->draw(canvas, glm::vec2(x + columns[i].width/2 - 1, y - 1), columns[i].title, surf::Color(1.0f, 1.0f, 1.0f), wstdisplay::TextAlign::Center);
+    font->draw(canvas, glm::vec2(x + columns[i].width/2 + 1, y + 1), columns[i].title, surf::Color(1.0f, 1.0f, 1.0f), wstdisplay::TextAlign::Center);
+    font->draw(canvas, glm::vec2(x + columns[i].width/2 - 1, y + 1), columns[i].title, surf::Color(1.0f, 1.0f, 1.0f), wstdisplay::TextAlign::Center);
+    font->draw(canvas, glm::vec2(x + columns[i].width/2, y), columns[i].title, surf::Color(0.0f, 0.0f, 0.0f), wstdisplay::TextAlign::Center);
     x += columns[i].width;
   }
 

@@ -38,7 +38,7 @@ public:
   bool is_progress_complete() const;
 
   void update(float delta);
-  void draw(Canvas& canvas, float z = 0.0f);
+  void draw(Canvas& canvas);
 
   /** Position after the last drawn character, e.g. for a cursor */
   glm::vec2 get_cursor_pos() const;

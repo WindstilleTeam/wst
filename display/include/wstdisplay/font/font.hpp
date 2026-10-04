@@ -63,19 +63,11 @@ public:
   /** Draw \a text, \a pos is the left/center/right end of the
       baseline of the first line, depending on \a align */
   void draw(Canvas& canvas, geom::fpoint const& pos, std::string_view text,
-            surf::Color const& color = {1.0f, 1.0f, 1.0f}, TextAlign align = TextAlign::Left,
-            float z = 0.0f) const;
-
-  /** Draw \a text centered around \a pos */
-  void draw_center(Canvas& canvas, geom::fpoint const& pos, std::string_view text,
-                   surf::Color const& color = {1.0f, 1.0f, 1.0f}, float z = 0.0f) const
-  {
-    draw(canvas, pos, text, color, TextAlign::Center, z);
-  }
+            surf::Color const& color = {1.0f, 1.0f, 1.0f}, TextAlign align = TextAlign::Left) const;
 
   /** Draw a single glyph scaled by \a scale with a vertical color gradient */
   static void draw_glyph(Canvas& canvas, Glyph const& glyph, geom::fpoint const& pen, float scale,
-                         surf::Color const& top, surf::Color const& bottom, float z = 0.0f);
+                         surf::Color const& top, surf::Color const& bottom);
 };
 
 } // namespace wstdisplay

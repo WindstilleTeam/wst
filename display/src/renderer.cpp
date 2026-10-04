@@ -721,7 +721,8 @@ Renderer::blit(TextureId texture, Blend blend, surf::Color const& color, bool fl
   Canvas& canvas = m_impl->blit_canvas;
   canvas.clear();
   canvas.set_space(Space::Clip);
-  canvas.draw_quads(texture, vertices, blend);
+  canvas.set_blend(blend);
+  canvas.draw_quads(texture, vertices);
   m_impl->render(canvas, glm::mat4(1.0f), glm::mat4(1.0f));
   canvas.clear();
 }

@@ -30,15 +30,15 @@ Sprite::update(float delta, std::vector<FrameEvent const*>* events)
 }
 
 void
-Sprite::draw(wstdisplay::Canvas& canvas, geom::fpoint const& pos, float z) const
+Sprite::draw(wstdisplay::Canvas& canvas, geom::fpoint const& pos) const
 {
-  draw(canvas, wstdisplay::DrawParams().set_pos(pos), z);
+  draw(canvas, wstdisplay::DrawParams().set_pos(pos));
 }
 
 void
-Sprite::draw(wstdisplay::Canvas& canvas, wstdisplay::DrawParams const& params, float z) const
+Sprite::draw(wstdisplay::Canvas& canvas, wstdisplay::DrawParams const& params) const
 {
-  wstsprite::draw(canvas, *m_data, m_state, params, z);
+  wstsprite::draw(canvas, *m_data, m_state, params);
 }
 
 } // namespace wstsprite

@@ -70,7 +70,7 @@ Frame const& current_frame(AnimState const& state, SpriteData const& data);
     goes. The action scale and mirroring are applied on top of
     \a params. */
 void draw(wstdisplay::Canvas& canvas, SpriteData const& data, AnimState const& state,
-          wstdisplay::DrawParams const& params, float z = 0.0f);
+          wstdisplay::DrawParams const& params);
 
 } // namespace wstsprite
 

@@ -34,10 +34,9 @@ public:
 
   void draw(Renderer& renderer) override
   {
+    renderer.clear(surf::Color(0.15f, 0.15f, 0.2f));
     float const t = get_time();
     geom::fsize const size(get_size());
-
-    renderer.clear(surf::Color(0.15f, 0.15f, 0.2f));
 
     m_canvas.clear();
 
@@ -65,10 +64,10 @@ public:
     for (int i = 0; i < 4; ++i) {
       float const w = 1.0f + static_cast<float>(i) * 2.0f;
       float const x = 20.0f + static_cast<float>(i) * 160.0f;
-      m_canvas.draw_rect(geom::frect(x, 150, x + 60, 210), surf::palette::white, 0.0f, w);
-      m_canvas.draw_rounded_rect(geom::frect(x + 70, 150, x + 140, 210), 15.0f, surf::palette::lightgreen, 0.0f, w);
-      m_canvas.draw_circle(geom::fpoint(x + 30, 260), 30.0f, surf::palette::lightblue, 0.0f, w);
-      m_canvas.draw_arc(geom::fpoint(x + 105, 260), 30.0f, 0.0f, 270.0f, surf::palette::yellow, 0.0f, w);
+      m_canvas.draw_rect(geom::frect(x, 150, x + 60, 210), surf::palette::white, w);
+      m_canvas.draw_rounded_rect(geom::frect(x + 70, 150, x + 140, 210), 15.0f, surf::palette::lightgreen, w);
+      m_canvas.draw_circle(geom::fpoint(x + 30, 260), 30.0f, surf::palette::lightblue, w);
+      m_canvas.draw_arc(geom::fpoint(x + 105, 260), 30.0f, 0.0f, 270.0f, surf::palette::yellow, w);
     }
 
     std::array<geom::fpoint, 6> zigzag;
@@ -76,37 +75,38 @@ public:
       zigzag[i] = geom::fpoint(680.0f + static_cast<float>(i) * 50.0f,
                                (i % 2 == 0 ? 160.0f : 280.0f) + 10.0f * std::sin(t * 2.0f + static_cast<float>(i)));
     }
-    m_canvas.draw_polyline(zigzag, surf::palette::hotpink, false, 0.0f, 6.0f);
+    m_canvas.draw_polyline(zigzag, surf::palette::hotpink, 6.0f);
     m_canvas.draw_quad(geom::fquad(geom::fpoint(1000, 160), geom::fpoint(1240, 170),
                                    geom::fpoint(1230, 290), geom::fpoint(1010, 280)),
-                       surf::palette::cyan, 0.0f, 3.0f);
+                       surf::palette::cyan, 3.0f);
     for (int i = 0; i < 8; ++i) {
       float const a = t + static_cast<float>(i) * 0.785f;
       m_canvas.draw_line(geom::fpoint(1120, 225),
                          geom::fpoint(1120 + std::cos(a) * 50.0f, 225 + std::sin(a) * 50.0f),
-                         surf::palette::white, 0.0f, 1.0f + static_cast<float>(i) * 0.5f);
+                         surf::palette::white, 1.0f + static_cast<float>(i) * 0.5f);
     }
 
     // row 3: transforms, a rotating group of shapes
-    m_canvas.push_transform();
+    m_canvas.save();
     m_canvas.translate(160, 440);
     m_canvas.rotate(t * 30.0f);
     m_canvas.scale(1.0f + 0.2f * std::sin(t), 1.0f);
     m_canvas.fill_rect(geom::frect(-80, -80, 80, 80), surf::palette::slateblue);
-    m_canvas.draw_rect(geom::frect(-80, -80, 80, 80), surf::palette::white, 0.0f, 3.0f);
+    m_canvas.draw_rect(geom::frect(-80, -80, 80, 80), surf::palette::white, 3.0f);
     m_canvas.fill_circle(geom::fpoint(0, 0), 30.0f, surf::palette::orange);
-    m_canvas.pop_transform();
+    m_canvas.restore();
 
     // clipping, the clip rect follows the transform
     geom::frect const clip(320, 340, 620, 540);
-    m_canvas.draw_rect(clip, surf::palette::gray, 0.0f, 1.0f);
-    m_canvas.push_clip(clip);
+    m_canvas.draw_rect(clip, surf::palette::gray);
+    m_canvas.save();
+    m_canvas.clip(clip);
     for (int i = 0; i < 12; ++i) {
       float const x = 300.0f + std::fmod(t * 80.0f + static_cast<float>(i) * 40.0f, 360.0f);
       m_canvas.fill_circle(geom::fpoint(x, 440.0f + 80.0f * std::sin(static_cast<float>(i))), 25.0f,
                            surf::Color(0.2f + 0.06f * static_cast<float>(i), 0.8f, 0.5f));
     }
-    m_canvas.pop_clip();
+    m_canvas.restore();
 
     // surfaces with DrawParams
     float const sx = 700.0f;
@@ -128,12 +128,14 @@ public:
                        surf::palette::white);
 
     // z ordering: drawn in reverse order, sorted by z
+    m_canvas.save();
     for (int i = 0; i < 4; ++i) {
       float const x = 1000.0f + static_cast<float>(i) * 30.0f;
-      float const z = static_cast<float>(4 - i);
+      m_canvas.set_z(static_cast<float>(4 - i));
       m_canvas.fill_rect(geom::frect(x, 580 + static_cast<float>(i) * 20, x + 80, 660 + static_cast<float>(i) * 20),
-                         surf::Color(0.25f * static_cast<float>(i + 1), 0.3f, 1.0f - 0.2f * static_cast<float>(i)), z);
+                         surf::Color(0.25f * static_cast<float>(i + 1), 0.3f, 1.0f - 0.2f * static_cast<float>(i)));
     }
+    m_canvas.restore();
 
     renderer.render(m_canvas);
   }

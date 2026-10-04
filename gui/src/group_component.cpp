@@ -28,10 +28,10 @@ GroupComponent::draw(wstdisplay::Canvas& canvas)
   if (!m_title.empty())
   {
     wstdisplay::Font const* font = get_style().get_font();
-    font->draw_center(canvas,
+    font->draw(canvas,
                       glm::vec2(m_geometry.left() + m_geometry.width() / 2.0f,
                                 m_geometry.top()  + static_cast<float>(font->get_height()) + 5.0f),
-                      m_title, surf::Color(1.0f, 1.0f, 1.0f));
+                      m_title, surf::Color(1.0f, 1.0f, 1.0f), wstdisplay::TextAlign::Center);
 
     canvas.fill_rect(geom::frect(m_geometry.left()  + 8.0f, m_geometry.top() + static_cast<float>(font->get_height()) + 16.0f,
                              m_geometry.right() - 8.0f, m_geometry.top() + static_cast<float>(font->get_height()) + 18.0f),

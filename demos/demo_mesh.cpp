@@ -238,11 +238,13 @@ public:
     model = glm::rotate(model, t * 0.7f, glm::vec3(1.0f, 0.0f, 0.0f));
     model = glm::rotate(model, t * 0.4f, glm::vec3(0.0f, 1.0f, 0.0f));
     m_lit->set_uniform("u_light_dir", glm::vec3(0.4f, -0.6f, 0.7f));
-    m_scene.draw(m_torus.get(), model, 1.0f);
+    m_scene.set_z(1.0f);
+    m_scene.draw(m_torus.get(), model);
 
+    m_scene.set_z(2.0f);
     m_scene.draw_text(get_font(), geom::fpoint(fsize.width() / 2.0f, fsize.height() - 40.0f),
                       "Mesh with depth test, rendered into a Framebuffer, drawn with a shockwave Material",
-                      surf::palette::white, TextAlign::Center, 2.0f);
+                      surf::palette::white, TextAlign::Center);
 
     renderer.set_target(m_framebuffer);
     renderer.clear(surf::palette::black);
@@ -255,8 +257,9 @@ public:
     m_shockwave->set_uniform("u_aspect", fsize.width() / fsize.height());
 
     m_post.clear();
-    m_post.draw(Surface(m_framebuffer->get_texture(), size),
-                DrawParams().set_material(m_shockwave).set_blend(Blend::Opaque));
+    m_post.set_material(m_shockwave);
+    m_post.set_blend(Blend::Opaque);
+    m_post.draw(Surface(m_framebuffer->get_texture(), size), geom::fpoint(0, 0));
     renderer.clear(surf::palette::black);
     renderer.render(m_post);
   }

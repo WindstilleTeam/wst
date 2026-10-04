@@ -82,7 +82,8 @@ Rendering architecture
     game
      │  records draws (CPU only, any time during the frame)
      ▼
-    Canvas ── commands + one shared vertex array, transform/clip stack
+    Canvas ── commands + one shared vertex array, state stack
+     │        (transform, clip, z, blend, material, space)
      │  build_batches(): stable sort by z, merge neighbors with equal state
      ▼
     Renderer ── GL state cache, one streamed VBO/IBO per canvas,
@@ -104,7 +105,8 @@ A frame:
     renderer.clear(black);
 
     canvas.clear();
-    canvas.draw(surface, DrawParams().set_pos(pos).set_angle(45.0f), z);
+    canvas.draw(surface, DrawParams().set_pos(pos).set_angle(45.0f));
+    canvas.set_z(10.0f);
     canvas.fill_rect(rect, color);
     canvas.draw_text(font, pos, "Hello");
     renderer.render(canvas, view);
@@ -135,6 +137,23 @@ that is gone by then is skipped and counted in `RenderStats::skipped`
 instead of crashing, `Device::get()` throws on stale handles. The
 `Device` must outlive all `Unique` handles.
 
+### Canvas state
+
+z, blend mode, material, coordinate space, transform and clip rect are
+canvas state, `save()`/`restore()` or a `Canvas::Scope` bracket
+changes:
+
+    {
+      Canvas::Scope scope(canvas);
+      canvas.set_z(LAYER_LIGHTS);
+      canvas.set_blend(Blend::Add);
+      canvas.translate(pos.x(), pos.y());
+      canvas.draw(glow, geom::fpoint(0, 0));
+    }
+
+`DrawParams` only holds what varies per instance: position, anchor,
+scale, angle, flip and color.
+
 ### Batching rules
 
 Draws are merged into one GL draw call when, after sorting by z, they
@@ -153,7 +172,7 @@ rect and coordinate space. In practice:
 `Space::World` is mapped through the `View` given to
 `Renderer::render()`, `Space::Screen` is target pixels (HUDs),
 `Space::Clip` is normalized device coordinates (`fill_screen()`). The
-canvas transform stack is applied when a draw is recorded.
+canvas transform is applied when a draw is recorded.
 
 ### Shaders
 
@@ -161,8 +180,9 @@ Shaders are written in GLSL ES 1.00 without a `#version` line and
 translated to GLSL 3.30 by a preamble: use `attribute`, `varying`,
 `texture2D()` and `gl_FragColor`. Built-in names are `a_position`,
 `a_texcoord`, `a_color`, `a_normal`, `u_mvp`, `u_model` (meshes) and
-`u_texture0` to `u_texture3`. A `Material` holds a program, extra
-textures and uniform values, see `demos/demo_mesh.cpp`.
+`u_texture0` to `u_texture3`. A `Material` holds a
+program, extra textures and uniform values and is selected with
+`canvas.set_material()`, see `demos/demo_mesh.cpp`.
 
 ### GLES 2.0
 
@@ -201,7 +221,8 @@ kept in `Properties` for the game.
     }
 
     // render system
-    draw(canvas, *c.data, c.anim, DrawParams().set_pos(pos), z);
+    canvas.set_z(c.layer);
+    draw(canvas, *c.data, c.anim, DrawParams().set_pos(pos));
 
 Frame events are written per action, `at-step` is accepted for Pingus:
 
@@ -224,20 +245,21 @@ Porting from the old wstdisplay
 | `GraphicContextState`                      | `View` (rotation in degrees everywhere now)             |
 | `SurfacePtr`, `Surface::draw(gc, pos)`     | `Surface` by value, `canvas.draw(surface, pos)`         |
 | `SurfaceDrawingParameters`                 | `DrawParams` (angle in degrees, `anchor` instead of rotating around the center) |
-| blend `GLenum` pairs                       | `Blend::Alpha`, `Add`, `Multiply`, `Premultiplied`, `Opaque` |
+| blend `GLenum` pairs                       | `canvas.set_blend(Blend::Add)`, also `Alpha`, `Multiply`, `Premultiplied`, `Opaque` |
+| `push_modelview()`/`pop_modelview()`       | `canvas.save()`/`restore()` or `Canvas::Scope`          |
 | `VertexArrayDrawable`                      | `canvas.draw_triangles()` / `draw_quads()`              |
 | `SceneGraph`, persistent `Drawable`s       | redraw every frame, or `StaticBatch` for static geometry|
-| `ShaderDrawable`, `ShockwaveDrawable`      | `Material` on a draw, `Framebuffer` for post processing |
+| `ShaderDrawable`, `ShockwaveDrawable`      | `canvas.set_material()`, `Framebuffer` for post processing |
 | `TTFFont::draw(gc, ...)`                   | `canvas.draw_text(font, ...)`, fonts are UTF-8 now      |
 | `TextArea::draw(gc)`                       | `text_area.draw(canvas)`                                |
 | `Texture::create(GL_TEXTURE_2D, size)`     | `device.create_texture(size, TextureParams{...})`       |
-| `Framebuffer::create_with_texture(...)`    | `device.create_framebuffer(size, {.depth = true})`      |
+| `Framebuffer::create_with_texture(...)`    | `device.create_framebuffer(size, {.depth = true})`         |
 
 Notes per game:
 
 - **SuperTux Origins**: `Canvas`/`Painter`/`DrawingRequest` map almost
-  one to one onto `wstdisplay::Canvas`, `int layer` becomes `z`.
-  The lightmap becomes a Compositor pass.
+  one to one onto `wstdisplay::Canvas`, `int layer` becomes
+  `canvas.set_z()`. The lightmap becomes a Compositor pass.
   `Rectf` can move to `geom::frect`, geom has `from_center()`,
   `anchor_point()` and `with_left()` and friends for the setters.
   `Sprite::draw()` advancing the animation goes away, `AnimState` +

@@ -27,14 +27,14 @@ Button::draw(wstdisplay::Canvas& canvas)
 {
   canvas.fill_rect(m_geometry, surf::Color(0.0f, 0.0f, 0.0f, 0.5f));
   canvas.draw_rect(m_geometry, surf::Color(1.0f, 1.0f, 1.0f, 0.5f));
-  get_style().get_font()->draw_center(
+  get_style().get_font()->draw(
     canvas,
     glm::vec2(m_geometry.left() + m_geometry.width()/2.0f,
               m_geometry.top() + m_geometry.height()/2.0f + static_cast<float>(get_style().get_font()->get_height()) / 3.0f),
     label,
     is_active()
     ? surf::Color(1.0f, 1.0f, 1.0f, 1.0f)
-    : surf::Color(1.0f, 1.0f, 1.0f, 0.5f));
+    : surf::Color(1.0f, 1.0f, 1.0f, 0.5f), wstdisplay::TextAlign::Center);
 }
 
 void

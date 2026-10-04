@@ -11,11 +11,11 @@ using namespace wstdisplay;
 TEST(CanvasTest, transform_is_applied_on_record)
 {
   Canvas canvas;
-  canvas.push_transform();
+  canvas.save();
   canvas.translate(10, 20);
   canvas.scale(2, 2);
   canvas.fill_rect(geom::frect(0, 0, 1, 1), surf::Color(1, 1, 1));
-  canvas.pop_transform();
+  canvas.restore();
   canvas.fill_rect(geom::frect(0, 0, 1, 1), surf::Color(1, 1, 1));
 
   auto const& v = canvas.get_vertices();
@@ -40,21 +40,67 @@ TEST(CanvasTest, rotate_is_clockwise_on_screen)
   EXPECT_NEAR(v[1].y, 1.0f, 1e-6f);
 }
 
-TEST(CanvasTest, pop_transform_underflow_throws)
+TEST(CanvasTest, restore_without_save_throws)
 {
   Canvas canvas;
-  EXPECT_THROW(canvas.pop_transform(), std::logic_error);
-  EXPECT_THROW(canvas.pop_clip(), std::logic_error);
+  EXPECT_THROW(canvas.restore(), std::logic_error);
+}
+
+TEST(CanvasTest, save_restore_covers_all_state)
+{
+  Canvas canvas;
+  canvas.save();
+  canvas.translate(5, 5);
+  canvas.clip(geom::frect(0, 0, 10, 10));
+  canvas.set_z(3.0f);
+  canvas.set_blend(Blend::Add);
+  canvas.set_material(MaterialId{1, 1});
+  canvas.set_space(Space::Screen);
+  canvas.restore();
+
+  EXPECT_EQ(canvas.get_transform(), glm::mat3(1.0f));
+  EXPECT_EQ(canvas.get_z(), 0.0f);
+  EXPECT_EQ(canvas.get_blend(), Blend::Alpha);
+  EXPECT_FALSE(canvas.get_material());
+  EXPECT_EQ(canvas.get_space(), Space::World);
+
+  canvas.fill_rect(geom::frect(0, 0, 1, 1), surf::Color(1, 1, 1));
+  EXPECT_EQ(canvas.get_commands().back().clip, 0);
+}
+
+TEST(CanvasTest, scope_restores)
+{
+  Canvas canvas;
+  {
+    Canvas::Scope scope(canvas);
+    canvas.set_z(7.0f);
+  }
+  EXPECT_EQ(canvas.get_z(), 0.0f);
+}
+
+TEST(CanvasTest, state_is_recorded_in_commands)
+{
+  Canvas canvas;
+  canvas.set_z(2.0f);
+  canvas.set_blend(Blend::Multiply);
+  canvas.set_material(MaterialId{4, 2});
+  canvas.fill_rect(geom::frect(0, 0, 1, 1), surf::Color(1, 1, 1));
+
+  ASSERT_EQ(canvas.get_commands().size(), 1u);
+  auto const& cmd = canvas.get_commands()[0];
+  EXPECT_EQ(cmd.z, 2.0f);
+  EXPECT_EQ(cmd.blend, Blend::Multiply);
+  EXPECT_EQ(cmd.material, (MaterialId{4, 2}));
 }
 
 TEST(CanvasTest, clip_rects_nest)
 {
   Canvas canvas;
-  canvas.push_clip(geom::frect(0, 0, 100, 100));
-  canvas.push_clip(geom::frect(50, 50, 200, 200));
+  canvas.save();
+  canvas.clip(geom::frect(0, 0, 100, 100));
+  canvas.clip(geom::frect(50, 50, 200, 200));
   canvas.fill_rect(geom::frect(0, 0, 1, 1), surf::Color(1, 1, 1));
-  canvas.pop_clip();
-  canvas.pop_clip();
+  canvas.restore();
 
   auto const& clips = canvas.get_clip_rects();
   ASSERT_EQ(clips.size(), 3u);
@@ -66,7 +112,7 @@ TEST(CanvasTest, clip_rects_follow_transform)
 {
   Canvas canvas;
   canvas.translate(10, 10);
-  canvas.push_clip(geom::frect(0, 0, 5, 5));
+  canvas.clip(geom::frect(0, 0, 5, 5));
   EXPECT_EQ(canvas.get_clip_rects()[1].rect, geom::frect(10, 10, 15, 15));
 }
 
@@ -83,8 +129,9 @@ TEST(CanvasTest, shapes_merge_into_one_command)
 TEST(CanvasTest, different_z_doesnt_merge)
 {
   Canvas canvas;
-  canvas.fill_rect(geom::frect(0, 0, 1, 1), surf::Color(1, 0, 0), 0.0f);
-  canvas.fill_rect(geom::frect(0, 0, 1, 1), surf::Color(1, 0, 0), 1.0f);
+  canvas.fill_rect(geom::frect(0, 0, 1, 1), surf::Color(1, 0, 0));
+  canvas.set_z(1.0f);
+  canvas.fill_rect(geom::frect(0, 0, 1, 1), surf::Color(1, 0, 0));
   EXPECT_EQ(canvas.get_commands().size(), 2u);
 }
 
@@ -94,6 +141,21 @@ TEST(CanvasTest, null_surface_draws_nothing)
   canvas.draw(Surface(), geom::fpoint(0, 0));
   canvas.draw(Surface(), DrawParams());
   EXPECT_TRUE(canvas.empty());
+}
+
+TEST(CanvasTest, circle_segments_follow_size)
+{
+  Canvas small;
+  small.fill_circle(geom::fpoint(0, 0), 2.0f, surf::Color(1, 1, 1));
+  Canvas large;
+  large.fill_circle(geom::fpoint(0, 0), 200.0f, surf::Color(1, 1, 1));
+  Canvas scaled;
+  scaled.scale(100.0f, 100.0f);
+  scaled.fill_circle(geom::fpoint(0, 0), 2.0f, surf::Color(1, 1, 1));
+
+  EXPECT_GE(small.get_vertices().size(), 8u);
+  EXPECT_GT(large.get_vertices().size(), small.get_vertices().size());
+  EXPECT_EQ(scaled.get_vertices().size(), large.get_vertices().size());
 }
 
 TEST(CanvasTest, surface_region)
@@ -119,14 +181,18 @@ TEST(CanvasTest, fill_screen_uses_clip_space)
 TEST(CanvasTest, clear_resets_state)
 {
   Canvas canvas;
+  canvas.save();
   canvas.translate(5, 5);
-  canvas.push_clip(geom::frect(0, 0, 1, 1));
+  canvas.set_z(5.0f);
+  canvas.clip(geom::frect(0, 0, 1, 1));
   canvas.fill_rect(geom::frect(0, 0, 1, 1), surf::Color(1, 1, 1));
   canvas.clear();
 
   EXPECT_TRUE(canvas.empty());
   EXPECT_EQ(canvas.get_transform(), glm::mat3(1.0f));
+  EXPECT_EQ(canvas.get_z(), 0.0f);
   EXPECT_EQ(canvas.get_clip_rects().size(), 1u);
+  EXPECT_THROW(canvas.restore(), std::logic_error);
 }
 
 TEST(CanvasTest, packed_color_byte_order)

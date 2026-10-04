@@ -241,20 +241,22 @@ public:
 
   void draw(Renderer& renderer) override
   {
+    renderer.clear(surf::Color(0.5f, 0.7f, 0.9f));
     geom::fsize const size(get_size());
     float const scale = std::min(size.width() / 2048.0f, size.height() / 1024.0f);
 
-    renderer.clear(surf::Color(0.5f, 0.7f, 0.9f));
-
     m_canvas.clear();
     m_canvas.scale(scale, scale);
+    m_canvas.set_z(-1.0f);
     m_canvas.fill_vertical_gradient(geom::frect(0, 0, 2048, 1024),
-                                    surf::Color(0.35f, 0.55f, 0.9f), surf::Color(0.85f, 0.9f, 1.0f), -1.0f);
+                                    surf::Color(0.35f, 0.55f, 0.9f), surf::Color(0.85f, 0.9f, 1.0f));
+    m_canvas.set_z(0.0f);
     m_terrain->draw(m_canvas);
 
+    m_canvas.set_z(1.0f);
     for (auto const& e : m_explosions) {
       float const t = e.age / 0.5f;
-      m_canvas.fill_circle(e.pos, 20.0f + 60.0f * t, surf::Color(1.0f, 0.8f - 0.6f * t, 0.2f, 1.0f - t), 1.0f);
+      m_canvas.fill_circle(e.pos, 20.0f + 60.0f * t, surf::Color(1.0f, 0.8f - 0.6f * t, 0.2f, 1.0f - t));
     }
 
     renderer.render(m_canvas);

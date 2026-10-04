@@ -83,6 +83,7 @@ public:
       m_use_atlas = false;
     } else if (arg == "--group") {
       m_group_by_z = true;
+
     } else if (arg == "--fancy") {
       m_fancy = true;
     } else {
@@ -96,6 +97,7 @@ public:
     return "  --count N            number of sprites\n"
            "  --no-atlas           one texture per sprite kind\n"
            "  --group              group sprite kinds by z\n"
+
            "  --fancy              rotate and tint the sprites\n";
   }
 
@@ -187,24 +189,22 @@ public:
   void draw(Renderer& renderer) override
   {
     renderer.clear(surf::Color(0.1f, 0.1f, 0.15f));
-
     auto const& kinds = m_use_atlas ? m_atlas_kinds : m_texture_kinds;
 
     m_canvas.clear();
     for (auto const& s : m_sprites)
     {
       Surface const& surface = kinds[static_cast<size_t>(s.kind)];
-      float const z = m_group_by_z ? static_cast<float>(s.kind) : 0.0f;
+      m_canvas.set_z(m_group_by_z ? static_cast<float>(s.kind) : 0.0f);
 
       if (m_fancy) {
         m_canvas.draw(surface, DrawParams()
                       .set_pos(geom::fpoint(s.x, s.y))
                       .set_anchor(geom::origin::BOTTOM_CENTER)
                       .set_angle(s.angle)
-                      .set_color(surf::Color(0.5f + 0.5f * std::sin(s.x * 0.01f), 1.0f, 0.5f + 0.5f * std::cos(s.y * 0.01f))),
-                      z);
+                      .set_color(surf::Color(0.5f + 0.5f * std::sin(s.x * 0.01f), 1.0f, 0.5f + 0.5f * std::cos(s.y * 0.01f))));
       } else {
-        m_canvas.draw(surface, geom::fpoint(s.x - surface.get_width() / 2.0f, s.y - surface.get_height()), z);
+        m_canvas.draw(surface, geom::fpoint(s.x - surface.get_width() / 2.0f, s.y - surface.get_height()));
       }
     }
 

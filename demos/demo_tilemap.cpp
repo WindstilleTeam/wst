@@ -232,29 +232,31 @@ public:
 
   void draw(Renderer& renderer) override
   {
-    geom::fsize const size(get_size());
     renderer.clear(surf::Color(0.55f, 0.75f, 0.95f));
+    geom::fsize const size(get_size());
 
     m_canvas.clear();
 
     // sky and parallax layers in screen space
+    m_canvas.save();
     m_canvas.set_space(Space::Screen);
+    m_canvas.set_z(-10.0f);
     m_canvas.fill_vertical_gradient(geom::frect(0, 0, size.width(), size.height()),
-                                    surf::Color(0.4f, 0.6f, 0.95f), surf::Color(0.8f, 0.9f, 1.0f), -10.0f);
+                                    surf::Color(0.4f, 0.6f, 0.95f), surf::Color(0.8f, 0.9f, 1.0f));
     // the hill layers end at the horizon and continue as solid color below
     float const horizon = size.height() * 0.6f;
-    m_canvas.push_transform();
     m_canvas.scale(2.0f, 2.0f);
+    m_canvas.set_z(-9.0f);
     m_canvas.fill_pattern(m_far_hills, geom::frect(0, horizon / 2.0f - 256, size.width() / 2.0f, horizon / 2.0f),
-                          geom::foffset(-m_scroll.x * 0.1f, horizon / 2.0f - 256), surf::Color(1, 1, 1), -9.0f);
+                          geom::foffset(-m_scroll.x * 0.1f, horizon / 2.0f - 256));
     m_canvas.fill_rect(geom::frect(0, horizon / 2.0f, size.width() / 2.0f, size.height() / 2.0f),
-                       surf::Color(0.3f, 0.35f, 0.55f), -9.0f);
+                       surf::Color(0.3f, 0.35f, 0.55f));
+    m_canvas.set_z(-8.0f);
     m_canvas.fill_pattern(m_near_hills, geom::frect(0, horizon / 2.0f - 200, size.width() / 2.0f, horizon / 2.0f + 56),
-                          geom::foffset(-m_scroll.x * 0.25f, horizon / 2.0f - 200), surf::Color(1, 1, 1), -8.0f);
+                          geom::foffset(-m_scroll.x * 0.25f, horizon / 2.0f - 200));
     m_canvas.fill_rect(geom::frect(0, horizon / 2.0f + 56, size.width() / 2.0f, size.height() / 2.0f),
-                       surf::Color(0.2f, 0.3f, 0.35f), -8.0f);
-    m_canvas.pop_transform();
-    m_canvas.set_space(Space::World);
+                       surf::Color(0.2f, 0.3f, 0.35f));
+    m_canvas.restore();
 
     geom::frect const visible = m_view.get_clip_rect();
 

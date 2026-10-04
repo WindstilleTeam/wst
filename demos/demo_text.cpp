@@ -148,10 +148,10 @@ public:
 
   void draw(Renderer& renderer) override
   {
+    renderer.clear(surf::Color(0.12f, 0.12f, 0.16f));
     float const t = get_time();
     geom::fsize const size(get_size());
 
-    renderer.clear(surf::Color(0.12f, 0.12f, 0.16f));
     m_canvas.clear();
     float const s = std::min(size.width() / 1280.0f, size.height() / 720.0f);
     m_canvas.scale(s, s);
@@ -167,23 +167,23 @@ public:
     }
 
     // transformed text
-    m_canvas.push_transform();
+    m_canvas.save();
     m_canvas.translate(1000, 200);
     m_canvas.rotate(std::sin(t) * 15.0f);
     m_canvas.scale(1.0f + 0.1f * std::sin(t * 2.0f), 1.0f + 0.1f * std::sin(t * 2.0f));
     m_canvas.draw_text(*m_fonts[4], geom::fpoint(0, 0), "rotated\nand scaled", surf::palette::lightgreen,
                        TextAlign::Center);
-    m_canvas.pop_transform();
+    m_canvas.restore();
 
     // pixel font, scaled up with nearest filtering
     m_canvas.fill_rect(geom::frect(30, 470, 650, 680), surf::Color(0.2f, 0.25f, 0.4f));
     m_canvas.draw_text(*m_pixel_font, geom::fpoint(50, 500), "BITMAP FONT FROM A GRID IMAGE", surf::palette::white);
-    m_canvas.push_transform();
+    m_canvas.save();
     m_canvas.translate(50, 560);
     m_canvas.scale(3.0f, 3.0f);
     m_canvas.draw_text(*m_pixel_font, geom::fpoint(0, 0), "SCORE: 0012345", surf::palette::yellow);
     m_canvas.draw_text(*m_pixel_font, geom::fpoint(0, 12), "LIVES: 3   TIME: 99", surf::palette::orangered);
-    m_canvas.pop_transform();
+    m_canvas.restore();
 
     // text area
     m_canvas.fill_rounded_rect(geom::frect(680, 300, 1260, 540), 10.0f, surf::Color(0.0f, 0.0f, 0.0f, 0.5f));

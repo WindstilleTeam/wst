@@ -89,7 +89,7 @@ Font::get_size(std::string_view text) const
 
 void
 Font::draw(Canvas& canvas, geom::fpoint const& pos, std::string_view text,
-           surf::Color const& color, TextAlign align, float z) const
+           surf::Color const& color, TextAlign align) const
 {
   PackedColor const pc = pack_color(color);
 
@@ -97,7 +97,7 @@ Font::draw(Canvas& canvas, geom::fpoint const& pos, std::string_view text,
   TextureId texture = {};
   auto const flush = [&]() {
     if (!quads.empty()) {
-      canvas.draw_quads(texture, quads, Blend::Alpha, z);
+      canvas.draw_quads(texture, quads);
       quads.clear();
     }
   };
@@ -149,7 +149,7 @@ Font::draw(Canvas& canvas, geom::fpoint const& pos, std::string_view text,
 
 void
 Font::draw_glyph(Canvas& canvas, Glyph const& glyph, geom::fpoint const& pen, float scale,
-                 surf::Color const& top, surf::Color const& bottom, float z)
+                 surf::Color const& top, surf::Color const& bottom)
 {
   if (!glyph.texture || glyph.rect.width() <= 0.0f) {
     return;
@@ -166,7 +166,7 @@ Font::draw_glyph(Canvas& canvas, Glyph const& glyph, geom::fpoint const& pen, fl
     {pen.x() + r.right() * scale, pen.y() + r.bottom() * scale, uv.right(), uv.bottom(), bc},
     {pen.x() + r.left() * scale, pen.y() + r.bottom() * scale, uv.left(), uv.bottom(), bc},
   };
-  canvas.draw_quads(glyph.texture, quad, Blend::Alpha, z);
+  canvas.draw_quads(glyph.texture, quad);
 }
 
 } // namespace wstdisplay

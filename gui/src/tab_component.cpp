@@ -42,13 +42,13 @@ TabComponent::draw(wstdisplay::Canvas& canvas)
 
     canvas.draw_rounded_rect(tab_rect, 5.0f, surf::Color(1.0f, 1.0f, 1.0f, 0.5f));
 
-    get_style().get_font()->draw_center(canvas,
+    get_style().get_font()->draw(canvas,
                                       glm::vec2(m_geometry.left() + tab_width * static_cast<float>(i) + tab_width/2,
                                                 m_geometry.top() + static_cast<float>(get_style().get_font()->get_height())),
                                       tabs[i].label,
                                       tabs[current_tab].component->is_active()
                                       ? surf::Color(1.0f, 1.0f, 1.0f, 0.5f)
-                                      : surf::Color(1.0f, 1.0f, 1.0f, 1.0f));
+                                      : surf::Color(1.0f, 1.0f, 1.0f, 1.0f), wstdisplay::TextAlign::Center);
   }
 
   tabs[current_tab].component->draw(canvas);

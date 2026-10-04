@@ -10,13 +10,12 @@
 #include <geom/point.hpp>
 #include <surf/color.hpp>
 
-#include "blend.hpp"
-#include "handle.hpp"
-
 namespace wstdisplay {
 
-/** Parameters for drawing a Surface. The anchor point of the surface
-    is placed at \a pos, scaling and rotation happen around it. */
+/** How to draw one Surface: placement and per instance appearance.
+    The anchor point of the surface is placed at \a pos, scaling and
+    rotation happen around it. How the result is combined with the
+    target (z, blend mode, material) is Canvas state. */
 struct DrawParams
 {
   geom::fpoint pos = {};
@@ -26,18 +25,17 @@ struct DrawParams
       unscaled surface pixels, scaled and rotated with the surface.
       Use TOP_LEFT and offset = -pivot for an arbitrary pivot point. */
   geom::foffset offset = {};
+
   glm::vec2 scale = {1.0f, 1.0f};
 
   /** Rotation in degrees, clockwise on screen */
   float angle = 0.0f;
 
+  /** Multiplied with the surface */
   surf::Color color = {1.0f, 1.0f, 1.0f, 1.0f};
-  Blend blend = Blend::Alpha;
+
   bool hflip = false;
   bool vflip = false;
-
-  /** Custom shader, null for the default one */
-  MaterialId material = {};
 
   DrawParams& set_pos(geom::fpoint const& p) { pos = p; return *this; }
   DrawParams& set_anchor(geom::origin a) { anchor = a; return *this; }
@@ -47,10 +45,8 @@ struct DrawParams
   DrawParams& set_angle(float degrees) { angle = degrees; return *this; }
   DrawParams& set_color(surf::Color const& c) { color = c; return *this; }
   DrawParams& set_alpha(float a) { color.a = a; return *this; }
-  DrawParams& set_blend(Blend b) { blend = b; return *this; }
   DrawParams& set_hflip(bool v) { hflip = v; return *this; }
   DrawParams& set_vflip(bool v) { vflip = v; return *this; }
-  DrawParams& set_material(MaterialId m) { material = m; return *this; }
 };
 
 } // namespace wstdisplay

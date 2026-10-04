@@ -38,13 +38,12 @@ Canvas::Canvas() :
   m_commands(),
   m_vertices(),
   m_indices(),
-  m_transform_stack{glm::mat3(1.0f)},
-  m_identity(true),
   m_clip_rects{ClipRect{geom::frect(), Space::World}},
   m_objects(),
-  m_clip_stack{0},
-  m_space(Space::World),
-  m_points()
+  m_state(),
+  m_state_stack(),
+  m_points(),
+  m_scratch_indices()
 {
 }
 
@@ -54,55 +53,53 @@ Canvas::clear()
   m_commands.clear();
   m_vertices.clear();
   m_indices.clear();
-
-  m_transform_stack.clear();
-  m_transform_stack.emplace_back(1.0f);
-  m_identity = true;
-
   m_clip_rects.resize(1);
-  m_clip_stack.clear();
-  m_clip_stack.push_back(0);
-
   m_objects.clear();
-  m_space = Space::World;
+
+  m_state = State();
+  m_state_stack.clear();
 }
+
+/*{ State */
+
+void
+Canvas::save()
+{
+  m_state_stack.push_back(m_state);
+}
+
+void
+Canvas::restore()
+{
+  if (m_state_stack.empty()) {
+    throw std::logic_error("Canvas::restore: no matching save()");
+  }
+  m_state = m_state_stack.back();
+  m_state_stack.pop_back();
+}
+
+/*} */
 
 /*{ Transform */
 
 void
-Canvas::push_transform()
-{
-  m_transform_stack.push_back(m_transform_stack.back());
-}
-
-void
-Canvas::pop_transform()
-{
-  if (m_transform_stack.size() <= 1) {
-    throw std::logic_error("Canvas::pop_transform: stack underflow");
-  }
-  m_transform_stack.pop_back();
-  m_identity = (m_transform_stack.back() == glm::mat3(1.0f));
-}
-
-void
 Canvas::reset_transform()
 {
-  m_transform_stack.back() = glm::mat3(1.0f);
-  m_identity = true;
+  m_state.transform = glm::mat3(1.0f);
+  m_state.identity = true;
 }
 
 void
 Canvas::set_transform(glm::mat3 const& transform)
 {
-  m_transform_stack.back() = transform;
-  m_identity = (transform == glm::mat3(1.0f));
+  m_state.transform = transform;
+  m_state.identity = (transform == glm::mat3(1.0f));
 }
 
 void
 Canvas::mult_transform(glm::mat3 const& transform)
 {
-  set_transform(m_transform_stack.back() * transform);
+  set_transform(m_state.transform * transform);
 }
 
 void
@@ -136,10 +133,10 @@ Canvas::rotate(float degrees)
 glm::vec2
 Canvas::apply(float x, float y) const
 {
-  if (m_identity) {
+  if (m_state.identity) {
     return glm::vec2(x, y);
   } else {
-    glm::vec3 const p = m_transform_stack.back() * glm::vec3(x, y, 1.0f);
+    glm::vec3 const p = m_state.transform * glm::vec3(x, y, 1.0f);
     return glm::vec2(p.x, p.y);
   }
 }
@@ -147,11 +144,11 @@ Canvas::apply(float x, float y) const
 void
 Canvas::transform_vertices(Vertex* vertices, size_t count) const
 {
-  if (m_identity) {
+  if (m_state.identity) {
     return;
   }
 
-  glm::mat3 const& m = m_transform_stack.back();
+  glm::mat3 const& m = m_state.transform;
   for (size_t i = 0; i < count; ++i) {
     float const x = vertices[i].x;
     float const y = vertices[i].y;
@@ -165,7 +162,7 @@ Canvas::transform_vertices(Vertex* vertices, size_t count) const
 /*{ Clipping */
 
 void
-Canvas::push_clip(geom::frect const& rect)
+Canvas::clip(geom::frect const& rect)
 {
   glm::vec2 const corners[] = {
     apply(rect.left(), rect.top()),
@@ -185,33 +182,25 @@ Canvas::push_clip(geom::frect const& rect)
     bottom = std::max(bottom, p.y);
   }
 
-  geom::frect clip(left, top, right, bottom);
+  geom::frect clip_rect(left, top, right, bottom);
 
   // intersect with the parent clip if both are in the same space
-  uint16_t const parent = m_clip_stack.back();
-  if (parent != 0 && m_clip_rects[parent].space == m_space) {
+  uint16_t const parent = m_state.clip;
+  if (parent != 0 && m_clip_rects[parent].space == m_state.space) {
     geom::frect const& prect = m_clip_rects[parent].rect;
-    clip = geom::frect(std::max(clip.left(), prect.left()),
-                       std::max(clip.top(), prect.top()),
-                       std::max(std::max(clip.left(), prect.left()), std::min(clip.right(), prect.right())),
-                       std::max(std::max(clip.top(), prect.top()), std::min(clip.bottom(), prect.bottom())));
+    float const l = std::max(clip_rect.left(), prect.left());
+    float const t = std::max(clip_rect.top(), prect.top());
+    clip_rect = geom::frect(l, t,
+                            std::max(l, std::min(clip_rect.right(), prect.right())),
+                            std::max(t, std::min(clip_rect.bottom(), prect.bottom())));
   }
 
   if (m_clip_rects.size() >= 0xffff) {
-    throw std::runtime_error("Canvas::push_clip: too many clip rects");
+    throw std::runtime_error("Canvas::clip: too many clip rects");
   }
 
-  m_clip_rects.push_back(ClipRect{clip, m_space});
-  m_clip_stack.push_back(static_cast<uint16_t>(m_clip_rects.size() - 1));
-}
-
-void
-Canvas::pop_clip()
-{
-  if (m_clip_stack.size() <= 1) {
-    throw std::logic_error("Canvas::pop_clip: stack underflow");
-  }
-  m_clip_stack.pop_back();
+  m_clip_rects.push_back(ClipRect{clip_rect, m_state.space});
+  m_state.clip = static_cast<uint16_t>(m_clip_rects.size() - 1);
 }
 
 /*} */
@@ -219,24 +208,21 @@ Canvas::pop_clip()
 /*{ Command recording */
 
 Vertex*
-Canvas::add(TextureId texture, MaterialId material, Blend blend, float z,
-            uint32_t vertex_count, std::span<uint16_t const> indices)
+Canvas::add(TextureId texture, uint32_t vertex_count, std::span<uint16_t const> indices)
 {
   if (vertex_count > max_command_vertices) {
     throw std::length_error("Canvas: too many vertices in a single draw");
   }
 
-  uint16_t const clip = m_clip_stack.back();
-
   uint32_t base = 0;
   if (!m_commands.empty() &&
       m_commands.back().type == CommandType::Geometry &&
       m_commands.back().texture == texture &&
-      m_commands.back().material == material &&
-      m_commands.back().blend == blend &&
-      m_commands.back().z == z &&
-      m_commands.back().clip == clip &&
-      m_commands.back().space == m_space &&
+      m_commands.back().material == m_state.material &&
+      m_commands.back().blend == m_state.blend &&
+      m_commands.back().z == m_state.z &&
+      m_commands.back().clip == m_state.clip &&
+      m_commands.back().space == m_state.space &&
       m_commands.back().vertex_count + vertex_count <= max_command_vertices)
   {
     Command& cmd = m_commands.back();
@@ -247,17 +233,17 @@ Canvas::add(TextureId texture, MaterialId material, Blend blend, float z,
   else
   {
     m_commands.push_back(Command{
-        .z = z,
+        .z = m_state.z,
         .first_vertex = static_cast<uint32_t>(m_vertices.size()),
         .vertex_count = vertex_count,
         .first_index = static_cast<uint32_t>(m_indices.size()),
         .index_count = static_cast<uint32_t>(indices.size()),
         .texture = texture,
-        .material = material,
+        .material = m_state.material,
         .object = 0,
-        .clip = clip,
-        .blend = blend,
-        .space = m_space,
+        .clip = m_state.clip,
+        .blend = m_state.blend,
+        .space = m_state.space,
         .type = CommandType::Geometry
       });
   }
@@ -273,11 +259,10 @@ Canvas::add(TextureId texture, MaterialId material, Blend blend, float z,
 }
 
 Vertex*
-Canvas::add_quads(TextureId texture, MaterialId material, Blend blend, float z,
-                  uint32_t quad_count)
+Canvas::add_quads(TextureId texture, uint32_t quad_count)
 {
   if (quad_count == 1) {
-    return add(texture, material, blend, z, 4, quad_indices);
+    return add(texture, 4, quad_indices);
   }
 
   // build the index pattern in place, avoids a temporary
@@ -287,7 +272,7 @@ Canvas::add_quads(TextureId texture, MaterialId material, Blend blend, float z,
   }
 
   size_t const first_index = m_indices.size();
-  Vertex* vertices = add(texture, material, blend, z, vertex_count, {});
+  Vertex* vertices = add(texture, vertex_count, {});
   uint32_t const base = static_cast<uint32_t>(m_commands.back().vertex_count - vertex_count);
 
   m_indices.reserve(first_index + quad_count * 6);
@@ -301,9 +286,9 @@ Canvas::add_quads(TextureId texture, MaterialId material, Blend blend, float z,
 }
 
 void
-Canvas::add_object(CommandType type, ObjectDraw const& object, float z)
+Canvas::add_object(CommandType type, ObjectDraw const& object)
 {
-  glm::mat3 const& t = m_transform_stack.back();
+  glm::mat3 const& t = m_state.transform;
   glm::mat4 canvas_matrix(1.0f);
   canvas_matrix[0] = glm::vec4(t[0][0], t[0][1], 0.0f, 0.0f);
   canvas_matrix[1] = glm::vec4(t[1][0], t[1][1], 0.0f, 0.0f);
@@ -316,7 +301,7 @@ Canvas::add_object(CommandType type, ObjectDraw const& object, float z)
     });
 
   m_commands.push_back(Command{
-      .z = z,
+      .z = m_state.z,
       .first_vertex = 0,
       .vertex_count = 0,
       .first_index = 0,
@@ -324,11 +309,22 @@ Canvas::add_object(CommandType type, ObjectDraw const& object, float z)
       .texture = {},
       .material = {},
       .object = static_cast<uint32_t>(m_objects.size() - 1),
-      .clip = m_clip_stack.back(),
-      .blend = Blend::Alpha,
-      .space = m_space,
+      .clip = m_state.clip,
+      .blend = m_state.blend,
+      .space = m_state.space,
       .type = type
     });
+}
+
+void
+Canvas::add_rect(TextureId texture, geom::frect const& rect, geom::frect const& uv, PackedColor color)
+{
+  Vertex* v = add_quads(texture, 1);
+  v[0] = Vertex{rect.left(), rect.top(), uv.left(), uv.top(), color};
+  v[1] = Vertex{rect.right(), rect.top(), uv.right(), uv.top(), color};
+  v[2] = Vertex{rect.right(), rect.bottom(), uv.right(), uv.bottom(), color};
+  v[3] = Vertex{rect.left(), rect.bottom(), uv.left(), uv.bottom(), color};
+  transform_vertices(v, 4);
 }
 
 /*} */
@@ -336,28 +332,17 @@ Canvas::add_object(CommandType type, ObjectDraw const& object, float z)
 /*{ Surfaces */
 
 void
-Canvas::draw(Surface const& surface, geom::fpoint const& pos, float z)
+Canvas::draw(Surface const& surface, geom::fpoint const& pos)
 {
   if (!surface) {
     return;
   }
 
-  geom::frect const& uv = surface.get_uv();
-  float const x0 = pos.x();
-  float const y0 = pos.y();
-  float const x1 = pos.x() + surface.get_width();
-  float const y1 = pos.y() + surface.get_height();
-
-  Vertex* v = add_quads(surface.get_texture(), {}, Blend::Alpha, z, 1);
-  v[0] = Vertex{x0, y0, uv.left(), uv.top(), packed_white};
-  v[1] = Vertex{x1, y0, uv.right(), uv.top(), packed_white};
-  v[2] = Vertex{x1, y1, uv.right(), uv.bottom(), packed_white};
-  v[3] = Vertex{x0, y1, uv.left(), uv.bottom(), packed_white};
-  transform_vertices(v, 4);
+  add_rect(surface.get_texture(), geom::frect(pos, surface.get_size()), surface.get_uv(), packed_white);
 }
 
 void
-Canvas::draw(Surface const& surface, DrawParams const& params, float z)
+Canvas::draw(Surface const& surface, DrawParams const& params)
 {
   if (!surface) {
     return;
@@ -393,61 +378,30 @@ Canvas::draw(Surface const& surface, DrawParams const& params, float z)
   }
 
   PackedColor const color = pack_color(params.color);
-  Vertex* v = add_quads(surface.get_texture(), params.material, params.blend, z, 1);
-  v[0] = Vertex{params.pos.x() + corners[0].x, params.pos.y() + corners[0].y, u0, v0, color};
-  v[1] = Vertex{params.pos.x() + corners[1].x, params.pos.y() + corners[1].y, u1, v0, color};
-  v[2] = Vertex{params.pos.x() + corners[2].x, params.pos.y() + corners[2].y, u1, v1, color};
-  v[3] = Vertex{params.pos.x() + corners[3].x, params.pos.y() + corners[3].y, u0, v1, color};
+  float const x = params.pos.x();
+  float const y = params.pos.y();
+
+  Vertex* v = add_quads(surface.get_texture(), 1);
+  v[0] = Vertex{x + corners[0].x, y + corners[0].y, u0, v0, color};
+  v[1] = Vertex{x + corners[1].x, y + corners[1].y, u1, v0, color};
+  v[2] = Vertex{x + corners[2].x, y + corners[2].y, u1, v1, color};
+  v[3] = Vertex{x + corners[3].x, y + corners[3].y, u0, v1, color};
   transform_vertices(v, 4);
 }
 
 void
-Canvas::draw(Surface const& surface, geom::frect const& dstrect,
-             surf::Color const& color, Blend blend, float z)
+Canvas::draw(Surface const& surface, geom::frect const& dstrect, surf::Color const& color)
 {
   if (!surface) {
     return;
   }
 
-  geom::frect const& uv = surface.get_uv();
-  PackedColor const pc = pack_color(color);
-
-  Vertex* v = add_quads(surface.get_texture(), {}, blend, z, 1);
-  v[0] = Vertex{dstrect.left(), dstrect.top(), uv.left(), uv.top(), pc};
-  v[1] = Vertex{dstrect.right(), dstrect.top(), uv.right(), uv.top(), pc};
-  v[2] = Vertex{dstrect.right(), dstrect.bottom(), uv.right(), uv.bottom(), pc};
-  v[3] = Vertex{dstrect.left(), dstrect.bottom(), uv.left(), uv.bottom(), pc};
-  transform_vertices(v, 4);
-}
-
-void
-Canvas::draw(Surface const& surface, geom::frect const& srcrect, geom::frect const& dstrect,
-             surf::Color const& color, Blend blend, float z)
-{
-  if (!surface) {
-    return;
-  }
-
-  geom::frect const& suv = surface.get_uv();
-  float const sx = suv.width() / surface.get_width();
-  float const sy = suv.height() / surface.get_height();
-  geom::frect const uv(suv.left() + srcrect.left() * sx,
-                       suv.top() + srcrect.top() * sy,
-                       suv.left() + srcrect.right() * sx,
-                       suv.top() + srcrect.bottom() * sy);
-  PackedColor const pc = pack_color(color);
-
-  Vertex* v = add_quads(surface.get_texture(), {}, blend, z, 1);
-  v[0] = Vertex{dstrect.left(), dstrect.top(), uv.left(), uv.top(), pc};
-  v[1] = Vertex{dstrect.right(), dstrect.top(), uv.right(), uv.top(), pc};
-  v[2] = Vertex{dstrect.right(), dstrect.bottom(), uv.right(), uv.bottom(), pc};
-  v[3] = Vertex{dstrect.left(), dstrect.bottom(), uv.left(), uv.bottom(), pc};
-  transform_vertices(v, 4);
+  add_rect(surface.get_texture(), dstrect, surface.get_uv(), pack_color(color));
 }
 
 void
 Canvas::fill_pattern(Surface const& pattern, geom::frect const& rect, geom::foffset const& offset,
-                     surf::Color const& color, float z)
+                     surf::Color const& color)
 {
   if (!pattern) {
     return;
@@ -460,16 +414,9 @@ Canvas::fill_pattern(Surface const& pattern, geom::frect const& rect, geom::foff
   float const th = pattern.get_height();
   float const u0 = (rect.left() - offset.x()) / tw;
   float const v0 = (rect.top() - offset.y()) / th;
-  float const u1 = u0 + rect.width() / tw;
-  float const v1 = v0 + rect.height() / th;
-  PackedColor const pc = pack_color(color);
+  geom::frect const uv(u0, v0, u0 + rect.width() / tw, v0 + rect.height() / th);
 
-  Vertex* v = add_quads(pattern.get_texture(), {}, Blend::Alpha, z, 1);
-  v[0] = Vertex{rect.left(), rect.top(), u0, v0, pc};
-  v[1] = Vertex{rect.right(), rect.top(), u1, v0, pc};
-  v[2] = Vertex{rect.right(), rect.bottom(), u1, v1, pc};
-  v[3] = Vertex{rect.left(), rect.bottom(), u0, v1, pc};
-  transform_vertices(v, 4);
+  add_rect(pattern.get_texture(), rect, uv, pack_color(color));
 }
 
 /*} */
@@ -477,29 +424,29 @@ Canvas::fill_pattern(Surface const& pattern, geom::frect const& rect, geom::foff
 /*{ Shapes */
 
 void
-Canvas::fill_screen(surf::Color const& color, float z)
+Canvas::fill_screen(surf::Color const& color)
 {
-  Space const old_space = m_space;
-  m_space = Space::Clip;
+  Space const old_space = m_state.space;
+  m_state.space = Space::Clip;
 
   PackedColor const pc = pack_color(color);
-  Vertex* v = add_quads({}, {}, Blend::Alpha, z, 1);
+  Vertex* v = add_quads({}, 1);
   v[0] = Vertex{-1.0f, -1.0f, 0.0f, 0.0f, pc};
   v[1] = Vertex{1.0f, -1.0f, 0.0f, 0.0f, pc};
   v[2] = Vertex{1.0f, 1.0f, 0.0f, 0.0f, pc};
   v[3] = Vertex{-1.0f, 1.0f, 0.0f, 0.0f, pc};
 
-  m_space = old_space;
+  m_state.space = old_space;
 }
 
 void
-Canvas::fill_rect(geom::frect const& rect, surf::Color const& color, float z)
+Canvas::fill_rect(geom::frect const& rect, surf::Color const& color)
 {
-  fill_gradient(rect, color, color, color, color, z);
+  add_rect({}, rect, geom::frect(), pack_color(color));
 }
 
 void
-Canvas::draw_rect(geom::frect const& rect, surf::Color const& color, float z, float width)
+Canvas::draw_rect(geom::frect const& rect, surf::Color const& color, float width)
 {
   // four non-overlapping bars inside the rect, pixel exact for
   // integer coordinates and width 1
@@ -513,7 +460,7 @@ Canvas::draw_rect(geom::frect const& rect, surf::Color const& color, float z, fl
     geom::frect(rect.right() - w, rect.top() + w, rect.right(), rect.bottom() - w)
   };
 
-  Vertex* v = add_quads({}, {}, Blend::Alpha, z, 4);
+  Vertex* v = add_quads({}, 4);
   for (auto const& bar : bars) {
     *v++ = Vertex{bar.left(), bar.top(), 0.0f, 0.0f, pc};
     *v++ = Vertex{bar.right(), bar.top(), 0.0f, 0.0f, pc};
@@ -523,11 +470,24 @@ Canvas::draw_rect(geom::frect const& rect, surf::Color const& color, float z, fl
   transform_vertices(v - 16, 16);
 }
 
+int
+Canvas::segments_for(float radius, float degrees) const
+{
+  // keep the distance between the arc and its chords below a quarter
+  // pixel, at the scale of the canvas transform
+  constexpr float max_error = 0.25f;
+  glm::mat3 const& m = m_state.transform;
+  float const scale = std::sqrt(std::abs(m[0][0] * m[1][1] - m[1][0] * m[0][1]));
+  float const r = std::max(std::abs(radius) * scale, max_error);
+  float const step = 2.0f * std::acos(1.0f - max_error / r);
+  int const full = std::clamp(static_cast<int>(std::ceil(2.0f * glm::pi<float>() / step)), 8, 256);
+  return std::max(1, static_cast<int>(std::ceil(static_cast<float>(full) * std::abs(degrees) / 360.0f)));
+}
+
 namespace {
 
-void rounded_rect_points(geom::frect const& rect, float radius, std::vector<glm::vec2>& points)
+void rounded_rect_points(geom::frect const& rect, float radius, int segments, std::vector<glm::vec2>& points)
 {
-  radius = std::min(radius, std::min(rect.width(), rect.height()) / 2.0f);
   points.clear();
 
   if (radius <= 0.0f) {
@@ -537,8 +497,6 @@ void rounded_rect_points(geom::frect const& rect, float radius, std::vector<glm:
     points.emplace_back(rect.left(), rect.bottom());
     return;
   }
-
-  int const segments = std::clamp(static_cast<int>(radius / 2.0f), 3, 16);
 
   struct Corner { float cx; float cy; float start; };
   Corner const corners[] = {
@@ -561,7 +519,6 @@ void arc_points(geom::fpoint const& center, float radius, float start, float end
                 std::vector<glm::vec2>& points)
 {
   points.clear();
-  segments = std::max(segments, 1);
   for (int i = 0; i <= segments; ++i) {
     float const a = deg2rad(start + (end - start) * static_cast<float>(i) / static_cast<float>(segments));
     points.emplace_back(center.x() + std::cos(a) * radius,
@@ -572,7 +529,7 @@ void arc_points(geom::fpoint const& center, float radius, float start, float end
 } // namespace
 
 void
-Canvas::add_polygon_fill(std::span<glm::vec2 const> points, PackedColor color, float z)
+Canvas::add_polygon_fill(std::span<glm::vec2 const> points, PackedColor color)
 {
   // convex polygons only, drawn as a fan
   if (points.size() < 3) {
@@ -580,15 +537,14 @@ Canvas::add_polygon_fill(std::span<glm::vec2 const> points, PackedColor color, f
   }
 
   uint32_t const n = static_cast<uint32_t>(points.size());
-  std::vector<uint16_t> indices;
-  indices.reserve((n - 2) * 3);
+  m_scratch_indices.clear();
   for (uint32_t i = 1; i + 1 < n; ++i) {
-    indices.push_back(0);
-    indices.push_back(static_cast<uint16_t>(i));
-    indices.push_back(static_cast<uint16_t>(i + 1));
+    m_scratch_indices.push_back(0);
+    m_scratch_indices.push_back(static_cast<uint16_t>(i));
+    m_scratch_indices.push_back(static_cast<uint16_t>(i + 1));
   }
 
-  Vertex* v = add({}, {}, Blend::Alpha, z, n, indices);
+  Vertex* v = add({}, n, m_scratch_indices);
   for (uint32_t i = 0; i < n; ++i) {
     v[i] = Vertex{points[i].x, points[i].y, 0.0f, 0.0f, color};
   }
@@ -596,7 +552,7 @@ Canvas::add_polygon_fill(std::span<glm::vec2 const> points, PackedColor color, f
 }
 
 void
-Canvas::add_line_strip(std::span<glm::vec2 const> points, bool loop, PackedColor color, float z, float width)
+Canvas::add_line_strip(std::span<glm::vec2 const> points, bool loop, PackedColor color, float width)
 {
   size_t const n = points.size();
   if (n < 2) {
@@ -617,16 +573,16 @@ Canvas::add_line_strip(std::span<glm::vec2 const> points, bool loop, PackedColor
   uint32_t const vertex_count = static_cast<uint32_t>(n * 2);
   size_t const segment_count = loop ? n : n - 1;
 
-  std::vector<uint16_t> indices;
-  indices.reserve(segment_count * 6);
+  m_scratch_indices.clear();
   for (size_t i = 0; i < segment_count; ++i) {
     uint16_t const a = static_cast<uint16_t>(i * 2);
     uint16_t const b = static_cast<uint16_t>(((i + 1) % n) * 2);
-    indices.insert(indices.end(), {a, b, static_cast<uint16_t>(b + 1),
-                                   a, static_cast<uint16_t>(b + 1), static_cast<uint16_t>(a + 1)});
+    m_scratch_indices.insert(m_scratch_indices.end(),
+                             {a, b, static_cast<uint16_t>(b + 1),
+                              a, static_cast<uint16_t>(b + 1), static_cast<uint16_t>(a + 1)});
   }
 
-  Vertex* v = add({}, {}, Blend::Alpha, z, vertex_count, indices);
+  Vertex* v = add({}, vertex_count, m_scratch_indices);
   for (size_t i = 0; i < n; ++i) {
     glm::vec2 offset;
     bool const has_prev = loop || i > 0;
@@ -659,106 +615,121 @@ Canvas::add_line_strip(std::span<glm::vec2 const> points, bool loop, PackedColor
 }
 
 void
-Canvas::fill_rounded_rect(geom::frect const& rect, float radius, surf::Color const& color, float z)
+Canvas::fill_rounded_rect(geom::frect const& rect, float radius, surf::Color const& color)
 {
-  rounded_rect_points(rect, radius, m_points);
-  add_polygon_fill(m_points, pack_color(color), z);
+  radius = std::min(radius, std::min(rect.width(), rect.height()) / 2.0f);
+  rounded_rect_points(rect, radius, segments_for(radius, 90.0f), m_points);
+  add_polygon_fill(m_points, pack_color(color));
 }
 
 void
-Canvas::draw_rounded_rect(geom::frect const& rect, float radius, surf::Color const& color,
-                          float z, float width)
+Canvas::draw_rounded_rect(geom::frect const& rect, float radius, surf::Color const& color, float width)
 {
   // inset by half the width so the outline stays inside rect
   float const hw = width / 2.0f;
   geom::frect const inner(rect.left() + hw, rect.top() + hw, rect.right() - hw, rect.bottom() - hw);
-  rounded_rect_points(inner, std::max(0.0f, radius - hw), m_points);
-  add_line_strip(m_points, true, pack_color(color), z, width);
+  radius = std::min(std::max(0.0f, radius - hw), std::min(inner.width(), inner.height()) / 2.0f);
+  rounded_rect_points(inner, radius, segments_for(radius, 90.0f), m_points);
+  add_line_strip(m_points, true, pack_color(color), width);
 }
 
 void
-Canvas::fill_quad(geom::fquad const& quad, surf::Color const& color, float z)
+Canvas::fill_quad(geom::fquad const& quad, surf::Color const& color)
 {
   glm::vec2 const points[] = { to_vec(quad.p1), to_vec(quad.p2), to_vec(quad.p3), to_vec(quad.p4) };
-  add_polygon_fill(points, pack_color(color), z);
+  add_polygon_fill(points, pack_color(color));
 }
 
 void
-Canvas::draw_quad(geom::fquad const& quad, surf::Color const& color, float z, float width)
+Canvas::draw_quad(geom::fquad const& quad, surf::Color const& color, float width)
 {
   glm::vec2 const points[] = { to_vec(quad.p1), to_vec(quad.p2), to_vec(quad.p3), to_vec(quad.p4) };
-  add_line_strip(points, true, pack_color(color), z, width);
+  add_line_strip(points, true, pack_color(color), width);
 }
 
 void
 Canvas::fill_triangle(geom::fpoint const& p1, geom::fpoint const& p2, geom::fpoint const& p3,
-                      surf::Color const& color, float z)
+                      surf::Color const& color)
 {
   glm::vec2 const points[] = { to_vec(p1), to_vec(p2), to_vec(p3) };
-  add_polygon_fill(points, pack_color(color), z);
+  add_polygon_fill(points, pack_color(color));
 }
 
 void
-Canvas::draw_line(geom::fpoint const& p1, geom::fpoint const& p2, surf::Color const& color,
-                  float z, float width)
-{
-  glm::vec2 const points[] = { to_vec(p1), to_vec(p2) };
-  add_line_strip(points, false, pack_color(color), z, width);
-}
-
-void
-Canvas::draw_polyline(std::span<geom::fpoint const> points, surf::Color const& color,
-                      bool loop, float z, float width)
+Canvas::fill_polygon(std::span<geom::fpoint const> points, surf::Color const& color)
 {
   m_points.clear();
   for (auto const& p : points) {
     m_points.push_back(to_vec(p));
   }
-  add_line_strip(m_points, loop, pack_color(color), z, width);
+  add_polygon_fill(m_points, pack_color(color));
 }
 
 void
-Canvas::fill_circle(geom::fpoint const& center, float radius, surf::Color const& color,
-                    float z, int segments)
+Canvas::draw_polygon(std::span<geom::fpoint const> points, surf::Color const& color, float width)
 {
-  arc_points(center, radius, 0.0f, 360.0f, segments, m_points);
+  m_points.clear();
+  for (auto const& p : points) {
+    m_points.push_back(to_vec(p));
+  }
+  add_line_strip(m_points, true, pack_color(color), width);
+}
+
+void
+Canvas::draw_line(geom::fpoint const& p1, geom::fpoint const& p2, surf::Color const& color, float width)
+{
+  glm::vec2 const points[] = { to_vec(p1), to_vec(p2) };
+  add_line_strip(points, false, pack_color(color), width);
+}
+
+void
+Canvas::draw_polyline(std::span<geom::fpoint const> points, surf::Color const& color, float width)
+{
+  m_points.clear();
+  for (auto const& p : points) {
+    m_points.push_back(to_vec(p));
+  }
+  add_line_strip(m_points, false, pack_color(color), width);
+}
+
+void
+Canvas::fill_circle(geom::fpoint const& center, float radius, surf::Color const& color)
+{
+  arc_points(center, radius, 0.0f, 360.0f, segments_for(radius, 360.0f), m_points);
   m_points.pop_back(); // last point duplicates the first
-  add_polygon_fill(m_points, pack_color(color), z);
+  add_polygon_fill(m_points, pack_color(color));
 }
 
 void
-Canvas::draw_circle(geom::fpoint const& center, float radius, surf::Color const& color,
-                    float z, float width, int segments)
+Canvas::draw_circle(geom::fpoint const& center, float radius, surf::Color const& color, float width)
 {
-  arc_points(center, radius, 0.0f, 360.0f, segments, m_points);
+  arc_points(center, radius, 0.0f, 360.0f, segments_for(radius, 360.0f), m_points);
   m_points.pop_back();
-  add_line_strip(m_points, true, pack_color(color), z, width);
+  add_line_strip(m_points, true, pack_color(color), width);
 }
 
 void
-Canvas::fill_arc(geom::fpoint const& center, float radius, float start, float end,
-                 surf::Color const& color, float z, int segments)
+Canvas::fill_arc(geom::fpoint const& center, float radius, float start, float end, surf::Color const& color)
 {
-  arc_points(center, radius, start, end, segments, m_points);
+  arc_points(center, radius, start, end, segments_for(radius, end - start), m_points);
   m_points.insert(m_points.begin(), to_vec(center));
-  add_polygon_fill(m_points, pack_color(color), z);
+  add_polygon_fill(m_points, pack_color(color));
 }
 
 void
 Canvas::draw_arc(geom::fpoint const& center, float radius, float start, float end,
-                 surf::Color const& color, float z, float width, int segments)
+                 surf::Color const& color, float width)
 {
-  arc_points(center, radius, start, end, segments, m_points);
-  add_line_strip(m_points, false, pack_color(color), z, width);
+  arc_points(center, radius, start, end, segments_for(radius, end - start), m_points);
+  add_line_strip(m_points, false, pack_color(color), width);
 }
 
 void
 Canvas::fill_gradient(geom::frect const& rect,
                       surf::Color const& top_left, surf::Color const& top_right,
-                      surf::Color const& bottom_right, surf::Color const& bottom_left,
-                      float z)
+                      surf::Color const& bottom_right, surf::Color const& bottom_left)
 {
-  Vertex* v = add_quads({}, {}, Blend::Alpha, z, 1);
+  Vertex* v = add_quads({}, 1);
   v[0] = Vertex{rect.left(), rect.top(), 0.0f, 0.0f, pack_color(top_left)};
   v[1] = Vertex{rect.right(), rect.top(), 0.0f, 0.0f, pack_color(top_right)};
   v[2] = Vertex{rect.right(), rect.bottom(), 0.0f, 0.0f, pack_color(bottom_right)};
@@ -767,47 +738,42 @@ Canvas::fill_gradient(geom::frect const& rect,
 }
 
 void
-Canvas::fill_vertical_gradient(geom::frect const& rect, surf::Color const& top,
-                               surf::Color const& bottom, float z)
+Canvas::fill_vertical_gradient(geom::frect const& rect, surf::Color const& top, surf::Color const& bottom)
 {
-  fill_gradient(rect, top, top, bottom, bottom, z);
+  fill_gradient(rect, top, top, bottom, bottom);
 }
 
 void
-Canvas::fill_horizontal_gradient(geom::frect const& rect, surf::Color const& left,
-                                 surf::Color const& right, float z)
+Canvas::fill_horizontal_gradient(geom::frect const& rect, surf::Color const& left, surf::Color const& right)
 {
-  fill_gradient(rect, left, right, right, left, z);
+  fill_gradient(rect, left, right, right, left);
 }
 
 /*} */
 
 void
 Canvas::draw_text(Font const& font, geom::fpoint const& pos, std::string_view text,
-                  surf::Color const& color, TextAlign align, float z)
+                  surf::Color const& color, TextAlign align)
 {
-  font.draw(*this, pos, text, color, align, z);
+  font.draw(*this, pos, text, color, align);
 }
 
 /*{ Raw geometry */
 
 void
-Canvas::draw_triangles(TextureId texture, std::span<Vertex const> vertices,
-                       std::span<uint16_t const> indices, Blend blend, float z,
-                       MaterialId material)
+Canvas::draw_triangles(TextureId texture, std::span<Vertex const> vertices, std::span<uint16_t const> indices)
 {
   if (vertices.empty() || indices.empty()) {
     return;
   }
 
-  Vertex* v = add(texture, material, blend, z, static_cast<uint32_t>(vertices.size()), indices);
+  Vertex* v = add(texture, static_cast<uint32_t>(vertices.size()), indices);
   std::copy(vertices.begin(), vertices.end(), v);
   transform_vertices(v, vertices.size());
 }
 
 void
-Canvas::draw_quads(TextureId texture, std::span<Vertex const> vertices,
-                   Blend blend, float z, MaterialId material)
+Canvas::draw_quads(TextureId texture, std::span<Vertex const> vertices)
 {
   if (vertices.size() % 4 != 0) {
     throw std::invalid_argument("Canvas::draw_quads: vertex count must be a multiple of 4");
@@ -817,22 +783,22 @@ Canvas::draw_quads(TextureId texture, std::span<Vertex const> vertices,
   constexpr size_t max_quads = max_command_vertices / 4;
   for (size_t offset = 0; offset < vertices.size(); offset += max_quads * 4) {
     size_t const count = std::min(vertices.size() - offset, max_quads * 4);
-    Vertex* v = add_quads(texture, material, blend, z, static_cast<uint32_t>(count / 4));
+    Vertex* v = add_quads(texture, static_cast<uint32_t>(count / 4));
     std::copy_n(vertices.begin() + static_cast<std::ptrdiff_t>(offset), count, v);
     transform_vertices(v, count);
   }
 }
 
 void
-Canvas::draw(StaticBatchId batch, float z)
+Canvas::draw(StaticBatchId batch)
 {
-  add_object(CommandType::StaticBatch, ObjectDraw{.static_batch = batch, .mesh = {}, .matrix = glm::mat4(1.0f)}, z);
+  add_object(CommandType::StaticBatch, ObjectDraw{.static_batch = batch, .mesh = {}, .matrix = glm::mat4(1.0f)});
 }
 
 void
-Canvas::draw(MeshId mesh, glm::mat4 const& transform, float z)
+Canvas::draw(MeshId mesh, glm::mat4 const& transform)
 {
-  add_object(CommandType::Mesh, ObjectDraw{.static_batch = {}, .mesh = mesh, .matrix = transform}, z);
+  add_object(CommandType::Mesh, ObjectDraw{.static_batch = {}, .mesh = mesh, .matrix = transform});
 }
 
 /*} */

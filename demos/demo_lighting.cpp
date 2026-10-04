@@ -170,6 +170,7 @@ public:
 
     renderer.clear(surf::palette::black);
 
+    // the compositor clears the canvases including their state after rendering
     Canvas& color = m_compositor.get_canvas("color");
     Canvas& light = m_compositor.get_canvas("light");
     Canvas& highlight = m_compositor.get_canvas("highlight");
@@ -184,19 +185,22 @@ public:
       }
     }
 
+    color.set_z(1.0f);
     for (int i = 0; i < 12; ++i) {
       float const a = static_cast<float>(i) * 0.5236f + t * 0.2f;
       color.draw(m_tux, DrawParams().set_pos(geom::fpoint(std::cos(a) * 500.0f, std::sin(a) * 500.0f))
-                 .set_anchor(geom::origin::CENTER), 1.0f);
+                 .set_anchor(geom::origin::CENTER));
     }
 
+    light.set_blend(Blend::Add);
+    highlight.set_blend(Blend::Add);
     for (auto const& l : m_lights) {
       geom::fpoint const pos(l.center.x() + std::cos(t * l.speed) * l.radius,
                              l.center.y() + std::sin(t * l.speed * 1.3f) * l.radius);
       light.draw(m_light, DrawParams().set_pos(pos).set_anchor(geom::origin::CENTER)
-                 .set_scale(l.size).set_color(l.color).set_blend(Blend::Add));
+                 .set_scale(l.size).set_color(l.color));
       highlight.draw(m_light, DrawParams().set_pos(pos).set_anchor(geom::origin::CENTER)
-                     .set_scale(0.15f).set_color(l.color).set_blend(Blend::Add));
+                     .set_scale(0.15f).set_color(l.color));
     }
 
     // the overlay pass ignores the camera

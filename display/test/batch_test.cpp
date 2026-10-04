@@ -60,10 +60,14 @@ TEST(BatchTest, alternating_textures_break_batches)
 TEST(BatchTest, z_sort_is_stable_and_merges)
 {
   Canvas canvas;
-  canvas.draw_quads(tex_a, quad(0, 0), Blend::Alpha, 1.0f);
-  canvas.draw_quads(tex_b, quad(1, 0), Blend::Alpha, 0.0f);
-  canvas.draw_quads(tex_a, quad(2, 0), Blend::Alpha, 1.0f);
-  canvas.draw_quads(tex_b, quad(3, 0), Blend::Alpha, 0.0f);
+  canvas.set_z(1.0f);
+  canvas.draw_quads(tex_a, quad(0, 0));
+  canvas.set_z(0.0f);
+  canvas.draw_quads(tex_b, quad(1, 0));
+  canvas.set_z(1.0f);
+  canvas.draw_quads(tex_a, quad(2, 0));
+  canvas.set_z(0.0f);
+  canvas.draw_quads(tex_b, quad(3, 0));
 
   BatchList batches;
   build_batches(canvas, batches);
@@ -83,11 +87,13 @@ TEST(BatchTest, z_sort_is_stable_and_merges)
 TEST(BatchTest, blend_and_clip_break_batches)
 {
   Canvas canvas;
-  canvas.draw_quads(tex_a, quad(0, 0), Blend::Alpha);
-  canvas.draw_quads(tex_a, quad(1, 0), Blend::Add);
-  canvas.push_clip(geom::frect(0, 0, 10, 10));
-  canvas.draw_quads(tex_a, quad(2, 0), Blend::Add);
-  canvas.pop_clip();
+  canvas.draw_quads(tex_a, quad(0, 0));
+  canvas.set_blend(Blend::Add);
+  canvas.draw_quads(tex_a, quad(1, 0));
+  canvas.save();
+  canvas.clip(geom::frect(0, 0, 10, 10));
+  canvas.draw_quads(tex_a, quad(2, 0));
+  canvas.restore();
 
   BatchList batches;
   build_batches(canvas, batches);

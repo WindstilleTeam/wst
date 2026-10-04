@@ -41,7 +41,6 @@ struct Popup
   geom::fpoint pos;
   float age;
 };
-
 } // namespace
 
 class SpriteViewerDemo : public wstdemo::DemoApp
@@ -245,9 +244,10 @@ public:
                          surf::palette::lightgray, TextAlign::Center);
     }
 
+    m_canvas.set_z(1.0f);
     for (auto const& p : m_popups) {
       m_canvas.draw_text(get_font(), geom::fpoint(p.pos.x(), p.pos.y() - 60 - 40 * p.age), p.text,
-                         surf::Color(1.0f, 0.9f, 0.3f, 1.0f - p.age), TextAlign::Center, 1.0f);
+                         surf::Color(1.0f, 0.9f, 0.3f, 1.0f - p.age), TextAlign::Center);
     }
 
     renderer.render(m_canvas);

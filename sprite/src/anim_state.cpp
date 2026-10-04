@@ -127,7 +127,7 @@ advance(AnimState& state, SpriteData const& data, float delta,
 
 void
 draw(wstdisplay::Canvas& canvas, SpriteData const& data, AnimState const& state,
-     wstdisplay::DrawParams const& params, float z)
+     wstdisplay::DrawParams const& params)
 {
   Action const& action = current_action(state, data);
   if (action.frames.empty()) {
@@ -139,7 +139,7 @@ draw(wstdisplay::Canvas& canvas, SpriteData const& data, AnimState const& state,
   p.offset = geom::foffset(-action.origin.x(), -action.origin.y()) + params.offset;
   p.scale *= action.scale;
   p.hflip = (params.hflip != action.hflip);
-  canvas.draw(action.frames[static_cast<size_t>(state.frame)].surface, p, z);
+  canvas.draw(action.frames[static_cast<size_t>(state.frame)].surface, p);
 }
 
 } // namespace wstsprite

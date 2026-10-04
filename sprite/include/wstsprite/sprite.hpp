@@ -30,8 +30,8 @@ public:
   void update(float delta, std::vector<FrameEvent const*>* events = nullptr);
   void restart() { wstsprite::restart(m_state); }
 
-  void draw(wstdisplay::Canvas& canvas, geom::fpoint const& pos, float z = 0.0f) const;
-  void draw(wstdisplay::Canvas& canvas, wstdisplay::DrawParams const& params, float z = 0.0f) const;
+  void draw(wstdisplay::Canvas& canvas, geom::fpoint const& pos) const;
+  void draw(wstdisplay::Canvas& canvas, wstdisplay::DrawParams const& params) const;
 
   bool is_finished() const { return m_state.finished; }
 

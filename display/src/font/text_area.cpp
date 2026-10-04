@@ -126,7 +126,7 @@ TextArea::update(float delta)
 }
 
 void
-TextArea::draw(Canvas& canvas, float z)
+TextArea::draw(Canvas& canvas)
 {
   Font const& font = *impl->font;
   float const line_height = font.get_line_height() + impl->v_space;
@@ -137,10 +137,10 @@ TextArea::draw(Canvas& canvas, float z)
     canvas.fill_rounded_rect(geom::frect(geom::fpoint(impl->rect.right() + 4,
                                                       impl->rect.top() + impl->scroll_offset * impl->rect.height() / height),
                                          geom::fsize(8, impl->rect.height() * impl->rect.height() / height)),
-                             4.0f, surf::Color(1.0f, 1.0f, 1.0f, 0.25f), z);
+                             4.0f, surf::Color(1.0f, 1.0f, 1.0f, 0.25f));
   }
 
-  canvas.push_transform();
+  Canvas::Scope scope(canvas);
   canvas.translate(impl->rect.left(), impl->rect.top() + font.get_height() - impl->scroll_offset);
 
   surf::Color top_color(1.0f, 1.0f, 1.0f);
@@ -228,7 +228,7 @@ TextArea::draw(Canvas& canvas, float z)
           bool const visible = (y_pos >= impl->scroll_offset &&
                                 y_pos < impl->scroll_offset + impl->rect.height() - font.get_height());
           if (visible) {
-            Font::draw_glyph(canvas, *glyph, geom::fpoint(x_pos, y), scale, top_color, bottom_color, z);
+            Font::draw_glyph(canvas, *glyph, geom::fpoint(x_pos, y), scale, top_color, bottom_color);
           }
 
           x_pos += glyph->advance * scale;
@@ -245,8 +245,6 @@ TextArea::draw(Canvas& canvas, float z)
   if (it == impl->commands.end() && !break_writing) {
     impl->progress_complete = true;
   }
-
-  canvas.pop_transform();
 
   impl->cursor_pos = glm::vec2(x_pos + impl->rect.left(), y_pos + impl->rect.top());
 }
