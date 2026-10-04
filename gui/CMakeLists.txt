@@ -114,7 +114,7 @@ endif()
 
 find_package(PkgConfig REQUIRED)
 pkg_search_module(SDL2 REQUIRED sdl2 IMPORTED_TARGET)
-pkg_search_module(SIGCXX REQUIRED sigc++-2.0 IMPORTED_TARGET)
+pkg_search_module(SIGCXX REQUIRED sigc++-3.0 IMPORTED_TARGET)
 
 find_package(sexp REQUIRED)
 find_package(babyxml REQUIRED)
@@ -122,9 +122,12 @@ find_package(logmich REQUIRED)
 find_package(geom REQUIRED)
 find_package(prio REQUIRED)
 find_package(surf REQUIRED)
-find_package(wstdisplay REQUIRED)
-find_package(wstinput REQUIRED)
-find_package(wstsound REQUIRED)
+if(NOT TARGET wstdisplay::wstdisplay)
+  find_package(wstdisplay REQUIRED)
+endif()
+if(NOT TARGET wstinput::wstinput)
+  find_package(wstinput REQUIRED)
+endif()
 
 file(GLOB WSTGUI_HEADERS RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
   include/wstgui/*.hpp)
@@ -144,7 +147,6 @@ target_include_directories(wstgui PRIVATE
   )
 target_link_libraries(wstgui PUBLIC
   wstinput::wstinput
-  wstsound::wstsound
   geom::geom
   prio::prio
   PkgConfig::SIGCXX

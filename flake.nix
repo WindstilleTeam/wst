@@ -1,5 +1,5 @@
 {
-  description = "Windstille Display Engine";
+  description = "wst - Windstille game framework (display, input, gui)";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs?ref=nixos-unstable";
@@ -14,6 +14,13 @@
     geomcpp.url = "git+https://github.com/grumbel/geomcpp.git";
     geomcpp.inputs.nixpkgs.follows = "nixpkgs";
 
+    priocpp.url = "git+https://github.com/grumbel/priocpp.git";
+    priocpp.inputs.nixpkgs.follows = "nixpkgs";
+    priocpp.inputs.logmich.follows = "logmich";
+
+    sexpcpp.url = "git+https://github.com/lispparser/sexp-cpp.git";
+    sexpcpp.inputs.nixpkgs.follows = "nixpkgs";
+
     SDL2-win32.url = "git+https://github.com/grumnix/SDL2-win32.git";
     SDL2-win32.inputs.nixpkgs.follows = "nixpkgs";
 
@@ -27,7 +34,9 @@
     surfcpp.inputs.SDL2-win32.follows = "SDL2-win32";
   };
 
-  outputs = { self, nixpkgs, flake-utils, babyxml, geomcpp, logmich, surfcpp, freetype-win32, SDL2-win32 }:
+  outputs = { self, nixpkgs, flake-utils,
+              babyxml, geomcpp, logmich, priocpp, sexpcpp, surfcpp,
+              freetype-win32, SDL2-win32 }:
     let
       # Read the base from VERSION.
       versionBase = nixpkgs.lib.strings.removeSuffix "\n" (builtins.readFile ./VERSION);
@@ -49,13 +58,14 @@
     eachSystem (system:
       let
         pkgs = pkgsFromSystem system;
+        hostSystem = pkgs.stdenv.hostPlatform.system;
       in
       rec {
         packages = rec {
-          default = wstdisplay;
+          default = wst;
 
-          wstdisplay = pkgs.stdenv.mkDerivation {
-            pname = "wstdisplay";
+          wst = pkgs.stdenv.mkDerivation {
+            pname = "wst";
             inherit version;
 
             src = nixpkgs.lib.cleanSource ./.;
@@ -70,15 +80,18 @@
                 mkdir -p $out/bin/
                 find ${pkgs.windows.mcfgthreads} -iname "*.dll" -exec ln -sfv {} $out/bin/ \;
                 find ${pkgs.stdenv.cc.cc} -iname "*.dll" -exec ln -sfv {} $out/bin/ \;
-                ln -sfv ${SDL2-win32.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/*.dll $out/bin/
+                ln -sfv ${SDL2-win32.packages.${hostSystem}.default}/bin/*.dll $out/bin/
                 ln -sfv ${pkgs.gtest}/bin/*.dll $out/bin/
                 ln -sfv ${pkgs.libsigcxx_3_0}/bin/*.dll $out/bin/
-                ln -sfv ${freetype-win32.packages.${pkgs.stdenv.hostPlatform.system}.default}/bin/*.dll $out/bin/
+                ln -sfv ${freetype-win32.packages.${hostSystem}.default}/bin/*.dll $out/bin/
 
                 # FIXME: These should be handled in surfcpp or statically linked
                 ln -sfv ${pkgs.libjpeg_original.overrideAttrs (oldAttrs: { meta = {}; })}/bin/*.dll $out/bin/
                 ln -sfv ${pkgs.libpng.overrideAttrs (oldAttrs: { meta = {}; })}/bin/*.dll $out/bin/
                 ln -sfv ${pkgs.zlib.overrideAttrs (oldAttrs: { meta = {}; })}/bin/*.dll $out/bin/
+
+                # FIXME: should be handled by sexpcpp itself
+                ln -sfv ${pkgs.jsoncpp}/bin/*.dll $out/bin/
             '');
 
             nativeBuildInputs = [
@@ -91,22 +104,24 @@
             ];
 
             propagatedBuildInputs = [
-              babyxml.packages.${pkgs.stdenv.hostPlatform.system}.default
-              geomcpp.packages.${pkgs.stdenv.hostPlatform.system}.default
-              logmich.packages.${pkgs.stdenv.hostPlatform.system}.default
-              surfcpp.packages.${pkgs.stdenv.hostPlatform.system}.default
+              babyxml.packages.${hostSystem}.default
+              geomcpp.packages.${hostSystem}.default
+              logmich.packages.${hostSystem}.default
+              priocpp.packages.${hostSystem}.default
+              sexpcpp.packages.${hostSystem}.default
+              surfcpp.packages.${hostSystem}.default
 
               pkgs.libsigcxx_3_0
 
               (if pkgs.stdenv.hostPlatform.isWindows
-               then freetype-win32.packages.${pkgs.stdenv.hostPlatform.system}.default
+               then freetype-win32.packages.${hostSystem}.default
                else pkgs.freetype)
 
               (if pkgs.stdenv.hostPlatform.isWindows
-               then SDL2-win32.packages.${pkgs.stdenv.hostPlatform.system}.default
+               then SDL2-win32.packages.${hostSystem}.default
                else pkgs.SDL2)
 
-              # OpenGL via libglvnd (no X11 pulled in by GLEW anymore; GLAD is vendored)
+              # OpenGL via libglvnd (GLAD is vendored)
               pkgs.libGL
               pkgs.libGLU
             ];
@@ -117,8 +132,13 @@
           default = wstdisplay-geometry;
 
           wstdisplay-geometry = flake-utils.lib.mkApp {
-            drv = packages.wstdisplay;
+            drv = packages.wst;
             exePath = "/bin/wstdisplay-geometry";
+          };
+
+          wstgui = flake-utils.lib.mkApp {
+            drv = packages.wst;
+            exePath = "/bin/wstgui";
           };
         };
       }
