@@ -67,6 +67,22 @@ TEST(ResourcePoolTest, stale_handle_doesnt_reach_reused_slot)
   EXPECT_EQ(pool.find(b)->value, 2);
 }
 
+TEST(ResourcePoolTest, destroy_all_makes_handles_stale)
+{
+  ResourcePool<Thing> pool;
+  Handle<Thing> const a = pool.insert(std::make_unique<Thing>(Thing{1}));
+  Handle<Thing> const b = pool.insert(std::make_unique<Thing>(Thing{2}));
+
+  pool.destroy_all();
+  EXPECT_TRUE(pool.collect());
+  EXPECT_EQ(pool.count(), 0u);
+
+  Handle<Thing> const c = pool.insert(std::make_unique<Thing>(Thing{3}));
+  EXPECT_EQ(pool.find(a), nullptr);
+  EXPECT_EQ(pool.find(b), nullptr);
+  EXPECT_EQ(pool.find(c)->value, 3);
+}
+
 TEST(ResourcePoolTest, handles_are_small_values)
 {
   static_assert(sizeof(Handle<Thing>) == 8);

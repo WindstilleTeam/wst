@@ -18,7 +18,7 @@ namespace wstsprite {
 
 /** The playback state of an animation. A small trivially copyable
     struct, meant to be stored directly in an ECS component next to a
-    SpriteDataPtr. Time only advances in advance(), never when drawing,
+    SpriteId. Time only advances in advance(), never when drawing,
     so game logic stays deterministic for a fixed time step. */
 struct AnimState
 {

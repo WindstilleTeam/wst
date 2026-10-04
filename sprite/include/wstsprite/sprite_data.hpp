@@ -5,7 +5,6 @@
 #define HEADER_WSTSPRITE_SPRITE_DATA_HPP
 
 #include <filesystem>
-#include <memory>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -14,6 +13,7 @@
 #include <geom/point.hpp>
 #include <geom/rect.hpp>
 #include <wstdisplay/fwd.hpp>
+#include <wstdisplay/handle.hpp>
 #include <wstdisplay/surface.hpp>
 
 #include "frame_event.hpp"
@@ -64,9 +64,6 @@ struct Action
   float get_total_duration() const;
 };
 
-class SpriteData;
-using SpriteDataPtr = std::shared_ptr<SpriteData const>;
-
 /** The animations of a sprite, loaded from one of the .sprite formats
     of SuperTux, Windstille or Pingus, detected by the root element:
 
@@ -75,25 +72,28 @@ using SpriteDataPtr = std::shared_ptr<SpriteData const>;
     (pingus-sprite (image ..) (array ..) (speed ..) (origin ..) ...)
 
     All formats accept an (events ...) list per action, see FrameEvent,
-    which are converted to typed data by an optional EventRegistry. */
+    which are converted to typed data by an optional EventRegistry.
+
+    SpriteData is a plain value, SpriteManager owns the loaded ones and
+    hands out SpriteId handles to store in components. */
 class SpriteData final
 {
 public:
   /** Load \a filename, images are loaded through \a surfaces,
       events are parsed with \a events if given */
-  static SpriteDataPtr from_file(std::filesystem::path const& filename, wstdisplay::SurfaceManager& surfaces,
-                                 EventRegistry const* events = nullptr);
+  static SpriteData from_file(std::filesystem::path const& filename, wstdisplay::SurfaceManager& surfaces,
+                              EventRegistry const* events = nullptr);
 
   /** Load the sprite element \a name with \a mapping, images are
       relative to \a directory. Use this for sprites embedded in other
       files, e.g. Pingus animation sets. */
-  static SpriteDataPtr from_mapping(std::string_view name, prio::ReaderMapping const& mapping,
-                                    std::filesystem::path const& directory,
-                                    wstdisplay::SurfaceManager& surfaces,
-                                    EventRegistry const* events = nullptr);
+  static SpriteData from_mapping(std::string_view name, prio::ReaderMapping const& mapping,
+                                 std::filesystem::path const& directory,
+                                 wstdisplay::SurfaceManager& surfaces,
+                                 EventRegistry const* events = nullptr);
 
   /** A single image as a sprite with one action "default" */
-  static SpriteDataPtr from_surface(wstdisplay::Surface const& surface);
+  static SpriteData from_surface(wstdisplay::Surface const& surface);
 
 public:
   SpriteData();
@@ -110,6 +110,10 @@ public:
 private:
   std::vector<Action> m_actions;
 };
+
+/** A loaded sprite in a SpriteManager, a trivially copyable value for
+    components, see wstdisplay::Handle */
+using SpriteId = wstdisplay::Handle<SpriteData>;
 
 } // namespace wstsprite
 

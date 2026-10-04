@@ -14,15 +14,19 @@
 
 namespace wstsprite {
 
-/** Convenience wrapper bundling SpriteData and AnimState, for code that
-    doesn't keep them separately in components */
+class SpriteManager;
+
+/** Convenience wrapper bundling a SpriteId with its AnimState, for code
+    that doesn't keep them separately in components. The manager must
+    outlive the sprite. An unloaded sprite behaves like an empty one. */
 class Sprite final
 {
 public:
   Sprite() = default;
-  explicit Sprite(SpriteDataPtr data);
+  Sprite(SpriteManager const& manager, SpriteId id);
 
-  explicit operator bool() const { return static_cast<bool>(m_data); }
+  /** True if the sprite refers to loaded data */
+  explicit operator bool() const { return get_data() != nullptr; }
 
   bool set_action(std::string_view name);
   std::string const& get_action() const;
@@ -37,10 +41,14 @@ public:
 
   AnimState& get_state() { return m_state; }
   AnimState const& get_state() const { return m_state; }
-  SpriteDataPtr const& get_data() const { return m_data; }
+  SpriteId get_id() const { return m_id; }
+
+  /** The data, nullptr for an empty or unloaded sprite */
+  SpriteData const* get_data() const;
 
 private:
-  SpriteDataPtr m_data = {};
+  SpriteManager const* m_manager = nullptr;
+  SpriteId m_id = {};
   AnimState m_state = {};
 };
 

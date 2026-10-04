@@ -3,30 +3,49 @@
 
 #include "sprite.hpp"
 
+#include "sprite_manager.hpp"
+
 namespace wstsprite {
 
-Sprite::Sprite(SpriteDataPtr data) :
-  m_data(std::move(data)),
+namespace {
+
+std::string const empty_action;
+
+} // namespace
+
+Sprite::Sprite(SpriteManager const& manager, SpriteId id) :
+  m_manager(&manager),
+  m_id(id),
   m_state()
 {
+}
+
+SpriteData const*
+Sprite::get_data() const
+{
+  return m_manager ? m_manager->find(m_id) : nullptr;
 }
 
 bool
 Sprite::set_action(std::string_view name)
 {
-  return wstsprite::set_action(m_state, *m_data, name);
+  SpriteData const* const data = get_data();
+  return data && wstsprite::set_action(m_state, *data, name);
 }
 
 std::string const&
 Sprite::get_action() const
 {
-  return current_action(m_state, *m_data).name;
+  SpriteData const* const data = get_data();
+  return data ? current_action(m_state, *data).name : empty_action;
 }
 
 void
 Sprite::update(float delta, std::vector<FrameEvent const*>* events)
 {
-  advance(m_state, *m_data, delta, events);
+  if (SpriteData const* const data = get_data()) {
+    advance(m_state, *data, delta, events);
+  }
 }
 
 void
@@ -38,7 +57,9 @@ Sprite::draw(wstdisplay::Canvas& canvas, geom::fpoint const& pos) const
 void
 Sprite::draw(wstdisplay::Canvas& canvas, wstdisplay::DrawParams const& params) const
 {
-  wstsprite::draw(canvas, *m_data, m_state, params);
+  if (SpriteData const* const data = get_data()) {
+    wstsprite::draw(canvas, *data, m_state, params);
+  }
 }
 
 } // namespace wstsprite

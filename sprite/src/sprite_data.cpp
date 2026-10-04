@@ -482,32 +482,32 @@ SpriteData::find_action(std::string_view name) const
   return -1;
 }
 
-SpriteDataPtr
+SpriteData
 SpriteData::from_mapping(std::string_view name, prio::ReaderMapping const& mapping,
                          std::filesystem::path const& directory, wstdisplay::SurfaceManager& surfaces,
                          EventRegistry const* events)
 {
-  auto data = std::make_shared<SpriteData>();
+  SpriteData data;
   LoadContext const ctx{directory, surfaces, events};
 
   if (name == "supertux-sprite") {
-    read_supertux(*data, mapping, ctx);
+    read_supertux(data, mapping, ctx);
   } else if (name == "sprite") {
-    read_windstille(*data, mapping, ctx);
+    read_windstille(data, mapping, ctx);
   } else if (name == "pingus-sprite") {
-    read_pingus(*data, mapping, ctx);
+    read_pingus(data, mapping, ctx);
   } else {
     throw std::runtime_error("unknown sprite format: " + std::string(name));
   }
 
-  if (data->get_actions().empty()) {
+  if (data.get_actions().empty()) {
     throw std::runtime_error("sprite without actions");
   }
 
   return data;
 }
 
-SpriteDataPtr
+SpriteData
 SpriteData::from_file(std::filesystem::path const& filename, wstdisplay::SurfaceManager& surfaces,
                       EventRegistry const* events)
 {
@@ -519,14 +519,14 @@ SpriteData::from_file(std::filesystem::path const& filename, wstdisplay::Surface
   }
 }
 
-SpriteDataPtr
+SpriteData
 SpriteData::from_surface(wstdisplay::Surface const& surface)
 {
-  auto data = std::make_shared<SpriteData>();
+  SpriteData data;
   Action action;
   action.name = "default";
   action.frames.push_back(Frame{surface, 1.0f});
-  data->add_action(std::move(action));
+  data.add_action(std::move(action));
   return data;
 }
 

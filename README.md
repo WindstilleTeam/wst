@@ -221,14 +221,16 @@ origin (the point placed at the draw position), scale, mirroring,
 loop count, an optional hitbox and frame events. Unknown keys are
 kept in `Properties` for the game.
 
-    SpriteDataPtr data = SpriteData::from_file("tux.sprite", surfaces, &events);
+    SpriteManager sprites(surfaces, &events);
+    SpriteId const tux = sprites.load("tux.sprite");
 
-    // in an ECS component: the shared data and a small POD state
-    struct SpriteComponent { SpriteDataPtr data; AnimState anim; };
+    // in an ECS component: a handle and a small POD state, trivially copyable
+    struct SpriteComponent { SpriteId sprite; AnimState anim; };
 
     // animation system, fixed time step
+    SpriteData const& data = sprites.get(c.sprite);
     fired.clear();
-    advance(c.anim, *c.data, dt, &fired);
+    advance(c.anim, data, dt, &fired);
     for (FrameEvent const* e : fired) {
       if (e->type == sound_event) {
         SoundEvent const& s = *e->get<SoundEvent>();
@@ -238,7 +240,7 @@ kept in `Properties` for the game.
 
     // render system
     canvas.set_z(c.layer);
-    draw(canvas, *c.data, c.anim, DrawParams().set_pos(pos));
+    draw(canvas, sprites.get(c.sprite), c.anim, DrawParams().set_pos(pos));
 
 Frame events are written per action, `at-step` is accepted for Pingus:
 

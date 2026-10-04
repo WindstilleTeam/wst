@@ -4,8 +4,6 @@
 #ifndef HEADER_WSTDISPLAY_RESOURCE_POOL_HPP
 #define HEADER_WSTDISPLAY_RESOURCE_POOL_HPP
 
-// Internal header, no GL involved
-
 #include <cstdint>
 #include <memory>
 #include <vector>
@@ -14,9 +12,11 @@
 
 namespace wstdisplay {
 
-/** Storage for the resources of one type. Objects are heap allocated
-    so references returned by Device::get() stay valid while other
-    resources are created. */
+/** Storage for objects of one type that are referred to by Handle<T>,
+    used by Device and usable for other handle based managers. Objects
+    are heap allocated so references stay valid while other objects
+    are inserted. destroy() only marks an object, it is deleted and
+    its handles become stale on the next collect(). */
 template<typename T>
 class ResourcePool final
 {
@@ -69,6 +69,19 @@ public:
     }
   }
 
+  /** Mark all objects for deletion, unlike clear() their handles are
+      reliably stale after the next collect() */
+  void destroy_all()
+  {
+    for (size_t index = 0; index < m_slots.size(); ++index) {
+      Slot& slot = m_slots[index];
+      if (slot.object && !slot.pending) {
+        slot.pending = true;
+        m_pending.push_back(static_cast<uint32_t>(index));
+      }
+    }
+  }
+
   /** Delete the pending objects, returns true if anything was deleted */
   bool collect()
   {
@@ -96,6 +109,8 @@ public:
     return true;
   }
 
+  /** Delete everything and forget the generations, only for the
+      final shutdown as old handles may match new objects afterwards */
   void clear()
   {
     // see collect(), objects may destroy other objects while going away

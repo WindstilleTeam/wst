@@ -19,6 +19,7 @@
 #include <wstdisplay/surface_manager.hpp>
 #include <wstsprite/anim_state.hpp>
 #include <wstsprite/sprite_data.hpp>
+#include <wstsprite/sprite_manager.hpp>
 
 #include "demo_app.hpp"
 
@@ -30,7 +31,7 @@ namespace {
 struct Entry
 {
   std::filesystem::path path;
-  SpriteDataPtr data;
+  SpriteId sprite;
   AnimState state;
   float action_time;
 };
@@ -67,6 +68,7 @@ public:
     m_events(),
     m_canvas(),
     m_surfaces(),
+    m_sprites(),
     m_entries(),
     m_popups(),
     m_page(0),
@@ -110,6 +112,7 @@ public:
     // games keep running with missing images, show them as magenta squares
     m_surfaces->set_fallback(m_surfaces->create(
       surf::SoftwareSurface::create(surf::PixelFormat::RGBA8, geom::isize(16, 16), surf::palette::magenta)));
+    m_sprites = std::make_unique<SpriteManager>(*m_surfaces, &m_events);
 
     std::vector<std::filesystem::path> files;
     if (std::filesystem::is_directory(m_path)) {
@@ -128,8 +131,7 @@ public:
       std::string format = "?";
       try {
         format = prio::ReaderDocument::from_file(file).get_name();
-        SpriteDataPtr data = SpriteData::from_file(file, *m_surfaces, &m_events);
-        m_entries.push_back(Entry{file, std::move(data), {}, 0.0f});
+        m_entries.push_back(Entry{file, m_sprites->load(file), {}, 0.0f});
         formats[format].first += 1;
       } catch (std::exception const& err) {
         formats[format].second += 1;
@@ -146,8 +148,9 @@ public:
       int actions = 0;
       int frames = 0;
       for (auto const& e : m_entries) {
-        actions += static_cast<int>(e.data->get_actions().size());
-        for (auto const& a : e.data->get_actions()) {
+        SpriteData const& data = m_sprites->get(e.sprite);
+        actions += static_cast<int>(data.get_actions().size());
+        for (auto const& a : data.get_actions()) {
           frames += static_cast<int>(a.frames.size());
         }
       }
@@ -187,21 +190,22 @@ public:
     int const first = m_page * page_size();
     for (int i = first; i < std::min(first + page_size(), static_cast<int>(m_entries.size())); ++i) {
       Entry& e = m_entries[static_cast<size_t>(i)];
+      SpriteData const& data = m_sprites->get(e.sprite);
 
       // cycle through the actions
       e.action_time += delta;
-      Action const& action = current_action(e.state, *e.data);
+      Action const& action = current_action(e.state, data);
       float const show_time = std::max(2.0f, action.get_total_duration());
       if (e.action_time > show_time) {
         e.action_time = 0.0f;
-        set_action(e.state, (e.state.action + 1) % static_cast<int>(e.data->get_actions().size()));
+        set_action(e.state, (e.state.action + 1) % static_cast<int>(data.get_actions().size()));
         events.clear();
-        fire_current_events(e.state, *e.data, events);
+        fire_current_events(e.state, data, events);
       } else {
         events.clear();
       }
 
-      advance(e.state, *e.data, delta, &events);
+      advance(e.state, data, delta, &events);
       if (e.state.finished) {
         restart(e.state);
       }
@@ -237,6 +241,7 @@ public:
     int const first = m_page * page_size();
     for (int i = first; i < std::min(first + page_size(), static_cast<int>(m_entries.size())); ++i) {
       Entry const& e = m_entries[static_cast<size_t>(i)];
+      SpriteData const& data = m_sprites->get(e.sprite);
       geom::fpoint const center = cell_center(i - first);
 
       // the origin of the sprite
@@ -246,10 +251,10 @@ public:
                          surf::Color(1.0f, 1.0f, 1.0f, 0.2f));
 
       // keep large sprites inside their cell
-      Action const& action = current_action(e.state, *e.data);
+      Action const& action = current_action(e.state, data);
       float const h = action.frames.empty() ? 1.0f : action.frames[0].surface.get_height() * action.scale;
       float const fit = std::min(1.0f, 60.0f / h);
-      wstsprite::draw(m_canvas, *e.data, e.state, DrawParams().set_pos(center).set_scale(fit));
+      wstsprite::draw(m_canvas, data, e.state, DrawParams().set_pos(center).set_scale(fit));
 
       if (action.hitbox) {
         geom::frect const hb = *action.hitbox;
@@ -281,6 +286,7 @@ private:
   EventRegistry m_events;
   Canvas m_canvas;
   std::unique_ptr<SurfaceManager> m_surfaces;
+  std::unique_ptr<SpriteManager> m_sprites;
   std::vector<Entry> m_entries;
   std::vector<Popup> m_popups;
   int m_page;
