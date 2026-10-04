@@ -25,7 +25,6 @@
 #include <wstdisplay/graphics_context.hpp>
 #include <wstdisplay/opengl_window.hpp>
 #include <wstgui/screen.hpp>
-#include <wstsound/sound_manager.hpp>
 
 namespace wstgui {
 
