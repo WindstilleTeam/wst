@@ -23,12 +23,13 @@ precedence = "aggregate"
 SPDX-FileCopyrightText = "2026 Ingo Ruhnke <grumbel@gmail.com>"
 SPDX-License-Identifier = "GPL-3.0-or-later"
 
-# largetux-jump-right-0.png from SuperTux 0.1.x (Milestone 1)
+# largetux-jump-right-0.png from SuperTux 0.1.x (Milestone 1),
+# relicensed by its author from GPL-2.0-or-later
 [[annotations]]
 path = "demos/data/tux.png"
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2004 Ingo Ruhnke <grumbel@gmail.com>"
-SPDX-License-Identifier = "GPL-2.0-or-later"
+SPDX-License-Identifier = "GPL-3.0-or-later"
 
 [[annotations]]
 path = ["demos/data/Vera.ttf", "gui/extra/Vera.ttf"]
