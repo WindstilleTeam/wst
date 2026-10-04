@@ -48,6 +48,19 @@ struct FrameEvent
   T const* get() const { return std::any_cast<T>(&data); }
 };
 
+/** A fired event as reported by advance(): the index of the action and
+    of the event in Action::events. A plain value that stays meaningful
+    when queued, look the event up with SpriteData::get_event(). */
+struct EventRef
+{
+  int action = 0;
+  int event = 0;
+
+  friend bool operator==(EventRef const& lhs, EventRef const& rhs) = default;
+};
+
+static_assert(std::is_trivially_copyable_v<EventRef>);
+
 /** Maps event names to EventTypes and parsers that turn the event
     properties into game specific data at load time:
 
@@ -62,8 +75,9 @@ struct FrameEvent
       SpriteManager sprites(surfaces, &events);
 
       // when advance() reports events
-      if (event->type == sound) {
-        SoundEvent const& s = *event->get<SoundEvent>();
+      FrameEvent const& event = data.get_event(ref);
+      if (event.type == sound) {
+        SoundEvent const& s = *event.get<SoundEvent>();
         play(s.sound, s.volume);
       }
 

@@ -186,7 +186,7 @@ public:
 
   void update(float delta) override
   {
-    std::vector<FrameEvent const*> events;
+    std::vector<EventRef> events;
     int const first = m_page * page_size();
     for (int i = first; i < std::min(first + page_size(), static_cast<int>(m_entries.size())); ++i) {
       Entry& e = m_entries[static_cast<size_t>(i)];
@@ -210,12 +210,13 @@ public:
         restart(e.state);
       }
 
-      for (FrameEvent const* event : events) {
+      for (EventRef const ref : events) {
         // registered events come with their data already parsed
-        std::string text = event->name;
-        if (SoundEvent const* sound = event->get<SoundEvent>()) {
+        FrameEvent const& event = data.get_event(ref);
+        std::string text = event.name;
+        if (SoundEvent const* sound = event.get<SoundEvent>()) {
           text = std::format("sound: {} ({:.0f}%)", sound->name, sound->volume * 100.0f);
-        } else if (ParticleEvent const* particles = event->get<ParticleEvent>()) {
+        } else if (ParticleEvent const* particles = event.get<ParticleEvent>()) {
           text = std::format("particles: {} x{}", particles->kind, particles->count);
         }
         m_popups.push_back(Popup{text, cell_center(i - first), 0.0f});

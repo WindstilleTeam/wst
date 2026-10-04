@@ -31,7 +31,7 @@ public:
   bool set_action(std::string_view name);
   std::string const& get_action() const;
 
-  void update(float delta, std::vector<FrameEvent const*>* events = nullptr);
+  void update(float delta, std::vector<EventRef>* events = nullptr);
   void restart() { wstsprite::restart(m_state); }
 
   void draw(wstdisplay::Canvas& canvas, geom::fpoint const& pos) const;

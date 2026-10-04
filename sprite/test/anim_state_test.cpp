@@ -73,11 +73,12 @@ TEST(AnimStateTest, events_fire_when_frame_is_entered)
   data.add_action(std::move(action));
 
   AnimState state;
-  std::vector<FrameEvent const*> events;
+  std::vector<EventRef> events;
 
   fire_current_events(state, data, events);
   ASSERT_EQ(events.size(), 1u);
-  EXPECT_EQ(events[0]->name, "start");
+  EXPECT_EQ(events[0], (EventRef{0, 1}));
+  EXPECT_EQ(data.get_event(events[0]).name, "start");
   events.clear();
 
   advance(state, data, 0.65f, &events);
@@ -85,7 +86,7 @@ TEST(AnimStateTest, events_fire_when_frame_is_entered)
 
   advance(state, data, 0.1f, &events);
   ASSERT_EQ(events.size(), 1u);
-  EXPECT_EQ(events[0]->name, "sound");
+  EXPECT_EQ(data.get_event(events[0]).name, "sound");
 }
 
 TEST(AnimStateTest, deterministic_with_fixed_steps)

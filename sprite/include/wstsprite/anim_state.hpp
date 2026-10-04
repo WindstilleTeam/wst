@@ -56,12 +56,12 @@ void restart(AnimState& state);
     events of the first frame don't fire on restart() or set_action(),
     use fire_current_events() for those. */
 void advance(AnimState& state, SpriteData const& data, float delta,
-             std::vector<FrameEvent const*>* events = nullptr);
+             std::vector<EventRef>* events = nullptr);
 
 /** Events of the current frame, call after set_action()/restart() if
     frame 0 events should fire */
 void fire_current_events(AnimState const& state, SpriteData const& data,
-                         std::vector<FrameEvent const*>& events);
+                         std::vector<EventRef>& events);
 
 Action const& current_action(AnimState const& state, SpriteData const& data);
 Frame const& current_frame(AnimState const& state, SpriteData const& data);

@@ -12,14 +12,14 @@ namespace wstsprite {
 
 namespace {
 
-void append_events(Action const& action, int frame, std::vector<FrameEvent const*>* events)
+void append_events(AnimState const& state, Action const& action, std::vector<EventRef>* events)
 {
   if (!events) {
     return;
   }
-  for (auto const& event : action.events) {
-    if (event.frame == frame) {
-      events->push_back(&event);
+  for (size_t i = 0; i < action.events.size(); ++i) {
+    if (action.events[i].frame == state.frame) {
+      events->push_back(EventRef{state.action, static_cast<int>(i)});
     }
   }
 }
@@ -82,14 +82,14 @@ current_frame(AnimState const& state, SpriteData const& data)
 
 void
 fire_current_events(AnimState const& state, SpriteData const& data,
-                    std::vector<FrameEvent const*>& events)
+                    std::vector<EventRef>& events)
 {
-  append_events(current_action(state, data), state.frame, &events);
+  append_events(state, current_action(state, data), &events);
 }
 
 void
 advance(AnimState& state, SpriteData const& data, float delta,
-        std::vector<FrameEvent const*>* events)
+        std::vector<EventRef>* events)
 {
   Action const& action = current_action(state, data);
   int const frame_count = static_cast<int>(action.frames.size());
@@ -121,7 +121,7 @@ advance(AnimState& state, SpriteData const& data, float delta,
 
     state.frame_time -= duration;
     state.frame = next;
-    append_events(action, state.frame, events);
+    append_events(state, action, events);
   }
 }
 

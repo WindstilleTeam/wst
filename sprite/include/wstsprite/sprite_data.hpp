@@ -105,6 +105,11 @@ public:
 
   Action const& get_action(int index) const { return m_actions[static_cast<size_t>(index)]; }
 
+  FrameEvent const& get_event(EventRef ref) const
+  {
+    return get_action(ref.action).events[static_cast<size_t>(ref.event)];
+  }
+
   void add_action(Action action) { m_actions.push_back(std::move(action)); }
 
 private:

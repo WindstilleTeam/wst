@@ -231,9 +231,10 @@ kept in `Properties` for the game.
     SpriteData const& data = sprites.get(c.sprite);
     fired.clear();
     advance(c.anim, data, dt, &fired);
-    for (FrameEvent const* e : fired) {
-      if (e->type == sound_event) {
-        SoundEvent const& s = *e->get<SoundEvent>();
+    for (EventRef const ref : fired) {
+      FrameEvent const& e = data.get_event(ref);
+      if (e.type == sound_event) {
+        SoundEvent const& s = *e.get<SoundEvent>();
         sound.play(s.sound, s.volume);
       }
     }

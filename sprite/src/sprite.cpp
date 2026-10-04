@@ -41,7 +41,7 @@ Sprite::get_action() const
 }
 
 void
-Sprite::update(float delta, std::vector<FrameEvent const*>* events)
+Sprite::update(float delta, std::vector<EventRef>* events)
 {
   if (SpriteData const* const data = get_data()) {
     advance(m_state, *data, delta, events);
