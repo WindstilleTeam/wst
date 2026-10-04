@@ -9,7 +9,7 @@
 #include <geom/point.hpp>
 
 #include "component.hpp"
-#include "util/field.hpp"
+#include "field.hpp"
 
 namespace wstgui {
 

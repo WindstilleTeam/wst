@@ -1,13 +1,15 @@
 // SPDX-FileCopyrightText: 2000 Ingo Ruhnke <grumbel@gmail.com>
 // SPDX-License-Identifier: GPL-3.0-or-later
 
-#ifndef HEADER_WINDSTILLE_UTIL_FIELD_HPP
-#define HEADER_WINDSTILLE_UTIL_FIELD_HPP
+#ifndef HEADER_WSTGUI_FIELD_HPP
+#define HEADER_WSTGUI_FIELD_HPP
 
 #include <vector>
 #include <assert.h>
 
 #include <geom/size.hpp>
+
+namespace wstgui {
 
 template<class T>
 class Field
@@ -111,6 +113,8 @@ public:
   int get_height () const { return height; }
   geom::isize get_size() const { return {width, height}; }
 };
+
+} // namespace wstgui
 
 #endif
 
