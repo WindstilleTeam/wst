@@ -129,11 +129,10 @@ public:
 
   void draw(Renderer& renderer) override
   {
-    renderer.clear(surf::Color(0.15f, 0.2f, 0.25f));
     m_canvas.clear();
     m_gui->draw(m_canvas);
     m_canvas.draw_text(*m_small_font, geom::fpoint(40, 440), m_status, surf::palette::lightgray);
-    renderer.render(m_canvas);
+    renderer.render(m_canvas, RenderPass{.clear = surf::Color(0.15f, 0.2f, 0.25f)});
   }
 
 private:

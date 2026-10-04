@@ -241,7 +241,6 @@ public:
 
   void draw(Renderer& renderer) override
   {
-    renderer.clear(surf::Color(0.5f, 0.7f, 0.9f));
     geom::fsize const size(get_size());
     float const scale = std::min(size.width() / 2048.0f, size.height() / 1024.0f);
 
@@ -259,7 +258,7 @@ public:
       m_canvas.fill_circle(e.pos, 20.0f + 60.0f * t, surf::Color(1.0f, 0.8f - 0.6f * t, 0.2f, 1.0f - t));
     }
 
-    renderer.render(m_canvas);
+    renderer.render(m_canvas, RenderPass{.clear = surf::Color(0.5f, 0.7f, 0.9f)});
   }
 
 private:

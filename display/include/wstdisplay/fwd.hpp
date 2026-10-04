@@ -36,6 +36,7 @@ class View;
 struct Caps;
 struct DrawParams;
 struct FramebufferParams;
+struct RenderPass;
 struct RenderStats;
 
 struct TextureParams;

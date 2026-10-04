@@ -11,6 +11,7 @@
 
 #include "framebuffer.hpp"
 #include "renderer.hpp"
+#include "vertex.hpp"
 #include "view.hpp"
 
 namespace wstdisplay {
@@ -28,8 +29,10 @@ Compositor::lighting_passes(surf::Color const& ambient)
 }
 
 Compositor::Compositor(std::vector<PassDesc> passes) :
-  m_passes()
+  m_passes(),
+  m_composite()
 {
+  m_composite.set_space(Space::Clip);
   for (auto& desc : passes) {
     m_passes.push_back(Pass{std::move(desc), std::make_unique<Canvas>(), {}});
   }
@@ -81,11 +84,10 @@ Compositor::set_enabled(std::string_view name, bool enabled)
 }
 
 void
-Compositor::render(Renderer& renderer, View const& view)
+Compositor::render(Renderer& renderer, View const& view, FramebufferId target)
 {
   Device& device = renderer.get_device();
-  FramebufferId const main_target = renderer.get_target();
-  geom::isize const screen_size = renderer.get_target_size();
+  geom::isize const screen_size = target ? device.get(target).get_size() : renderer.get_frame_size();
 
   for (auto& pass : m_passes)
   {
@@ -98,7 +100,7 @@ Compositor::render(Renderer& renderer, View const& view)
 
     if (!pass.desc.offscreen)
     {
-      renderer.render(*pass.canvas, world_matrix, glm::mat4(1.0f));
+      renderer.render(*pass.canvas, RenderPass{.target = target, .world_matrix = world_matrix});
     }
     else
     {
@@ -116,12 +118,25 @@ Compositor::render(Renderer& renderer, View const& view)
                                                    static_cast<float>(size.height()) / static_cast<float>(screen_size.height()),
                                                    1.0f));
 
-      renderer.set_target(pass.framebuffer);
-      renderer.clear(pass.desc.clear_color);
-      renderer.render(*pass.canvas, scale * world_matrix, scale);
-      renderer.set_target(main_target);
+      renderer.render(*pass.canvas, RenderPass{
+          .target = pass.framebuffer,
+          .clear = pass.desc.clear_color,
+          .world_matrix = scale * world_matrix,
+          .screen_matrix = scale
+        });
 
-      renderer.blit(pass.framebuffer->get_texture(), pass.desc.composite_blend);
+      // clip space is y-up, row 0 of a framebuffer texture is the top
+      Vertex const quad[] = {
+        {-1.0f,  1.0f, 0.0f, 0.0f, packed_white},
+        { 1.0f,  1.0f, 1.0f, 0.0f, packed_white},
+        { 1.0f, -1.0f, 1.0f, 1.0f, packed_white},
+        {-1.0f, -1.0f, 0.0f, 1.0f, packed_white},
+      };
+      m_composite.clear();
+      m_composite.set_space(Space::Clip);
+      m_composite.set_blend(pass.desc.composite_blend);
+      m_composite.draw_quads(pass.framebuffer->get_texture(), quad);
+      renderer.render(m_composite, RenderPass{.target = target});
     }
 
     pass.canvas->clear();

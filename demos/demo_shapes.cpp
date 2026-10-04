@@ -34,7 +34,6 @@ public:
 
   void draw(Renderer& renderer) override
   {
-    renderer.clear(surf::Color(0.15f, 0.15f, 0.2f));
     float const t = get_time();
     geom::fsize const size(get_size());
 
@@ -137,7 +136,7 @@ public:
     }
     m_canvas.restore();
 
-    renderer.render(m_canvas);
+    renderer.render(m_canvas, RenderPass{.clear = surf::Color(0.15f, 0.15f, 0.2f)});
   }
 
 private:

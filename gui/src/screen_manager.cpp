@@ -128,8 +128,11 @@ ScreenManager::draw()
                                                1.0f));
 
   renderer.begin_frame(drawable_size);
-  renderer.clear(m_clear_color);
-  renderer.render(canvas, scale, scale);
+  renderer.render(canvas, wstdisplay::RenderPass{
+      .clear = m_clear_color,
+      .world_matrix = scale,
+      .screen_matrix = scale
+    });
   renderer.end_frame();
 
   m_window.swap_buffers();

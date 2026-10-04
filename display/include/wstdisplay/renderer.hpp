@@ -5,6 +5,7 @@
 #define HEADER_WSTDISPLAY_RENDERER_HPP
 
 #include <memory>
+#include <optional>
 
 #include <glm/glm.hpp>
 #include <geom/rect.hpp>
@@ -12,7 +13,6 @@
 #include <surf/color.hpp>
 #include <surf/software_surface.hpp>
 
-#include "blend.hpp"
 #include "caps.hpp"
 #include "fwd.hpp"
 #include "handle.hpp"
@@ -35,6 +35,25 @@ struct RenderStats
   int skipped = 0;
 };
 
+/** Where and how a Canvas is rendered */
+struct RenderPass
+{
+  /** The framebuffer to render into, null for the frame's target
+      (the window, or a toolkit provided framebuffer) */
+  FramebufferId target = {};
+
+  /** Clear the target to this color first, depth and stencil are
+      cleared as well */
+  std::optional<surf::Color> clear = std::nullopt;
+
+  /** Maps Space::World to target pixels, e.g. View::get_matrix() */
+  glm::mat4 world_matrix = glm::mat4(1.0f);
+
+  /** Maps Space::Screen to target pixels, identity unless rendering
+      into a target of a different size than the screen */
+  glm::mat4 screen_matrix = glm::mat4(1.0f);
+};
+
 /** Executes Canvas contents on the OpenGL context of a Device.
 
     The Renderer works on whatever framebuffer is bound when the frame
@@ -45,8 +64,8 @@ struct RenderStats
     A frame looks like:
 
       renderer.begin_frame(window_size);
-      renderer.clear(color);
-      renderer.render(canvas, view);
+      renderer.render(canvas, {.clear = black, .world_matrix = view.get_matrix()});
+      renderer.render(hud);
       renderer.end_frame();
       swap buffers */
 class Renderer final
@@ -66,34 +85,19 @@ public:
       destroyed during the frame (Device::collect()) */
   void end_frame();
 
-  /** Render to \a framebuffer, null for the frame's target */
-  void set_target(FramebufferId framebuffer);
-  FramebufferId get_target() const;
-  geom::isize get_target_size() const;
+  geom::isize get_frame_size() const;
 
-  void clear(surf::Color const& color);
+  /** Clear \a target, null for the frame's target */
+  void clear(surf::Color const& color, FramebufferId target = {});
 
-  /** Render \a canvas, World space is mapped through \a view */
+  void render(Canvas const& canvas, RenderPass const& pass = {});
+
+  /** Render to the frame's target with World space mapped through \a view */
   void render(Canvas const& canvas, View const& view);
 
-  /** Render \a canvas, \a world_matrix maps World space to target
-      pixel coordinates */
-  void render(Canvas const& canvas, glm::mat4 const& world_matrix);
-
-  /** Render \a canvas with World space equal to Screen space */
-  void render(Canvas const& canvas);
-
-  /** Render \a canvas, \a screen_matrix maps Screen space to target
-      pixel coordinates, for rendering into scaled down targets */
-  void render(Canvas const& canvas, glm::mat4 const& world_matrix, glm::mat4 const& screen_matrix);
-
-  /** Draw \a texture over the whole target, used for compositing */
-  void blit(TextureId texture, Blend blend, surf::Color const& color = {1.0f, 1.0f, 1.0f},
-            bool flip_vertical = false);
-
-  /** Read back the pixels of the current target as RGBA8, top row first */
-  surf::SoftwareSurface read_pixels() const;
-  surf::SoftwareSurface read_pixels(geom::irect const& rect) const;
+  /** Read back the pixels of \a target as RGBA8, top row first */
+  surf::SoftwareSurface read_pixels(FramebufferId target = {}) const;
+  surf::SoftwareSurface read_pixels(geom::irect const& rect, FramebufferId target = {}) const;
 
   RenderStats const& get_stats() const;
 

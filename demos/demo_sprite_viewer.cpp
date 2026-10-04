@@ -209,7 +209,6 @@ public:
 
   void draw(Renderer& renderer) override
   {
-    renderer.clear(surf::Color(0.2f, 0.22f, 0.25f));
     m_canvas.clear();
 
     int const first = m_page * page_size();
@@ -250,7 +249,7 @@ public:
                          surf::Color(1.0f, 0.9f, 0.3f, 1.0f - p.age), TextAlign::Center);
     }
 
-    renderer.render(m_canvas);
+    renderer.render(m_canvas, RenderPass{.clear = surf::Color(0.2f, 0.22f, 0.25f)});
   }
 
 private:

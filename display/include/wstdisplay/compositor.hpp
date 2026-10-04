@@ -82,9 +82,9 @@ public:
 
   void set_enabled(std::string_view name, bool enabled);
 
-  /** Render all enabled passes onto the renderer's current target and
-      clear all canvases */
-  void render(Renderer& renderer, View const& view);
+  /** Render all enabled passes onto \a target, null for the frame's
+      target, and clear all canvases */
+  void render(Renderer& renderer, View const& view, FramebufferId target = {});
 
   /** Clear all canvases without rendering */
   void clear();
@@ -98,6 +98,9 @@ private:
   };
 
   std::vector<Pass> m_passes;
+
+  /** Draws the offscreen buffers onto the target */
+  Canvas m_composite;
 
 public:
   Compositor(Compositor const&) = delete;

@@ -87,7 +87,7 @@ Rendering architecture
      │  build_batches(): stable sort by z, merge neighbors with equal state
      ▼
     Renderer ── GL state cache, one streamed VBO/IBO per canvas,
-     │          GL 3.3 core or GLES 2.0, framebuffers, materials
+     │          RenderPass: target, clear, world/screen matrix
      ▼
     Device ── owns all GPU resources, handed out as handles
      │
@@ -102,14 +102,13 @@ Rendering architecture
 A frame:
 
     renderer.begin_frame(window.get_drawable_size());
-    renderer.clear(black);
 
     canvas.clear();
     canvas.draw(surface, DrawParams().set_pos(pos).set_angle(45.0f));
     canvas.set_z(10.0f);
     canvas.fill_rect(rect, color);
     canvas.draw_text(font, pos, "Hello");
-    renderer.render(canvas, view);
+    renderer.render(canvas, RenderPass{.clear = black, .world_matrix = view.get_matrix()});
 
     renderer.end_frame();
     window.swap_buffers();
@@ -169,10 +168,10 @@ rect and coordinate space. In practice:
 
 ### Coordinate spaces
 
-`Space::World` is mapped through the `View` given to
-`Renderer::render()`, `Space::Screen` is target pixels (HUDs),
-`Space::Clip` is normalized device coordinates (`fill_screen()`). The
-canvas transform is applied when a draw is recorded.
+`Space::World` is mapped through `RenderPass::world_matrix` (e.g.
+`View::get_matrix()`), `Space::Screen` is target pixels (HUDs),
+`Space::Clip` is normalized device coordinates (`fill_screen()`,
+compositing). The canvas transform is applied when a draw is recorded.
 
 ### Shaders
 
@@ -253,7 +252,7 @@ Porting from the old wstdisplay
 | `TTFFont::draw(gc, ...)`                   | `canvas.draw_text(font, ...)`, fonts are UTF-8 now      |
 | `TextArea::draw(gc)`                       | `text_area.draw(canvas)`                                |
 | `Texture::create(GL_TEXTURE_2D, size)`     | `device.create_texture(size, TextureParams{...})`       |
-| `Framebuffer::create_with_texture(...)`    | `device.create_framebuffer(size, {.depth = true})`         |
+| `Framebuffer::create_with_texture(...)`    | `device.create_framebuffer(size, {.depth = true})`, `RenderPass{.target = fb}` |
 
 Notes per game:
 

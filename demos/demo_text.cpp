@@ -148,7 +148,6 @@ public:
 
   void draw(Renderer& renderer) override
   {
-    renderer.clear(surf::Color(0.12f, 0.12f, 0.16f));
     float const t = get_time();
     geom::fsize const size(get_size());
 
@@ -189,7 +188,7 @@ public:
     m_canvas.fill_rounded_rect(geom::frect(680, 300, 1260, 540), 10.0f, surf::Color(0.0f, 0.0f, 0.0f, 0.5f));
     m_text_area->draw(m_canvas);
 
-    renderer.render(m_canvas);
+    renderer.render(m_canvas, RenderPass{.clear = surf::Color(0.12f, 0.12f, 0.16f)});
   }
 
 private:

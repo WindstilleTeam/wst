@@ -232,7 +232,6 @@ public:
 
   void draw(Renderer& renderer) override
   {
-    renderer.clear(surf::Color(0.55f, 0.75f, 0.95f));
     geom::fsize const size(get_size());
 
     m_canvas.clear();
@@ -283,7 +282,8 @@ public:
       draw_tiles(m_canvas, 0, 0, map_width, map_height);
     }
 
-    renderer.render(m_canvas, m_view);
+    renderer.render(m_canvas, RenderPass{.clear = surf::Color(0.55f, 0.75f, 0.95f),
+                                         .world_matrix = m_view.get_matrix()});
   }
 
 private:

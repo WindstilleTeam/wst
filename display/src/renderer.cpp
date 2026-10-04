@@ -94,7 +94,6 @@ public:
   GLuint index_buffer = 0;
 
   BatchList batches;
-  Canvas blit_canvas;
 
   RenderStats stats;
   bool warned_skipped = false;
@@ -102,8 +101,7 @@ public:
   GLint frame_framebuffer = 0;
   geom::isize frame_size = geom::isize(1, 1);
 
-  /** The current target, nullptr for the frame's target */
-  FramebufferId target_id = {};
+  /** The target of the current pass, nullptr for the frame's target */
   Framebuffer const* target = nullptr;
   bool target_bound = false;
 
@@ -129,7 +127,6 @@ public:
     mesh_program(),
     white_texture(),
     batches(),
-    blit_canvas(),
     stats()
   {
     if (!device.get_caps().is_gles()) {
@@ -187,7 +184,6 @@ public:
       return;
     }
 
-    target_id = framebuffer;
     target = fb;
     target_bound = true;
 
@@ -468,8 +464,13 @@ public:
     cur_attrib_base = -1;
   }
 
-  void render(Canvas const& canvas, glm::mat4 const& world_matrix, glm::mat4 const& screen_matrix)
+  void render(Canvas const& canvas, RenderPass const& pass)
   {
+    bind_target(pass.target);
+    if (pass.clear) {
+      clear(*pass.clear);
+    }
+
     if (canvas.empty()) {
       return;
     }
@@ -495,8 +496,8 @@ public:
 
     glm::mat4 const proj = projection();
     std::array<glm::mat4, 3> const space_mvp = {
-      proj * world_matrix,  // World
-      proj * screen_matrix, // Screen
+      proj * pass.world_matrix,  // World
+      proj * pass.screen_matrix, // Screen
       glm::mat4(1.0f)            // Clip
     };
 
@@ -655,87 +656,43 @@ Renderer::end_frame()
   m_impl->device.collect();
 }
 
-void
-Renderer::set_target(FramebufferId framebuffer)
-{
-  m_impl->bind_target(framebuffer);
-}
-
-FramebufferId
-Renderer::get_target() const
-{
-  return m_impl->target_id;
-}
-
 geom::isize
-Renderer::get_target_size() const
+Renderer::get_frame_size() const
 {
-  return m_impl->target_size();
+  return m_impl->frame_size;
 }
 
 void
-Renderer::clear(surf::Color const& color)
+Renderer::clear(surf::Color const& color, FramebufferId target)
 {
+  m_impl->bind_target(target);
   m_impl->clear(color);
+}
+
+void
+Renderer::render(Canvas const& canvas, RenderPass const& pass)
+{
+  m_impl->render(canvas, pass);
 }
 
 void
 Renderer::render(Canvas const& canvas, View const& view)
 {
-  m_impl->render(canvas, view.get_matrix(), glm::mat4(1.0f));
-}
-
-void
-Renderer::render(Canvas const& canvas, glm::mat4 const& world_matrix)
-{
-  m_impl->render(canvas, world_matrix, glm::mat4(1.0f));
-}
-
-void
-Renderer::render(Canvas const& canvas, glm::mat4 const& world_matrix, glm::mat4 const& screen_matrix)
-{
-  m_impl->render(canvas, world_matrix, screen_matrix);
-}
-
-void
-Renderer::render(Canvas const& canvas)
-{
-  m_impl->render(canvas, glm::mat4(1.0f), glm::mat4(1.0f));
-}
-
-void
-Renderer::blit(TextureId texture, Blend blend, surf::Color const& color, bool flip_vertical)
-{
-  float const v0 = flip_vertical ? 1.0f : 0.0f;
-  float const v1 = flip_vertical ? 0.0f : 1.0f;
-  PackedColor const pc = pack_color(color);
-
-  // clip space is y-up, texture row 0 is the top
-  Vertex const vertices[] = {
-    {-1.0f,  1.0f, 0.0f, v0, pc},
-    { 1.0f,  1.0f, 1.0f, v0, pc},
-    { 1.0f, -1.0f, 1.0f, v1, pc},
-    {-1.0f, -1.0f, 0.0f, v1, pc},
-  };
-
-  Canvas& canvas = m_impl->blit_canvas;
-  canvas.clear();
-  canvas.set_space(Space::Clip);
-  canvas.set_blend(blend);
-  canvas.draw_quads(texture, vertices);
-  m_impl->render(canvas, glm::mat4(1.0f), glm::mat4(1.0f));
-  canvas.clear();
+  m_impl->render(canvas, RenderPass{.world_matrix = view.get_matrix()});
 }
 
 surf::SoftwareSurface
-Renderer::read_pixels() const
+Renderer::read_pixels(FramebufferId target) const
 {
-  return read_pixels(geom::irect(m_impl->target_size()));
+  geom::isize const size = target ? m_impl->device.get(target).get_size() : m_impl->frame_size;
+  return read_pixels(geom::irect(size), target);
 }
 
 surf::SoftwareSurface
-Renderer::read_pixels(geom::irect const& rect) const
+Renderer::read_pixels(geom::irect const& rect, FramebufferId target) const
 {
+  m_impl->bind_target(target);
+
   geom::isize const size = m_impl->target_size();
   std::vector<uint8_t> pixels(static_cast<size_t>(rect.width()) * static_cast<size_t>(rect.height()) * 4);
 

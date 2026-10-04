@@ -188,7 +188,6 @@ public:
 
   void draw(Renderer& renderer) override
   {
-    renderer.clear(surf::Color(0.1f, 0.1f, 0.15f));
     auto const& kinds = m_use_atlas ? m_atlas_kinds : m_texture_kinds;
 
     m_canvas.clear();
@@ -208,7 +207,7 @@ public:
       }
     }
 
-    renderer.render(m_canvas);
+    renderer.render(m_canvas, RenderPass{.clear = surf::Color(0.1f, 0.1f, 0.15f)});
   }
 
 private:

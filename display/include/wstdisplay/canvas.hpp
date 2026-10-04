@@ -26,8 +26,8 @@ namespace wstdisplay {
 /** The coordinate system vertices are given in */
 enum class Space : uint8_t
 {
-  /** World coordinates, transformed by the View the canvas is
-      rendered with */
+  /** World coordinates, transformed by the world matrix of the
+      RenderPass (e.g. a View) */
   World,
 
   /** Pixel coordinates of the render target, (0,0) is top left,

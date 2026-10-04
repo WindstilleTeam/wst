@@ -246,10 +246,7 @@ public:
                       "Mesh with depth test, rendered into a Framebuffer, drawn with a shockwave Material",
                       surf::palette::white, TextAlign::Center);
 
-    renderer.set_target(m_framebuffer);
-    renderer.clear(surf::palette::black);
-    renderer.render(m_scene);
-    renderer.set_target({});
+    renderer.render(m_scene, RenderPass{.target = m_framebuffer, .clear = surf::palette::black});
 
     // 2. the framebuffer texture through the shockwave shader
     m_shockwave->set_uniform("u_center", m_wave_center);
@@ -260,8 +257,7 @@ public:
     m_post.set_material(m_shockwave);
     m_post.set_blend(Blend::Opaque);
     m_post.draw(Surface(m_framebuffer->get_texture(), size), geom::fpoint(0, 0));
-    renderer.clear(surf::palette::black);
-    renderer.render(m_post);
+    renderer.render(m_post, RenderPass{.clear = surf::palette::black});
   }
 
 private:
