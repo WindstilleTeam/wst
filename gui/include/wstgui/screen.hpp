@@ -20,8 +20,16 @@ public:
 
   virtual void on_startup() {}
 
-  /** Draw the current screen */
+  /** Draw the current screen onto the shared canvas, which is laid
+      out in window coordinates */
   virtual void draw(wstdisplay::Canvas& canvas) =0;
+
+  /** Render what doesn't go through the shared canvas, e.g. a
+      Compositor or a 3D scene. Called inside the frame after the
+      screen has been cleared and before the canvas filled by draw()
+      is rendered on top. The frame size is the drawable size, see
+      Renderer::get_frame_size(). */
+  virtual void render(wstdisplay::Renderer& /*renderer*/) {}
 
   /** Update the current screen by \a delta and with input from \a
       controller */

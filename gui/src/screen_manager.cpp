@@ -128,8 +128,21 @@ ScreenManager::draw()
                                                1.0f));
 
   renderer.begin_frame(drawable_size);
+  renderer.clear(m_clear_color);
+
+  if (!m_screens.empty()) {
+    m_screens.back()->render(renderer);
+  }
+
+  if (!m_overlay_screens.empty()) {
+    m_overlay_screens.back()->render(renderer);
+  }
+
+  for(Screen* hud : m_huds) {
+    hud->render(renderer);
+  }
+
   renderer.render(canvas, wstdisplay::RenderPass{
-      .clear = m_clear_color,
       .world_matrix = scale,
       .screen_matrix = scale
     });
