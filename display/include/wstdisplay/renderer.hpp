@@ -15,6 +15,7 @@
 #include "blend.hpp"
 #include "caps.hpp"
 #include "fwd.hpp"
+#include "handle.hpp"
 
 namespace wstdisplay {
 
@@ -29,15 +30,17 @@ struct RenderStats
   int texture_binds = 0;
   int program_binds = 0;
   int target_switches = 0;
+
+  /** Draws skipped because a resource they use has been destroyed */
+  int skipped = 0;
 };
 
-/** Executes Canvas contents on the current OpenGL context.
+/** Executes Canvas contents on the OpenGL context of a Device.
 
-    The Renderer works on whatever context is current when it is
-    created, so it can be used with OpenGLWindow as well as with a
-    context owned by a toolkit (e.g. a Gtk::GLArea). It loads the GL
-    function pointers, detects GL 3.3 core vs. GLES 2.0 and keeps a
-    cache of the GL state it touches.
+    The Renderer works on whatever framebuffer is bound when the frame
+    begins, so it can be used with OpenGLWindow as well as with a
+    context owned by a toolkit (e.g. a Gtk::GLArea). It keeps a cache
+    of the GL state it touches.
 
     A frame looks like:
 
@@ -49,25 +52,23 @@ struct RenderStats
 class Renderer final
 {
 public:
-  using ProcLoader = void* (*)(char const* name);
-
-public:
-  /** Initialize on the current context, \a loader resolves GL
-      function names, e.g. SDL_GL_GetProcAddress */
-  explicit Renderer(ProcLoader loader);
+  explicit Renderer(Device& device);
   ~Renderer();
 
+  Device& get_device() const;
   Caps const& get_caps() const;
 
-  /** Start a frame on the framebuffer that is currently bound (the
-      window, or a toolkit-provided one) with the given size. Resets
-      the state cache and the stats. */
+  /** Start a frame on the framebuffer that is currently bound with
+      the given size. Resets the state cache and the stats. */
   void begin_frame(geom::isize const& size);
+
+  /** Finish the frame, restore the GL state and delete the resources
+      destroyed during the frame (Device::collect()) */
   void end_frame();
 
-  /** Render to \a framebuffer, nullptr for the frame's target */
-  void set_target(Framebuffer* framebuffer);
-  Framebuffer* get_target() const;
+  /** Render to \a framebuffer, null for the frame's target */
+  void set_target(FramebufferId framebuffer);
+  FramebufferId get_target() const;
   geom::isize get_target_size() const;
 
   void clear(surf::Color const& color);
@@ -87,7 +88,7 @@ public:
   void render(Canvas const& canvas, glm::mat4 const& world_matrix, glm::mat4 const& screen_matrix);
 
   /** Draw \a texture over the whole target, used for compositing */
-  void blit(Texture const& texture, Blend blend, surf::Color const& color = {1.0f, 1.0f, 1.0f},
+  void blit(TextureId texture, Blend blend, surf::Color const& color = {1.0f, 1.0f, 1.0f},
             bool flip_vertical = false);
 
   /** Read back the pixels of the current target as RGBA8, top row first */
@@ -95,9 +96,6 @@ public:
   surf::SoftwareSurface read_pixels(geom::irect const& rect) const;
 
   RenderStats const& get_stats() const;
-
-  ShaderProgramPtr const& get_default_program() const;
-  TexturePtr const& get_white_texture() const;
 
 private:
   class Impl;

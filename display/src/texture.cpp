@@ -11,6 +11,7 @@
 #include <surf/convert.hpp>
 #include <surf/software_surface.hpp>
 
+#include "caps.hpp"
 #include "gl.hpp"
 
 namespace wstdisplay {
@@ -75,21 +76,7 @@ GLint to_gl(TextureWrap wrap)
 
 } // namespace
 
-TexturePtr
-Texture::create(surf::SoftwareSurface const& image, TextureParams const& params)
-{
-  TexturePtr texture(new Texture(image.get_size(), params));
-  texture->put(image, geom::ipoint(0, 0));
-  return texture;
-}
-
-TexturePtr
-Texture::create(geom::isize const& size, TextureParams const& params)
-{
-  return TexturePtr(new Texture(size, params));
-}
-
-Texture::Texture(geom::isize const& size, TextureParams const& params) :
+Texture::Texture(Caps const& caps, geom::isize const& size, TextureParams const& params) :
   m_handle(0),
   m_size(size),
   m_params(params)
@@ -98,7 +85,6 @@ Texture::Texture(geom::isize const& size, TextureParams const& params) :
     throw std::invalid_argument("Texture: invalid size");
   }
 
-  Caps const& caps = detail::current_caps();
   if (size.width() > caps.max_texture_size || size.height() > caps.max_texture_size) {
     log_warn("Texture: size {}x{} exceeds GL_MAX_TEXTURE_SIZE {}",
              size.width(), size.height(), caps.max_texture_size);

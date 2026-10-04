@@ -16,6 +16,8 @@
 #include <geom/point.hpp>
 #include <geom/rect.hpp>
 #include <wstdisplay/fwd.hpp>
+#include <wstdisplay/surface.hpp>
+
 
 namespace prio {
 class ReaderMapping;
@@ -60,7 +62,7 @@ struct FrameEvent
 
 struct Frame
 {
-  wstdisplay::SurfacePtr surface = {};
+  wstdisplay::Surface surface = {};
 
   /** How long the frame is shown, in seconds */
   float duration = 0.1f;
@@ -122,7 +124,7 @@ public:
                                     wstdisplay::SurfaceManager& surfaces);
 
   /** A single image as a sprite with one action "default" */
-  static SpriteDataPtr from_surface(wstdisplay::SurfacePtr surface);
+  static SpriteDataPtr from_surface(wstdisplay::Surface const& surface);
 
 public:
   SpriteData();

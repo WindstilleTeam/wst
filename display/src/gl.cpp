@@ -13,8 +13,6 @@ namespace wstdisplay::detail {
 
 namespace {
 
-Caps g_caps;
-
 std::string get_gl_string(GLenum name)
 {
   GLubyte const* ret = glGetString(name);
@@ -146,13 +144,7 @@ Caps load_gl(void* (*loader)(char const* name))
   log_info("OpenGL: api={} max_texture_size={} npot_repeat={}",
            caps.is_gles() ? "GLES2" : "GL33", caps.max_texture_size, caps.npot_repeat);
 
-  g_caps = caps;
   return caps;
-}
-
-Caps const& current_caps()
-{
-  return g_caps;
 }
 
 } // namespace wstdisplay::detail

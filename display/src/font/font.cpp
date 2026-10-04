@@ -7,7 +7,6 @@
 #include <cmath>
 #include <vector>
 
-#include "texture.hpp"
 
 namespace wstdisplay {
 
@@ -95,7 +94,7 @@ Font::draw(Canvas& canvas, geom::fpoint const& pos, std::string_view text,
   PackedColor const pc = pack_color(color);
 
   std::vector<Vertex> quads;
-  Texture const* texture = nullptr;
+  TextureId texture = {};
   auto const flush = [&]() {
     if (!quads.empty()) {
       canvas.draw_quads(texture, quads, Blend::Alpha, z);

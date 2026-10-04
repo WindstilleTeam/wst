@@ -5,6 +5,7 @@
 
 #include <algorithm>
 
+#include <logmich/log.hpp>
 #include <wstdisplay/surface.hpp>
 
 namespace wstsprite {
@@ -46,6 +47,7 @@ set_action(AnimState& state, SpriteData const& data, std::string_view name)
 {
   int const idx = data.find_action(name);
   if (idx < 0) {
+    log_debug("set_action: unknown action '{}'", name);
     return false;
   }
   set_action(state, idx);
@@ -57,6 +59,7 @@ set_action_continued(AnimState& state, SpriteData const& data, std::string_view 
 {
   int const idx = data.find_action(name);
   if (idx < 0) {
+    log_debug("set_action_continued: unknown action '{}'", name);
     return false;
   }
   state.action = idx;
@@ -136,7 +139,7 @@ draw(wstdisplay::Canvas& canvas, SpriteData const& data, AnimState const& state,
   p.offset = geom::foffset(-action.origin.x(), -action.origin.y()) + params.offset;
   p.scale *= action.scale;
   p.hflip = (params.hflip != action.hflip);
-  canvas.draw(*action.frames[static_cast<size_t>(state.frame)].surface, p, z);
+  canvas.draw(action.frames[static_cast<size_t>(state.frame)].surface, p, z);
 }
 
 } // namespace wstsprite

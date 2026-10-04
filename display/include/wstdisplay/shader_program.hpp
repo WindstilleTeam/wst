@@ -5,7 +5,6 @@
 #define HEADER_WSTDISPLAY_SHADER_PROGRAM_HPP
 
 #include <cstdint>
-#include <filesystem>
 #include <map>
 #include <memory>
 #include <string>
@@ -25,7 +24,8 @@ enum class Attrib : uint32_t
   Normal = 3    // vec3 a_normal, meshes only
 };
 
-/** A linked vertex+fragment shader.
+/** A linked vertex+fragment shader, owned by a Device and created
+    with Device::create_program().
 
     Shaders are written in GLSL ES 1.00 (the GLES 2.0 dialect) without
     a #version line, they are translated to GLSL 3.30 core on desktop
@@ -40,14 +40,7 @@ class ShaderProgram final
 public:
   static constexpr int max_textures = 4;
 
-  static ShaderProgramPtr from_source(std::string_view vert_source, std::string_view frag_source);
-  static ShaderProgramPtr from_file(std::filesystem::path const& vert_filename,
-                                    std::filesystem::path const& frag_filename);
-
-private:
-  ShaderProgram(std::string_view vert_source, std::string_view frag_source);
-
-public:
+  ShaderProgram(Caps const& caps, std::string_view vert_source, std::string_view frag_source);
   ~ShaderProgram();
 
   /** Location of the uniform \a name or -1, results are cached */

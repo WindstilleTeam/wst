@@ -88,6 +88,8 @@ Rendering architecture
     Renderer ── GL state cache, one streamed VBO/IBO per canvas,
      │          GL 3.3 core or GLES 2.0, framebuffers, materials
      ▼
+    Device ── owns all GPU resources, handed out as handles
+     │
     OpenGL context (OpenGLWindow, or a toolkit like Gtk::GLArea)
 
     Compositor ── several Canvases as passes (color, light, ...),
@@ -99,16 +101,39 @@ Rendering architecture
 A frame:
 
     renderer.begin_frame(window.get_drawable_size());
-    renderer.clear(color);
+    renderer.clear(black);
 
     canvas.clear();
-    canvas.draw(*surface, DrawParams().set_pos(pos).set_angle(45.0f), z);
+    canvas.draw(surface, DrawParams().set_pos(pos).set_angle(45.0f), z);
     canvas.fill_rect(rect, color);
     canvas.draw_text(font, pos, "Hello");
     renderer.render(canvas, view);
 
     renderer.end_frame();
     window.swap_buffers();
+
+### Resources and handles
+
+The `Device` (`window.get_device()`) owns every GPU resource:
+textures, framebuffers, shader programs, materials, meshes and static
+batches. Everything else refers to them by `Handle<T>` (`TextureId`,
+`MaterialId`, ...), an index plus a generation, 8 bytes, trivially
+copyable. `Surface` is a value too: a texture handle, a uv rect and a
+size. Sprite frames, ECS components and canvas commands are plain data.
+
+    Unique<Texture> texture = device.create_texture(image);  // owner
+    Surface const surface(texture, image.get_size());        // value
+    texture->put(other_image, geom::ipoint(0, 0));           // access
+    device.get(handle).set_filter(TextureFilter::Nearest);   // by handle
+
+`Unique<T>` owns a resource like `std::unique_ptr` and converts to the
+handle. `SurfaceManager`, `TextureManager`, `TexturePacker` and the
+fonts own what they create. Destroying is deferred to the end of the
+frame (`Device::collect()` from `Renderer::end_frame()`), so a canvas
+recorded earlier in the frame still renders. A draw using a resource
+that is gone by then is skipped and counted in `RenderStats::skipped`
+instead of crashing, `Device::get()` throws on stale handles. The
+`Device` must outlive all `Unique` handles.
 
 ### Batching rules
 
@@ -122,8 +147,6 @@ rect and coordinate space. In practice:
   each other, lines and outlines are drawn as quads.
 - Equal z keeps submission order. Use z to group things, e.g. one z
   per layer, interleaving textures within a z breaks batches.
-- Textures, materials, static batches and meshes are referenced by
-  pointer from the canvas and must live until it is rendered.
 
 ### Coordinate spaces
 
@@ -151,7 +174,7 @@ falls back to GLES. Things to keep in mind on GLES 2.0 hardware:
 - 16-bit indices, the batch builder splits automatically.
 - Framebuffers get 16 bit depth and 8 bit stencil.
 
-`Caps` (`renderer.get_caps()`) reports what the context offers.
+`Caps` (`device.get_caps()`) reports what the context offers.
 
 
 Sprites
@@ -199,7 +222,7 @@ Porting from the old wstdisplay
 | `DrawingContext`                           | `Canvas`                                                |
 | `SceneContext` (color/light/highlight/control) | `Compositor(Compositor::lighting_passes(ambient))` |
 | `GraphicContextState`                      | `View` (rotation in degrees everywhere now)             |
-| `Surface::draw(gc, pos)`                   | `canvas.draw(surface, pos)`                             |
+| `SurfacePtr`, `Surface::draw(gc, pos)`     | `Surface` by value, `canvas.draw(surface, pos)`         |
 | `SurfaceDrawingParameters`                 | `DrawParams` (angle in degrees, `anchor` instead of rotating around the center) |
 | blend `GLenum` pairs                       | `Blend::Alpha`, `Add`, `Multiply`, `Premultiplied`, `Opaque` |
 | `VertexArrayDrawable`                      | `canvas.draw_triangles()` / `draw_quads()`              |
@@ -207,18 +230,18 @@ Porting from the old wstdisplay
 | `ShaderDrawable`, `ShockwaveDrawable`      | `Material` on a draw, `Framebuffer` for post processing |
 | `TTFFont::draw(gc, ...)`                   | `canvas.draw_text(font, ...)`, fonts are UTF-8 now      |
 | `TextArea::draw(gc)`                       | `text_area.draw(canvas)`                                |
-| `Texture::create(GL_TEXTURE_2D, size)`     | `Texture::create(size, TextureParams{...})`             |
-| `Framebuffer::create_with_texture(...)`    | `Framebuffer::create(size, params, depth, stencil)`     |
+| `Texture::create(GL_TEXTURE_2D, size)`     | `device.create_texture(size, TextureParams{...})`       |
+| `Framebuffer::create_with_texture(...)`    | `device.create_framebuffer(size, {.depth = true})`      |
 
 Notes per game:
 
 - **SuperTux Origins**: `Canvas`/`Painter`/`DrawingRequest` map almost
-  one to one onto `wstdisplay::Canvas`, `int layer` becomes `z`. The
-  lightmap becomes a Compositor pass. `Rectf` can move to
-  `geom::frect`, geom has `from_center()`, `anchor_point()` and
-  `with_left()` and friends for the setters. `Sprite::draw()`
-  advancing the animation goes away, `AnimState` + `advance()` in an
-  animation system replaces it.
+  one to one onto `wstdisplay::Canvas`, `int layer` becomes `z`.
+  The lightmap becomes a Compositor pass.
+  `Rectf` can move to `geom::frect`, geom has `from_center()`,
+  `anchor_point()` and `with_left()` and friends for the setters.
+  `Sprite::draw()` advancing the animation goes away, `AnimState` +
+  `advance()` in an animation system replaces it.
 - **Pingus**: the `Framebuffer`/`FramebufferSurface` interface and the
   SDL software renderer are replaced by `Renderer`, the ground map
   maps onto chunk textures with `Texture::put()` as in
@@ -227,7 +250,8 @@ Notes per game:
   their game specific effects and can use frame events.
 - **Windstille**: the game keeps `Sprite3D` and the armature code,
   frames become `Mesh` objects drawn with `canvas.draw(mesh, matrix)`.
-  The editor creates a `Renderer` on the Gtk::GLArea context.
+  The editor creates a `Device` and a `Renderer` on the Gtk::GLArea
+  context.
 
 
 Known issues in dependencies

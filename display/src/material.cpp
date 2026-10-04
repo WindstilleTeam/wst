@@ -8,31 +8,33 @@
 
 #include <glm/gtc/type_ptr.hpp>
 
+#include "device.hpp"
+
 namespace wstdisplay {
 
-Material::Material(ShaderProgramPtr program) :
-  m_program(std::move(program)),
+Material::Material(Device& device, ProgramId program) :
+  m_device(device),
+  m_program(program),
   m_textures(),
   m_uniforms()
 {
-  if (!m_program) {
-    throw std::invalid_argument("Material: program must not be null");
-  }
+  // validate early
+  m_device.get(m_program);
 }
 
 void
-Material::set_texture(int unit, TexturePtr texture)
+Material::set_texture(int unit, TextureId texture)
 {
   if (unit < 1 || unit >= ShaderProgram::max_textures) {
     throw std::out_of_range("Material::set_texture: unit out of range");
   }
-  m_textures[static_cast<size_t>(unit)] = std::move(texture);
+  m_textures[static_cast<size_t>(unit)] = texture;
 }
 
 void
 Material::set(std::string_view name, UniformType type, float const* data, size_t count)
 {
-  int const location = m_program->get_uniform_location(name);
+  int const location = m_device.get(m_program).get_uniform_location(name);
   if (location == -1) {
     return;
   }

@@ -8,33 +8,42 @@
 #include <map>
 #include <utility>
 
+#include "device.hpp"
 #include "fwd.hpp"
-#include "texture.hpp"
+#include "surface.hpp"
+#include "texture_params.hpp"
 
 namespace wstdisplay {
 
 /** Loads images into textures of their own and caches them, for
     textures that can't live on an atlas, e.g. repeating patterns or
-    textures used by custom shaders. */
+    textures used by custom shaders. Owns all textures it loads. */
 class TextureManager final
 {
 public:
-  TextureManager();
+  explicit TextureManager(Device& device);
   ~TextureManager();
 
-  /** Load \a filename, on failure the fallback texture is returned
-      if one is set, otherwise the error is rethrown */
-  TexturePtr get(std::filesystem::path const& filename, TextureParams const& params = {});
+  /** Load \a filename, on failure the fallback is returned if one is
+      set, otherwise the error is rethrown. The surface covers the
+      whole texture, use Surface::get_texture() for materials. */
+  Surface get(std::filesystem::path const& filename, TextureParams const& params = {});
 
+  /** Returned by get() for images that can't be loaded */
   void set_fallback(std::filesystem::path const& filename);
-
-  /** Forget textures that are only referenced by the cache */
-  void cleanup();
 
 private:
   using Key = std::pair<std::filesystem::path, int>;
-  std::map<Key, TexturePtr> m_textures;
-  TexturePtr m_fallback;
+
+  struct Entry
+  {
+    Unique<Texture> texture = {};
+    Surface surface = {};
+  };
+
+  Device& m_device;
+  std::map<Key, Entry> m_textures;
+  Entry m_fallback;
 
 public:
   TextureManager(TextureManager const&) = delete;

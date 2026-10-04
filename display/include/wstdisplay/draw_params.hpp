@@ -11,7 +11,7 @@
 #include <surf/color.hpp>
 
 #include "blend.hpp"
-#include "fwd.hpp"
+#include "handle.hpp"
 
 namespace wstdisplay {
 
@@ -36,9 +36,8 @@ struct DrawParams
   bool hflip = false;
   bool vflip = false;
 
-  /** Custom shader, nullptr for the default one. Must stay alive
-      until the canvas is rendered. */
-  Material const* material = nullptr;
+  /** Custom shader, null for the default one */
+  MaterialId material = {};
 
   DrawParams& set_pos(geom::fpoint const& p) { pos = p; return *this; }
   DrawParams& set_anchor(geom::origin a) { anchor = a; return *this; }
@@ -51,7 +50,7 @@ struct DrawParams
   DrawParams& set_blend(Blend b) { blend = b; return *this; }
   DrawParams& set_hflip(bool v) { hflip = v; return *this; }
   DrawParams& set_vflip(bool v) { vflip = v; return *this; }
-  DrawParams& set_material(Material const* m) { material = m; return *this; }
+  DrawParams& set_material(MaterialId m) { material = m; return *this; }
 };
 
 } // namespace wstdisplay

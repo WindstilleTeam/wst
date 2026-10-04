@@ -65,7 +65,6 @@ build_batches(Canvas const& canvas, BatchList& out)
           .texture = cmd.texture,
           .material = cmd.material,
           .object = cmd.object,
-          .matrix = cmd.matrix,
           .base_vertex = 0,
           .first_index = 0,
           .index_count = 0,
@@ -109,8 +108,7 @@ build_batches(Canvas const& canvas, BatchList& out)
       out.batches.push_back(Batch{
           .texture = cmd.texture,
           .material = cmd.material,
-          .object = nullptr,
-          .matrix = 0,
+          .object = 0,
           .base_vertex = static_cast<uint32_t>(segment_base),
           .first_index = first_index,
           .index_count = cmd.index_count,

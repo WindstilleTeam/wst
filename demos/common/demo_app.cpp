@@ -145,7 +145,7 @@ DemoApp::run()
 
     m_system = std::make_unique<wstsys::System>();
     m_window = m_system->create_window(m_params);
-    m_font_manager = std::make_unique<wstdisplay::TTFFontManager>();
+    m_font_manager = std::make_unique<wstdisplay::TTFFontManager>(m_window->get_device());
     m_font = std::make_unique<wstdisplay::TTFFont>(*m_font_manager, get_data("Vera.ttf"), 14);
 
     m_system->sig_event().connect([this](SDL_Event const& event) {
@@ -253,8 +253,8 @@ DemoApp::run()
                                1000.0f * total / static_cast<float>(m_frame));
     }
 
-    m_font.reset();
-    m_window.reset();
+    // GPU resources of the demo are released before the window, as
+    // members of the derived class go away first
     return EXIT_SUCCESS;
   }
   catch (std::exception const& err)

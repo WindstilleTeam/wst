@@ -83,7 +83,8 @@ Compositor::set_enabled(std::string_view name, bool enabled)
 void
 Compositor::render(Renderer& renderer, View const& view)
 {
-  Framebuffer* const main_target = renderer.get_target();
+  Device& device = renderer.get_device();
+  FramebufferId const main_target = renderer.get_target();
   geom::isize const screen_size = renderer.get_target_size();
 
   for (auto& pass : m_passes)
@@ -106,7 +107,7 @@ Compositor::render(Renderer& renderer, View const& view)
                              std::max(1, static_cast<int>(std::ceil(static_cast<float>(screen_size.height()) * res))));
 
       if (!pass.framebuffer || pass.framebuffer->get_size() != size) {
-        pass.framebuffer = Framebuffer::create(size);
+        pass.framebuffer = device.create_framebuffer(size);
       }
 
       // map screen pixels onto the smaller buffer
@@ -115,12 +116,12 @@ Compositor::render(Renderer& renderer, View const& view)
                                                    static_cast<float>(size.height()) / static_cast<float>(screen_size.height()),
                                                    1.0f));
 
-      renderer.set_target(pass.framebuffer.get());
+      renderer.set_target(pass.framebuffer);
       renderer.clear(pass.desc.clear_color);
       renderer.render(*pass.canvas, scale * world_matrix, scale);
       renderer.set_target(main_target);
 
-      renderer.blit(*pass.framebuffer->get_texture(), pass.desc.composite_blend);
+      renderer.blit(pass.framebuffer->get_texture(), pass.desc.composite_blend);
     }
 
     pass.canvas->clear();

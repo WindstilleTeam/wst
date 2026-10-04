@@ -17,7 +17,7 @@
 #include <surf/software_surface.hpp>
 
 #include "blitter.hpp"
-#include "caps.hpp"
+#include "device.hpp"
 #include "font/font_effect.hpp"
 #include "font/ttf_font_manager.hpp"
 #include "rect_packer.hpp"
@@ -29,7 +29,7 @@ namespace {
 
 struct GlyphPage
 {
-  TexturePtr texture;
+  Unique<Texture> texture = {};
   RectPacker packer;
 };
 
@@ -38,6 +38,7 @@ struct GlyphPage
 class TTFFontImpl
 {
 public:
+  Device& device;
   std::vector<char> buffer;
   FT_Face face = nullptr;
   int size = 0;
@@ -49,7 +50,8 @@ public:
   mutable std::unordered_map<char32_t, Glyph> glyphs;
   mutable std::unordered_map<char32_t, bool> missing;
 
-  TTFFontImpl() :
+  explicit TTFFontImpl(Device& device_) :
+    device(device_),
     buffer(),
     effect(),
     pages(),
@@ -87,7 +89,7 @@ public:
     int const bitmap_h = static_cast<int>(slot->bitmap.rows);
     if (bitmap_w == 0 || bitmap_h == 0) {
       // whitespace
-      return &(glyphs[codepoint] = Glyph{nullptr, {}, {}, advance});
+      return &(glyphs[codepoint] = Glyph{{}, {}, {}, advance});
     }
 
 
@@ -114,7 +116,7 @@ public:
     float const y = static_cast<float>(effect->get_y_offset(-slot->bitmap_top));
     geom::frect const glyph_rect(x, y, x + static_cast<float>(glyph_w), y + static_cast<float>(glyph_h));
 
-    return &(glyphs[codepoint] = Glyph{page->texture.get(), uv, glyph_rect, advance});
+    return &(glyphs[codepoint] = Glyph{page->texture, uv, glyph_rect, advance});
   }
 
   std::pair<GlyphPage*, geom::irect> allocate(geom::isize const& glyph_size)
@@ -125,7 +127,7 @@ public:
       }
     }
 
-    pages.push_back(GlyphPage{Texture::create(page_size), RectPacker(page_size)});
+    pages.push_back(GlyphPage{device.create_texture(page_size), RectPacker(page_size)});
     auto rect = pages.back().packer.allocate(glyph_size);
     if (!rect) {
       throw std::runtime_error("TTFFont: glyph too large for atlas page");
@@ -135,7 +137,7 @@ public:
 };
 
 TTFFont::TTFFont(TTFFontManager& mgr, std::filesystem::path const& filename, int size, FontEffect const& effect) :
-  impl(std::make_unique<TTFFontImpl>())
+  impl(std::make_unique<TTFFontImpl>(mgr.get_device()))
 {
   if (size <= 0) {
     throw std::invalid_argument("TTFFont: size must be positive");

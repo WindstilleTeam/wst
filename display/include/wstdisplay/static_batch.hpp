@@ -13,12 +13,15 @@ namespace wstdisplay {
 
 /** Geometry that is built once and kept on the GPU, for content that
     rarely changes, such as tilemap layers or chunks of destructible
-    terrain. Record the content into a Canvas, build() the batch from
-    it and draw it with Canvas::draw(StaticBatch const&) every frame,
-    which costs one command instead of re-recording every tile.
+    terrain. Owned by a Device and created with
+    Device::create_static_batch(). Record the content into a Canvas,
+    build() the batch from it and draw it with Canvas::draw(StaticBatchId)
+    every frame, which costs one command instead of re-recording every
+    tile.
 
-    Textures and materials used by the recorded canvas must outlive
-    the StaticBatch. Clip rects of the recorded canvas are ignored. */
+    Draws using textures or materials that have been destroyed since
+    are skipped. Clip rects, coordinate spaces as well as StaticBatch
+    and Mesh draws of the recorded canvas are ignored. */
 class StaticBatch final
 {
 public:

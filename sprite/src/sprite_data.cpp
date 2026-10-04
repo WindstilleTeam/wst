@@ -151,6 +151,13 @@ void read_properties(prio::ReaderMapping const& mapping, std::set<std::string, s
   }
 }
 
+/** Everything the readers need besides the mapping */
+struct LoadContext
+{
+  std::filesystem::path directory;
+  wstdisplay::SurfaceManager& surfaces;
+};
+
 /** (events (TYPE (frame N) ...) ...), Pingus' (at-step N) is accepted too */
 void read_events(prio::ReaderMapping const& mapping, Action& action)
 {
@@ -190,8 +197,8 @@ geom::fsize max_frame_size(Action const& action)
   float w = 0.0f;
   float h = 0.0f;
   for (auto const& frame : action.frames) {
-    w = std::max(w, frame.surface->get_width());
-    h = std::max(h, frame.surface->get_height());
+    w = std::max(w, frame.surface.get_width());
+    h = std::max(h, frame.surface.get_height());
   }
   return geom::fsize(w, h);
 }
@@ -205,8 +212,7 @@ void set_frame_duration(Action& action, float duration)
 
 /*{ SuperTux: (supertux-sprite (actions (action ...) ...)) */
 
-void read_supertux_action(SpriteData& data, prio::ReaderMapping const& mapping,
-                          std::filesystem::path const& directory, wstdisplay::SurfaceManager& surfaces)
+void read_supertux_action(SpriteData& data, prio::ReaderMapping const& mapping, LoadContext const& ctx)
 {
   Action action;
   if (!mapping.read("name", action.name) && !data.get_actions().empty()) {
@@ -266,7 +272,7 @@ void read_supertux_action(SpriteData& data, prio::ReaderMapping const& mapping,
   } else {
     if (mapping.read("images", images)) {
       for (auto const& image : images) {
-        action.frames.push_back(Frame{surfaces.get(directory / image), 0.1f});
+        action.frames.push_back(Frame{ctx.surfaces.get(ctx.directory / image), 0.1f});
       }
     } else if (mapping.read("surfaces", surfaces_collection)) {
       for (auto const& obj : surfaces_collection.get_objects()) {
@@ -283,7 +289,7 @@ void read_supertux_action(SpriteData& data, prio::ReaderMapping const& mapping,
         if (file.empty()) {
           throw std::runtime_error("surface without file");
         }
-        action.frames.push_back(Frame{surfaces.get(directory / file), 0.1f});
+        action.frames.push_back(Frame{ctx.surfaces.get(ctx.directory / file), 0.1f});
       }
     } else {
       throw std::runtime_error("action without images: " + action.name);
@@ -310,8 +316,7 @@ void read_supertux_action(SpriteData& data, prio::ReaderMapping const& mapping,
   data.add_action(std::move(action));
 }
 
-void read_supertux(SpriteData& data, prio::ReaderMapping const& mapping,
-                   std::filesystem::path const& directory, wstdisplay::SurfaceManager& surfaces)
+void read_supertux(SpriteData& data, prio::ReaderMapping const& mapping, LoadContext const& ctx)
 {
   prio::ReaderCollection actions;
   if (!mapping.read("actions", actions)) {
@@ -320,7 +325,7 @@ void read_supertux(SpriteData& data, prio::ReaderMapping const& mapping,
 
   for (auto const& obj : actions.get_objects()) {
     if (obj.get_name() == "action") {
-      read_supertux_action(data, obj.get_mapping(), directory, surfaces);
+      read_supertux_action(data, obj.get_mapping(), ctx);
     }
   }
 }
@@ -329,8 +334,7 @@ void read_supertux(SpriteData& data, prio::ReaderMapping const& mapping,
 
 /*{ Windstille: (sprite (actions (action ...) ...)) */
 
-void read_windstille(SpriteData& data, prio::ReaderMapping const& mapping,
-                     std::filesystem::path const& directory, wstdisplay::SurfaceManager& surfaces)
+void read_windstille(SpriteData& data, prio::ReaderMapping const& mapping, LoadContext const& ctx)
 {
   prio::ReaderCollection actions;
   if (!mapping.read("actions", actions)) {
@@ -364,7 +368,7 @@ void read_windstille(SpriteData& data, prio::ReaderMapping const& mapping,
     prio::ReaderMapping grid;
     if (action_mapping.read("images", images)) {
       for (auto const& image : images) {
-        action.frames.push_back(Frame{surfaces.get(directory / image), 0.1f});
+        action.frames.push_back(Frame{ctx.surfaces.get(ctx.directory / image), 0.1f});
       }
     } else if (action_mapping.read("image-grid", grid)) {
       std::string const file = grid.get<std::string>("file");
@@ -373,7 +377,7 @@ void read_windstille(SpriteData& data, prio::ReaderMapping const& mapping,
       if (file.empty() || x_size <= 0 || y_size <= 0) {
         throw std::runtime_error("invalid image-grid");
       }
-      for (auto const& surface : surfaces.load_grid(directory / file, geom::isize(x_size, y_size))) {
+      for (auto const& surface : ctx.surfaces.load_grid(ctx.directory / file, geom::isize(x_size, y_size))) {
         action.frames.push_back(Frame{surface, 0.1f});
       }
     }
@@ -394,15 +398,14 @@ void read_windstille(SpriteData& data, prio::ReaderMapping const& mapping,
 
 /*{ Pingus: (pingus-sprite (image ..) (array ..) ...), a single action */
 
-void read_pingus(SpriteData& data, prio::ReaderMapping const& mapping,
-                 std::filesystem::path const& directory, wstdisplay::SurfaceManager& surfaces)
+void read_pingus(SpriteData& data, prio::ReaderMapping const& mapping, LoadContext const& ctx)
 {
   std::string image;
   if (!mapping.read("image", image)) {
     throw std::runtime_error("pingus-sprite without image");
   }
 
-  wstdisplay::SurfacePtr const sheet = surfaces.get(directory / image);
+  wstdisplay::Surface const sheet = ctx.surfaces.get(ctx.directory / image);
 
   std::vector<int> array{1, 1};
   mapping.read("array", array);
@@ -417,8 +420,8 @@ void read_pingus(SpriteData& data, prio::ReaderMapping const& mapping,
   mapping.read("size", size);
   geom::fsize const frame_size = (size.size() == 2) ?
     geom::fsize(static_cast<float>(size[0]), static_cast<float>(size[1])) :
-    geom::fsize(sheet->get_width() / static_cast<float>(array[0]),
-                sheet->get_height() / static_cast<float>(array[1]));
+    geom::fsize(sheet.get_width() / static_cast<float>(array[0]),
+                sheet.get_height() / static_cast<float>(array[1]));
 
   int speed = 100; // milliseconds per frame
   mapping.read("speed", speed);
@@ -435,7 +438,7 @@ void read_pingus(SpriteData& data, prio::ReaderMapping const& mapping,
                            frame_size.width() * static_cast<float>(i % array[0]),
                            static_cast<float>(position.size() == 2 ? position[1] : 0) +
                            frame_size.height() * static_cast<float>(i / array[0]));
-    action.frames.push_back(Frame{sheet->region(geom::frect(pos, frame_size)),
+    action.frames.push_back(Frame{sheet.region(geom::frect(pos, frame_size)),
                                   static_cast<float>(speed) / 1000.0f});
   }
 
@@ -480,13 +483,14 @@ SpriteData::from_mapping(std::string_view name, prio::ReaderMapping const& mappi
                          std::filesystem::path const& directory, wstdisplay::SurfaceManager& surfaces)
 {
   auto data = std::make_shared<SpriteData>();
+  LoadContext const ctx{directory, surfaces};
 
   if (name == "supertux-sprite") {
-    read_supertux(*data, mapping, directory, surfaces);
+    read_supertux(*data, mapping, ctx);
   } else if (name == "sprite") {
-    read_windstille(*data, mapping, directory, surfaces);
+    read_windstille(*data, mapping, ctx);
   } else if (name == "pingus-sprite") {
-    read_pingus(*data, mapping, directory, surfaces);
+    read_pingus(*data, mapping, ctx);
   } else {
     throw std::runtime_error("unknown sprite format: " + std::string(name));
   }
@@ -510,12 +514,12 @@ SpriteData::from_file(std::filesystem::path const& filename, wstdisplay::Surface
 }
 
 SpriteDataPtr
-SpriteData::from_surface(wstdisplay::SurfacePtr surface)
+SpriteData::from_surface(wstdisplay::Surface const& surface)
 {
   auto data = std::make_shared<SpriteData>();
   Action action;
   action.name = "default";
-  action.frames.push_back(Frame{std::move(surface), 1.0f});
+  action.frames.push_back(Frame{surface, 1.0f});
   data->add_action(std::move(action));
   return data;
 }

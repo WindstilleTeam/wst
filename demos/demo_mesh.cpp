@@ -159,7 +159,10 @@ public:
     m_post(),
     m_surfaces(),
     m_tux(),
+    m_checker(),
     m_torus(),
+    m_lit_program(),
+    m_shockwave_program(),
     m_lit(),
     m_shockwave(),
     m_framebuffer(),
@@ -169,16 +172,21 @@ public:
 
   void init() override
   {
-    m_surfaces = std::make_unique<SurfaceManager>();
+    Device& device = get_device();
+
+    m_surfaces = std::make_unique<SurfaceManager>(device);
     m_tux = m_surfaces->get(get_data("tux.png"));
 
-    m_lit = std::make_shared<Material>(ShaderProgram::from_source(lit_vert, lit_frag));
-    m_shockwave = std::make_shared<Material>(ShaderProgram::from_source(shockwave_vert, shockwave_frag));
+    m_lit_program = device.create_program(lit_vert, lit_frag);
+    m_shockwave_program = device.create_program(shockwave_vert, shockwave_frag);
+    m_lit = device.create_material(m_lit_program);
+    m_shockwave = device.create_material(m_shockwave_program);
 
-    m_torus = std::make_unique<Mesh>();
+    m_checker = device.create_texture(make_checker(128), TextureParams{TextureFilter::Linear,
+                                                                       TextureWrap::Repeat, TextureWrap::Repeat});
+    m_torus = device.create_mesh();
     make_torus(*m_torus, 140.0f, 55.0f, 48, 24);
-    m_torus->set_texture(Texture::create(make_checker(128), TextureParams{TextureFilter::Linear,
-                                                                          TextureWrap::Repeat, TextureWrap::Repeat}));
+    m_torus->set_texture(m_checker);
     m_torus->set_material(m_lit);
     m_torus->set_depth_test(true);
     m_torus->set_blend(Blend::Opaque);
@@ -212,7 +220,7 @@ public:
     geom::fsize const fsize(size);
 
     if (!m_framebuffer || m_framebuffer->get_size() != size) {
-      m_framebuffer = Framebuffer::create(size, {}, true);
+      m_framebuffer = get_device().create_framebuffer(size, FramebufferParams{.depth = true});
     }
 
     // 1. the scene into the framebuffer
@@ -221,7 +229,7 @@ public:
                                    surf::Color(0.1f, 0.15f, 0.3f), surf::Color(0.4f, 0.5f, 0.6f));
     for (float y = 40; y < fsize.height(); y += 160) {
       for (float x = 40; x < fsize.width(); x += 160) {
-        m_scene.draw(*m_tux, DrawParams().set_pos(geom::fpoint(x, y)).set_angle(std::sin(t + x * 0.01f) * 20.0f));
+        m_scene.draw(m_tux, DrawParams().set_pos(geom::fpoint(x, y)).set_angle(std::sin(t + x * 0.01f) * 20.0f));
       }
     }
 
@@ -230,25 +238,25 @@ public:
     model = glm::rotate(model, t * 0.7f, glm::vec3(1.0f, 0.0f, 0.0f));
     model = glm::rotate(model, t * 0.4f, glm::vec3(0.0f, 1.0f, 0.0f));
     m_lit->set_uniform("u_light_dir", glm::vec3(0.4f, -0.6f, 0.7f));
-    m_scene.draw(*m_torus, model, 1.0f);
+    m_scene.draw(m_torus.get(), model, 1.0f);
 
     m_scene.draw_text(get_font(), geom::fpoint(fsize.width() / 2.0f, fsize.height() - 40.0f),
                       "Mesh with depth test, rendered into a Framebuffer, drawn with a shockwave Material",
                       surf::palette::white, TextAlign::Center, 2.0f);
 
-    renderer.set_target(m_framebuffer.get());
+    renderer.set_target(m_framebuffer);
     renderer.clear(surf::palette::black);
     renderer.render(m_scene);
-    renderer.set_target(nullptr);
+    renderer.set_target({});
 
     // 2. the framebuffer texture through the shockwave shader
     m_shockwave->set_uniform("u_center", m_wave_center);
     m_shockwave->set_uniform("u_radius", m_wave_time * 0.4f);
     m_shockwave->set_uniform("u_aspect", fsize.width() / fsize.height());
 
-    SurfacePtr const scene = Surface::create(m_framebuffer->get_texture());
     m_post.clear();
-    m_post.draw(*scene, DrawParams().set_material(m_shockwave.get()).set_blend(Blend::Opaque));
+    m_post.draw(Surface(m_framebuffer->get_texture(), size),
+                DrawParams().set_material(m_shockwave).set_blend(Blend::Opaque));
     renderer.clear(surf::palette::black);
     renderer.render(m_post);
   }
@@ -257,11 +265,14 @@ private:
   Canvas m_scene;
   Canvas m_post;
   std::unique_ptr<SurfaceManager> m_surfaces;
-  SurfacePtr m_tux;
-  std::unique_ptr<Mesh> m_torus;
-  MaterialPtr m_lit;
-  MaterialPtr m_shockwave;
-  FramebufferPtr m_framebuffer;
+  Surface m_tux;
+  Unique<Texture> m_checker;
+  Unique<Mesh> m_torus;
+  Unique<ShaderProgram> m_lit_program;
+  Unique<ShaderProgram> m_shockwave_program;
+  Unique<Material> m_lit;
+  Unique<Material> m_shockwave;
+  Unique<Framebuffer> m_framebuffer;
   glm::vec2 m_wave_center;
   float m_wave_time;
 };

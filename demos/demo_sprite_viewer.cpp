@@ -83,7 +83,7 @@ public:
       m_path = get_data("sprites");
     }
 
-    m_surfaces = std::make_unique<SurfaceManager>(SurfaceManager::Options{
+    m_surfaces = std::make_unique<SurfaceManager>(get_device(), SurfaceManager::Options{
         .params = TextureParams{TextureFilter::Nearest}});
 
     // games keep running with missing images, show them as magenta squares
@@ -226,7 +226,7 @@ public:
 
       // keep large sprites inside their cell
       Action const& action = current_action(e.state, *e.data);
-      float const h = action.frames.empty() ? 1.0f : action.frames[0].surface->get_height() * action.scale;
+      float const h = action.frames.empty() ? 1.0f : action.frames[0].surface.get_height() * action.scale;
       float const fit = std::min(1.0f, 60.0f / h);
       wstsprite::draw(m_canvas, *e.data, e.state, DrawParams().set_pos(center).set_scale(fit));
 

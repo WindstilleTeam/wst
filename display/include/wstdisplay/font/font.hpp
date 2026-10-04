@@ -17,7 +17,8 @@ namespace wstdisplay {
 
 struct Glyph
 {
-  Texture const* texture = nullptr;
+  /** Null for glyphs without an image, e.g. space */
+  TextureId texture = {};
 
   /** Texture coordinates of the glyph image */
   geom::frect uv = {};

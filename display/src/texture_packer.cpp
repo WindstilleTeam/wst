@@ -11,10 +11,12 @@
 
 #include "blitter.hpp"
 #include "surface.hpp"
+#include "texture.hpp"
 
 namespace wstdisplay {
 
-TexturePacker::TexturePacker(geom::isize const& page_size, TextureParams const& params) :
+TexturePacker::TexturePacker(Device& device, geom::isize const& page_size, TextureParams const& params) :
+  m_device(device),
   m_page_size(page_size),
   m_params(params),
   m_pages()
@@ -25,7 +27,7 @@ TexturePacker::~TexturePacker()
 {
 }
 
-SurfacePtr
+Surface
 TexturePacker::upload(surf::SoftwareSurface const& image)
 {
   // one pixel border on each side
@@ -44,7 +46,7 @@ TexturePacker::upload(surf::SoftwareSurface const& image)
   }
 
   if (!page) {
-    m_pages.push_back(Page{Texture::create(m_page_size, m_params), RectPacker(m_page_size)});
+    m_pages.push_back(Page{m_device.create_texture(m_page_size, m_params), RectPacker(m_page_size)});
     page = &m_pages.back();
     rect = page->packer.allocate(size);
   }
@@ -73,13 +75,13 @@ TexturePacker::upload(surf::SoftwareSurface const& image)
                        static_cast<float>(rect->right() - 1) / pw,
                        static_cast<float>(rect->bottom() - 1) / ph);
 
-  return Surface::create(page->texture, uv, geom::fsize(image.get_size()));
+  return Surface(page->texture, uv, geom::fsize(image.get_size()));
 }
 
-std::vector<TexturePtr>
+std::vector<TextureId>
 TexturePacker::get_pages() const
 {
-  std::vector<TexturePtr> pages;
+  std::vector<TextureId> pages;
   for (auto const& page : m_pages) {
     pages.push_back(page.texture);
   }

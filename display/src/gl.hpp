@@ -16,11 +16,8 @@ namespace wstdisplay::detail {
 void check_gl(char const* file, int line, char const* what);
 
 /** Load the GL function pointers on the current context, detect the
-    API and fill in the capabilities. Called by Renderer. */
+    API and fill in the capabilities. Called by Device. */
 Caps load_gl(void* (*loader)(char const* name));
-
-/** The caps of the context initialized last */
-Caps const& current_caps();
 
 char const* gl_error_string(GLenum error);
 

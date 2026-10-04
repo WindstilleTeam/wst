@@ -12,7 +12,8 @@
 #include <geom/rect.hpp>
 #include <surf/software_surface.hpp>
 
-#include "../texture.hpp"
+#include "../device.hpp"
+#include "../texture_params.hpp"
 #include "font.hpp"
 
 namespace wstdisplay {
@@ -40,13 +41,15 @@ public:
   /** Glyphs on a grid of \a cell sized cells, \a charset lists the
       characters (UTF-8) row by row. With \a proportional the
       transparent columns on both sides of a glyph are trimmed. */
-  static std::unique_ptr<BitmapFont> from_grid(surf::SoftwareSurface const& image, geom::isize const& cell,
+  static std::unique_ptr<BitmapFont> from_grid(Device& device, surf::SoftwareSurface const& image,
+                                               geom::isize const& cell,
                                                std::string_view charset, bool proportional = false,
                                                float char_spacing = 0.0f,
                                                TextureParams const& params = {TextureFilter::Nearest});
 
 public:
-  BitmapFont(TexturePtr texture, std::span<GlyphDef const> glyphs, float height,
+  /** \a glyphs are rectangles on \a texture, which the font owns */
+  BitmapFont(Unique<Texture> texture, std::span<GlyphDef const> glyphs, float height,
              float line_height = 0.0f, float char_spacing = 0.0f);
   ~BitmapFont() override;
 
@@ -55,7 +58,7 @@ public:
   float get_line_height() const override { return m_line_height; }
 
 private:
-  TexturePtr m_texture;
+  Unique<Texture> m_texture;
   std::unordered_map<char32_t, Glyph> m_glyphs;
   float m_height;
   float m_line_height;

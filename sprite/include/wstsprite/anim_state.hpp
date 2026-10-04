@@ -40,8 +40,8 @@ struct AnimState
 
 static_assert(std::is_trivially_copyable_v<AnimState>);
 
-/** Switch to \a action and restart it, unknown names are ignored and
-    return false */
+/** Switch to \a action and restart it, unknown names are ignored,
+    logged at debug level and return false */
 bool set_action(AnimState& state, SpriteData const& data, std::string_view name);
 void set_action(AnimState& state, int action);
 

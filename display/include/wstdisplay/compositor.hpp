@@ -13,6 +13,7 @@
 
 #include "blend.hpp"
 #include "canvas.hpp"
+#include "device.hpp"
 #include "fwd.hpp"
 
 namespace wstdisplay {
@@ -51,7 +52,9 @@ struct PassDesc
 
       compositor.get_canvas("color").draw(...);
       compositor.get_canvas("light").draw(light, pos);
-      compositor.render(renderer, view);  // clears the canvases */
+      compositor.render(renderer, view);  // clears the canvases
+
+    Offscreen buffers are created on the renderer's Device as needed. */
 class Compositor final
 {
 public:
@@ -91,7 +94,7 @@ private:
   {
     PassDesc desc;
     std::unique_ptr<Canvas> canvas;
-    FramebufferPtr framebuffer;
+    Unique<Framebuffer> framebuffer;
   };
 
   std::vector<Pass> m_passes;

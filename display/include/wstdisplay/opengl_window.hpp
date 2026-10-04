@@ -19,7 +19,7 @@
 
 namespace wstdisplay {
 
-/** An SDL window with an OpenGL context and a Renderer */
+/** An SDL window with an OpenGL context, its Device and a Renderer */
 class OpenGLWindow final
 {
 public:
@@ -67,6 +67,7 @@ public:
   void set_vsync(bool vsync);
   void set_gamma(float r, float g, float b);
 
+  Device& get_device() const;
   Renderer& get_renderer() const;
 
   void swap_buffers();
@@ -92,6 +93,7 @@ private:
   SDL_GLContext m_gl_context;
   geom::isize m_size;
   Mode m_mode;
+  std::unique_ptr<Device> m_device;
   std::unique_ptr<Renderer> m_renderer;
 
 public:

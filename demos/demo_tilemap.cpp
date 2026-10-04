@@ -18,7 +18,6 @@
 #include <wstdisplay/static_batch.hpp>
 #include <wstdisplay/surface.hpp>
 #include <wstdisplay/surface_manager.hpp>
-#include <wstdisplay/texture.hpp>
 #include <wstdisplay/view.hpp>
 
 #include "demo_app.hpp"
@@ -81,7 +80,9 @@ public:
     m_view(),
     m_surfaces(),
     m_tiles(),
+    m_far_hills_texture(),
     m_far_hills(),
+    m_near_hills_texture(),
     m_near_hills(),
     m_map(),
     m_chunks(),
@@ -101,15 +102,17 @@ public:
 
   void init() override
   {
-    m_surfaces = std::make_unique<SurfaceManager>(SurfaceManager::Options{
+    m_surfaces = std::make_unique<SurfaceManager>(get_device(), SurfaceManager::Options{
         .params = TextureParams{TextureFilter::Nearest}});
     for (int kind = 0; kind < 4; ++kind) {
       m_tiles.push_back(m_surfaces->create(make_tile(kind)));
     }
 
     TextureParams const repeat{TextureFilter::Linear, TextureWrap::Repeat, TextureWrap::Clamp};
-    m_far_hills = Texture::create(make_hills(256, surf::Color(0.3f, 0.35f, 0.55f), 2.0f, 0.7f), repeat);
-    m_near_hills = Texture::create(make_hills(256, surf::Color(0.2f, 0.3f, 0.35f), 3.0f, 0.5f), repeat);
+    m_far_hills_texture = get_device().create_texture(make_hills(256, surf::Color(0.3f, 0.35f, 0.55f), 2.0f, 0.7f), repeat);
+    m_far_hills = Surface(m_far_hills_texture, geom::isize(256, 256));
+    m_near_hills_texture = get_device().create_texture(make_hills(256, surf::Color(0.2f, 0.3f, 0.35f), 3.0f, 0.5f), repeat);
+    m_near_hills = Surface(m_near_hills_texture, geom::isize(256, 256));
 
     generate_map();
     build_chunks();
@@ -157,7 +160,7 @@ public:
       for (int x = std::max(0, x0); x < std::min(map_width, x1); ++x) {
         int const kind = m_map[static_cast<size_t>(y * map_width + x)];
         if (kind >= 0) {
-          canvas.draw(*m_tiles[static_cast<size_t>(kind)],
+          canvas.draw(m_tiles[static_cast<size_t>(kind)],
                       geom::fpoint(static_cast<float>(x * tile_size), static_cast<float>(y * tile_size)));
         }
       }
@@ -171,7 +174,7 @@ public:
       for (int cx = 0; cx < map_width; cx += chunk_size) {
         canvas.clear();
         draw_tiles(canvas, cx, cy, cx + chunk_size, cy + chunk_size);
-        auto chunk = std::make_unique<StaticBatch>();
+        Unique<StaticBatch> chunk = get_device().create_static_batch();
         chunk->build(canvas);
         m_chunks.push_back(std::move(chunk));
       }
@@ -242,11 +245,11 @@ public:
     float const horizon = size.height() * 0.6f;
     m_canvas.push_transform();
     m_canvas.scale(2.0f, 2.0f);
-    m_canvas.fill_pattern(*m_far_hills, geom::frect(0, horizon / 2.0f - 256, size.width() / 2.0f, horizon / 2.0f),
+    m_canvas.fill_pattern(m_far_hills, geom::frect(0, horizon / 2.0f - 256, size.width() / 2.0f, horizon / 2.0f),
                           geom::foffset(-m_scroll.x * 0.1f, horizon / 2.0f - 256), surf::Color(1, 1, 1), -9.0f);
     m_canvas.fill_rect(geom::frect(0, horizon / 2.0f, size.width() / 2.0f, size.height() / 2.0f),
                        surf::Color(0.3f, 0.35f, 0.55f), -9.0f);
-    m_canvas.fill_pattern(*m_near_hills, geom::frect(0, horizon / 2.0f - 200, size.width() / 2.0f, horizon / 2.0f + 56),
+    m_canvas.fill_pattern(m_near_hills, geom::frect(0, horizon / 2.0f - 200, size.width() / 2.0f, horizon / 2.0f + 56),
                           geom::foffset(-m_scroll.x * 0.25f, horizon / 2.0f - 200), surf::Color(1, 1, 1), -8.0f);
     m_canvas.fill_rect(geom::frect(0, horizon / 2.0f + 56, size.width() / 2.0f, size.height() / 2.0f),
                        surf::Color(0.2f, 0.3f, 0.35f), -8.0f);
@@ -265,7 +268,7 @@ public:
                                  static_cast<float>((cx + 1) * chunk_size * tile_size),
                                  static_cast<float>((cy + 1) * chunk_size * tile_size));
         if (geom::intersects(bounds, visible) && !m_chunks[i]->empty()) {
-          m_canvas.draw(*m_chunks[i]);
+          m_canvas.draw(m_chunks[i].get());
         }
       }
     } else if (m_cull) {
@@ -285,11 +288,13 @@ private:
   Canvas m_canvas;
   View m_view;
   std::unique_ptr<SurfaceManager> m_surfaces;
-  std::vector<SurfacePtr> m_tiles;
-  TexturePtr m_far_hills;
-  TexturePtr m_near_hills;
+  std::vector<Surface> m_tiles;
+  Unique<Texture> m_far_hills_texture;
+  Surface m_far_hills;
+  Unique<Texture> m_near_hills_texture;
+  Surface m_near_hills;
   std::vector<int> m_map;
-  std::vector<std::unique_ptr<StaticBatch>> m_chunks;
+  std::vector<Unique<StaticBatch>> m_chunks;
   bool m_use_static;
   bool m_cull;
   glm::vec2 m_scroll;

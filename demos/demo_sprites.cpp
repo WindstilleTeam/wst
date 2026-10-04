@@ -66,6 +66,7 @@ public:
     m_canvas(),
     m_surfaces(),
     m_atlas_kinds(),
+    m_textures(),
     m_texture_kinds(),
     m_sprites(),
     m_rng(42),
@@ -100,7 +101,7 @@ public:
 
   void init() override
   {
-    m_surfaces = std::make_unique<SurfaceManager>();
+    m_surfaces = std::make_unique<SurfaceManager>(get_device());
 
     surf::SoftwareSurface const tux = surf::SoftwareSurface::from_file(get_data("tux.png"));
     std::vector<surf::SoftwareSurface> images = {
@@ -114,7 +115,8 @@ public:
 
     for (auto const& image : images) {
       m_atlas_kinds.push_back(m_surfaces->create(image));
-      m_texture_kinds.push_back(Surface::create(image));
+      m_textures.push_back(get_device().create_texture(image));
+      m_texture_kinds.push_back(Surface(m_textures.back(), image.get_size()));
     }
 
     resize(m_count);
@@ -191,7 +193,7 @@ public:
     m_canvas.clear();
     for (auto const& s : m_sprites)
     {
-      Surface const& surface = *kinds[static_cast<size_t>(s.kind)];
+      Surface const& surface = kinds[static_cast<size_t>(s.kind)];
       float const z = m_group_by_z ? static_cast<float>(s.kind) : 0.0f;
 
       if (m_fancy) {
@@ -213,8 +215,9 @@ private:
   int m_count;
   Canvas m_canvas;
   std::unique_ptr<SurfaceManager> m_surfaces;
-  std::vector<SurfacePtr> m_atlas_kinds;
-  std::vector<SurfacePtr> m_texture_kinds;
+  std::vector<Surface> m_atlas_kinds;
+  std::vector<Unique<Texture>> m_textures;
+  std::vector<Surface> m_texture_kinds;
   std::vector<Sprite> m_sprites;
   std::mt19937 m_rng;
   bool m_use_atlas;

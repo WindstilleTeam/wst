@@ -10,6 +10,7 @@
 
 #include "blend.hpp"
 #include "fwd.hpp"
+#include "handle.hpp"
 #include "vertex.hpp"
 
 namespace wstdisplay {
@@ -30,8 +31,9 @@ struct MeshVertex
 static_assert(sizeof(MeshVertex) == 36);
 
 /** An indexed triangle mesh with 3D positions and normals, e.g. a
-    frame of a Sprite3D model. Drawn with Canvas::draw(Mesh const&,
-    transform) as a single draw call, never batched.
+    frame of a Sprite3D model, owned by a Device and created with
+    Device::create_mesh(). Drawn with Canvas::draw(MeshId, transform)
+    as a single draw call, never batched.
 
     The default shader draws texture * vertex color. A custom
     Material gets the same built-in names as the 2D shader plus
@@ -54,11 +56,13 @@ public:
   std::vector<MeshVertex> const& get_vertices() const { return m_vertices; }
   std::vector<uint16_t> const& get_indices() const { return m_indices; }
 
-  void set_texture(TexturePtr texture) { m_texture = std::move(texture); }
-  TexturePtr const& get_texture() const { return m_texture; }
+  /** The texture to draw with, null for white, not owned by the mesh */
+  void set_texture(TextureId texture) { m_texture = texture; }
+  TextureId get_texture() const { return m_texture; }
 
-  void set_material(MaterialPtr material) { m_material = std::move(material); }
-  MaterialPtr const& get_material() const { return m_material; }
+  /** A custom shader, null for the default one, not owned by the mesh */
+  void set_material(MaterialId material) { m_material = material; }
+  MaterialId get_material() const { return m_material; }
 
   void set_blend(Blend blend) { m_blend = blend; }
   Blend get_blend() const { return m_blend; }
@@ -77,8 +81,8 @@ public:
 private:
   std::vector<MeshVertex> m_vertices;
   std::vector<uint16_t> m_indices;
-  TexturePtr m_texture;
-  MaterialPtr m_material;
+  TextureId m_texture;
+  MaterialId m_material;
   Blend m_blend;
   bool m_depth_test;
 

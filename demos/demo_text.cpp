@@ -118,7 +118,7 @@ public:
       m_fonts.push_back(std::make_unique<TTFFont>(get_font_manager(), get_data("Vera.ttf"), size));
     }
     m_title = std::make_unique<TTFFont>(get_font_manager(), get_data("Vera.ttf"), 48, BorderFontEffect(3, true));
-    m_pixel_font = BitmapFont::from_grid(make_pixel_font(), geom::isize(8, 8), pixel_charset, true, 1.0f);
+    m_pixel_font = BitmapFont::from_grid(get_device(), make_pixel_font(), geom::isize(8, 8), pixel_charset, true, 1.0f);
 
     m_text_area = std::make_unique<TextArea>(m_fonts[3].get(), geom::frect(700, 330, 1240, 520), true);
     init_text();

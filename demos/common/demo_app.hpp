@@ -15,6 +15,7 @@
 
 #include <geom/size.hpp>
 #include <wstdisplay/canvas.hpp>
+#include <wstdisplay/device.hpp>
 #include <wstdisplay/font/ttf_font.hpp>
 #include <wstdisplay/font/ttf_font_manager.hpp>
 #include <wstdisplay/opengl_window.hpp>
@@ -77,6 +78,7 @@ protected:
 
   wstsys::System& get_system() { return *m_system; }
   wstdisplay::OpenGLWindow& get_window() { return *m_window; }
+  wstdisplay::Device& get_device() { return m_window->get_device(); }
   wstdisplay::Renderer& get_renderer() { return m_window->get_renderer(); }
   geom::isize get_size() const;
 

@@ -4,7 +4,7 @@
 #ifndef HEADER_WSTDISPLAY_FWD_HPP
 #define HEADER_WSTDISPLAY_FWD_HPP
 
-#include <memory>
+#include "handle.hpp"
 
 namespace wstdisplay {
 
@@ -12,6 +12,7 @@ class BitmapFont;
 class BorderFontEffect;
 class Canvas;
 class Compositor;
+class Device;
 class Font;
 class FontEffect;
 class Framebuffer;
@@ -34,15 +35,13 @@ class View;
 
 struct Caps;
 struct DrawParams;
+struct FramebufferParams;
 struct RenderStats;
+
+struct TextureParams;
 struct Vertex;
 
-using FramebufferPtr = std::shared_ptr<Framebuffer>;
-using MaterialPtr = std::shared_ptr<Material>;
-using MeshPtr = std::shared_ptr<Mesh>;
-using ShaderProgramPtr = std::shared_ptr<ShaderProgram>;
-using SurfacePtr = std::shared_ptr<Surface>;
-using TexturePtr = std::shared_ptr<Texture>;
+template<typename T> class Unique;
 
 } // namespace wstdisplay
 

@@ -8,9 +8,12 @@
 #include <logmich/log.hpp>
 #include <surf/software_surface.hpp>
 
+#include "texture.hpp"
+
 namespace wstdisplay {
 
-TextureManager::TextureManager() :
+TextureManager::TextureManager(Device& device) :
+  m_device(device),
   m_textures(),
   m_fallback()
 {
@@ -20,7 +23,7 @@ TextureManager::~TextureManager()
 {
 }
 
-TexturePtr
+Surface
 TextureManager::get(std::filesystem::path const& filename, TextureParams const& params)
 {
   Key const key{filename, static_cast<int>(params.filter) |
@@ -28,32 +31,31 @@ TextureManager::get(std::filesystem::path const& filename, TextureParams const& 
                           (static_cast<int>(params.wrap_y) << 8)};
   auto it = m_textures.find(key);
   if (it != m_textures.end()) {
-    return it->second;
+    return it->second.surface;
   }
 
   try {
-    TexturePtr texture = Texture::create(surf::SoftwareSurface::from_file(filename), params);
-    m_textures[key] = texture;
-    return texture;
+    surf::SoftwareSurface const image = surf::SoftwareSurface::from_file(filename);
+    Unique<Texture> texture = m_device.create_texture(image, params);
+    Surface const surface(texture, image.get_size());
+    m_textures[key] = Entry{std::move(texture), surface};
+    return surface;
   } catch (std::exception const& err) {
-    if (!m_fallback) {
+    if (!m_fallback.surface) {
       throw;
     }
     log_error("TextureManager: {}", err.what());
-    return m_fallback;
+    return m_fallback.surface;
   }
 }
 
 void
 TextureManager::set_fallback(std::filesystem::path const& filename)
 {
-  m_fallback = Texture::create(surf::SoftwareSurface::from_file(filename));
-}
-
-void
-TextureManager::cleanup()
-{
-  std::erase_if(m_textures, [](auto const& item) { return item.second.use_count() <= 1; });
+  surf::SoftwareSurface const image = surf::SoftwareSurface::from_file(filename);
+  Unique<Texture> texture = m_device.create_texture(image);
+  Surface const surface(texture, image.get_size());
+  m_fallback = Entry{std::move(texture), surface};
 }
 
 } // namespace wstdisplay

@@ -91,7 +91,7 @@ public:
 
   void init() override
   {
-    m_surfaces = std::make_unique<SurfaceManager>();
+    m_surfaces = std::make_unique<SurfaceManager>(get_device());
     m_light = m_surfaces->create(make_light(256));
     m_brick = m_surfaces->create(make_brick(64));
     m_tux = m_surfaces->get(get_data("tux.png"));
@@ -180,22 +180,22 @@ public:
     float const tile = 64.0f;
     for (float y = std::floor(visible.top() / tile) * tile; y < visible.bottom(); y += tile) {
       for (float x = std::floor(visible.left() / tile) * tile; x < visible.right(); x += tile) {
-        color.draw(*m_brick, geom::fpoint(x, y));
+        color.draw(m_brick, geom::fpoint(x, y));
       }
     }
 
     for (int i = 0; i < 12; ++i) {
       float const a = static_cast<float>(i) * 0.5236f + t * 0.2f;
-      color.draw(*m_tux, DrawParams().set_pos(geom::fpoint(std::cos(a) * 500.0f, std::sin(a) * 500.0f))
+      color.draw(m_tux, DrawParams().set_pos(geom::fpoint(std::cos(a) * 500.0f, std::sin(a) * 500.0f))
                  .set_anchor(geom::origin::CENTER), 1.0f);
     }
 
     for (auto const& l : m_lights) {
       geom::fpoint const pos(l.center.x() + std::cos(t * l.speed) * l.radius,
                              l.center.y() + std::sin(t * l.speed * 1.3f) * l.radius);
-      light.draw(*m_light, DrawParams().set_pos(pos).set_anchor(geom::origin::CENTER)
+      light.draw(m_light, DrawParams().set_pos(pos).set_anchor(geom::origin::CENTER)
                  .set_scale(l.size).set_color(l.color).set_blend(Blend::Add));
-      highlight.draw(*m_light, DrawParams().set_pos(pos).set_anchor(geom::origin::CENTER)
+      highlight.draw(m_light, DrawParams().set_pos(pos).set_anchor(geom::origin::CENTER)
                      .set_scale(0.15f).set_color(l.color).set_blend(Blend::Add));
     }
 
@@ -213,9 +213,9 @@ private:
   Compositor m_compositor;
   View m_view;
   std::unique_ptr<SurfaceManager> m_surfaces;
-  SurfacePtr m_light;
-  SurfacePtr m_brick;
-  SurfacePtr m_tux;
+  Surface m_light;
+  Surface m_brick;
+  Surface m_tux;
   std::vector<Light> m_lights;
   float m_rotation;
   bool m_ambient;

@@ -12,9 +12,9 @@ using namespace wstdisplay;
 
 namespace {
 
-// Canvas never dereferences textures, so fake addresses are enough
-Texture const* const tex_a = reinterpret_cast<Texture const*>(0x1000);
-Texture const* const tex_b = reinterpret_cast<Texture const*>(0x2000);
+// Canvas never resolves handles, made up ones are enough
+TextureId const tex_a{1, 1};
+TextureId const tex_b{2, 1};
 
 std::vector<Vertex> quad(float x, float y)
 {
@@ -137,13 +137,18 @@ TEST(BatchTest, object_commands_pass_through)
 {
   Canvas canvas;
   canvas.draw_quads(tex_a, quad(0, 0));
-  canvas.draw(*reinterpret_cast<StaticBatch const*>(0x3000), 0.0f);
+  canvas.translate(5, 0);
+  canvas.draw(StaticBatchId{3, 1});
   canvas.draw_quads(tex_a, quad(1, 0));
 
   BatchList batches;
   build_batches(canvas, batches);
   ASSERT_EQ(batches.batches.size(), 3u);
   EXPECT_EQ(batches.batches[1].type, CommandType::StaticBatch);
+
+  ObjectDraw const& object = canvas.get_objects()[batches.batches[1].object];
+  EXPECT_EQ(object.static_batch, (StaticBatchId{3, 1}));
+  EXPECT_EQ(object.matrix[3][0], 5.0f);
 }
 
 /* EOF */

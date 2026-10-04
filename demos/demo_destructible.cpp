@@ -31,7 +31,7 @@ constexpr int chunk_size = 256;
 class Terrain
 {
 public:
-  Terrain(geom::isize const& size) :
+  Terrain(Device& device, geom::isize const& size) :
     m_size(size),
     m_image(surf::SoftwareSurface::create(surf::PixelFormat::RGBA8, size, surf::palette::transparent)),
     m_chunks(),
@@ -43,9 +43,10 @@ public:
     for (int y = 0; y < size.height(); y += chunk_size) {
       for (int x = 0; x < size.width(); x += chunk_size) {
         geom::irect const rect(x, y, std::min(x + chunk_size, size.width()), std::min(y + chunk_size, size.height()));
-        TexturePtr texture = Texture::create(rect.size(), TextureParams{TextureFilter::Nearest});
+        Unique<Texture> texture = device.create_texture(rect.size(), TextureParams{TextureFilter::Nearest});
         texture->put(m_image, rect, geom::ipoint(0, 0));
-        m_chunks.push_back(Chunk{rect, Surface::create(texture)});
+        Surface const surface(texture, rect.size());
+        m_chunks.push_back(Chunk{rect, std::move(texture), surface});
       }
     }
   }
@@ -109,7 +110,7 @@ public:
     for (auto& chunk : m_chunks) {
       geom::irect const part = intersect(area, chunk.rect);
       if (part.width() > 0 && part.height() > 0) {
-        chunk.surface->get_texture()->put(m_image, part,
+        chunk.texture->put(m_image, part,
                                           geom::ipoint(part.left() - chunk.rect.left(), part.top() - chunk.rect.top()));
         m_uploaded += part.width() * part.height();
       }
@@ -119,7 +120,7 @@ public:
   void draw(Canvas& canvas) const
   {
     for (auto const& chunk : m_chunks) {
-      canvas.draw(*chunk.surface, geom::fpoint(chunk.rect.topleft()));
+      canvas.draw(chunk.surface, geom::fpoint(chunk.rect.topleft()));
     }
   }
 
@@ -147,7 +148,8 @@ private:
   struct Chunk
   {
     geom::irect rect;
-    SurfacePtr surface;
+    Unique<Texture> texture;
+    Surface surface;
   };
 
   geom::isize m_size;
@@ -181,7 +183,7 @@ public:
 
   void init() override
   {
-    m_terrain = std::make_unique<Terrain>(geom::isize(2048, 1024));
+    m_terrain = std::make_unique<Terrain>(get_device(), geom::isize(2048, 1024));
   }
 
   geom::fpoint screen_to_terrain(int x, int y) const

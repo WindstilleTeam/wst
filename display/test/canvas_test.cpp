@@ -4,6 +4,7 @@
 #include <gtest/gtest.h>
 
 #include <wstdisplay/canvas.hpp>
+#include <wstdisplay/surface.hpp>
 
 using namespace wstdisplay;
 
@@ -85,6 +86,23 @@ TEST(CanvasTest, different_z_doesnt_merge)
   canvas.fill_rect(geom::frect(0, 0, 1, 1), surf::Color(1, 0, 0), 0.0f);
   canvas.fill_rect(geom::frect(0, 0, 1, 1), surf::Color(1, 0, 0), 1.0f);
   EXPECT_EQ(canvas.get_commands().size(), 2u);
+}
+
+TEST(CanvasTest, null_surface_draws_nothing)
+{
+  Canvas canvas;
+  canvas.draw(Surface(), geom::fpoint(0, 0));
+  canvas.draw(Surface(), DrawParams());
+  EXPECT_TRUE(canvas.empty());
+}
+
+TEST(CanvasTest, surface_region)
+{
+  Surface const surface(TextureId{0, 1}, geom::frect(0.5f, 0.0f, 1.0f, 0.5f), geom::fsize(32, 32));
+  Surface const part = surface.region(geom::frect(16, 0, 32, 16));
+  EXPECT_EQ(part.get_texture(), surface.get_texture());
+  EXPECT_EQ(part.get_size(), geom::fsize(16, 16));
+  EXPECT_EQ(part.get_uv(), geom::frect(0.75f, 0.0f, 1.0f, 0.25f));
 }
 
 TEST(CanvasTest, fill_screen_uses_clip_space)

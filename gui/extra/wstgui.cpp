@@ -52,7 +52,7 @@ int main(int argc, char** argv)
 
   ScreenManager screen(system, *window, input);
 
-  TTFFontManager ttf_font_manager;
+  TTFFontManager ttf_font_manager(window->get_device());
   std::unique_ptr<TTFFont> font = ttf_font_manager.create_font("extra/Vera.ttf", 20);
   std::unique_ptr<TTFFont> smallfont = ttf_font_manager.create_font("extra/Vera.ttf", 16);
   Style style(font.get());

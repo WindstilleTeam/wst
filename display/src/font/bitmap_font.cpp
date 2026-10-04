@@ -5,10 +5,12 @@
 
 #include <vector>
 
+#include "texture.hpp"
+
 namespace wstdisplay {
 
 std::unique_ptr<BitmapFont>
-BitmapFont::from_grid(surf::SoftwareSurface const& image, geom::isize const& cell,
+BitmapFont::from_grid(Device& device, surf::SoftwareSurface const& image, geom::isize const& cell,
                       std::string_view charset, bool proportional, float char_spacing,
                       TextureParams const& params)
 {
@@ -54,12 +56,12 @@ BitmapFont::from_grid(surf::SoftwareSurface const& image, geom::isize const& cel
     defs.push_back(GlyphDef{cp, rect, {}, advance});
   }
 
-  return std::make_unique<BitmapFont>(Texture::create(image, params), defs,
+  return std::make_unique<BitmapFont>(device.create_texture(image, params), defs,
                                       static_cast<float>(cell.height()),
                                       static_cast<float>(cell.height()), char_spacing);
 }
 
-BitmapFont::BitmapFont(TexturePtr texture, std::span<GlyphDef const> glyphs, float height,
+BitmapFont::BitmapFont(Unique<Texture> texture, std::span<GlyphDef const> glyphs, float height,
                        float line_height, float char_spacing) :
   m_texture(std::move(texture)),
   m_glyphs(),
@@ -84,7 +86,7 @@ BitmapFont::BitmapFont(TexturePtr texture, std::span<GlyphDef const> glyphs, flo
     float const advance = (def.advance < 0.0f ? static_cast<float>(def.rect.width()) : def.advance) + char_spacing;
     bool const empty = def.rect.width() <= 0 || def.rect.height() <= 0;
 
-    m_glyphs[def.codepoint] = Glyph{empty ? nullptr : m_texture.get(), uv, rect, advance};
+    m_glyphs[def.codepoint] = Glyph{empty ? TextureId() : m_texture.get(), uv, rect, advance};
   }
 }
 

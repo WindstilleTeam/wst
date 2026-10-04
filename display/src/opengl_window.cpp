@@ -9,6 +9,7 @@
 #include <logmich/log.hpp>
 #include <surf/software_surface.hpp>
 
+#include "device.hpp"
 #include "renderer.hpp"
 #include "system.hpp"
 
@@ -21,6 +22,7 @@ OpenGLWindow::OpenGLWindow(wstsys::System& system, Params const& params) :
   m_gl_context(nullptr),
   m_size(params.size),
   m_mode(params.mode),
+  m_device(),
   m_renderer()
 {
   std::vector<Api> apis;
@@ -121,7 +123,8 @@ OpenGLWindow::create(Params const& params, Api api)
   set_vsync(params.vsync);
 
   try {
-    m_renderer = std::make_unique<Renderer>(&SDL_GL_GetProcAddress);
+    m_device = std::make_unique<Device>(&SDL_GL_GetProcAddress);
+    m_renderer = std::make_unique<Renderer>(*m_device);
   } catch (std::exception const& err) {
     log_warn("OpenGLWindow: couldn't initialize renderer on {}: {}", api_name, err.what());
     destroy();
@@ -136,6 +139,7 @@ void
 OpenGLWindow::destroy()
 {
   m_renderer.reset();
+  m_device.reset();
   if (m_gl_context != nullptr) {
     SDL_GL_DeleteContext(m_gl_context);
     m_gl_context = nullptr;
@@ -251,6 +255,12 @@ void
 OpenGLWindow::set_gamma(float r, float g, float b)
 {
   SDL_SetWindowBrightness(m_window, (r + g + b) / 3.0f);
+}
+
+Device&
+OpenGLWindow::get_device() const
+{
+  return *m_device;
 }
 
 Renderer&

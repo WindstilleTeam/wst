@@ -8,40 +8,43 @@
 
 #include <geom/size.hpp>
 
+#include "device.hpp"
 #include "fwd.hpp"
-#include "texture.hpp"
 
 namespace wstdisplay {
 
-/** An offscreen render target backed by an RGBA texture */
+/** An offscreen render target backed by an RGBA texture, owned by a
+    Device and created with Device::create_framebuffer(). Rendered
+    content is stored with the top row first like any uploaded image,
+    so the texture can be drawn like any other. */
 class Framebuffer final
 {
 public:
-  /** @param depth    also attach a depth buffer, needed for Mesh depth testing
-      @param stencil  also attach a stencil buffer */
-  static FramebufferPtr create(geom::isize const& size, TextureParams const& params = {},
-                               bool depth = false, bool stencil = false);
-
-private:
-  Framebuffer(geom::isize const& size, TextureParams const& params, bool depth, bool stencil);
-  void attach_renderbuffer(uint32_t& handle, uint32_t format, uint32_t attachment, geom::isize const& size);
-  void destroy();
-
-public:
+  Framebuffer(Device& device, geom::isize const& size, FramebufferParams const& params);
   ~Framebuffer();
 
-  geom::isize get_size() const { return m_texture->get_size(); }
-  int get_width() const { return m_texture->get_width(); }
-  int get_height() const { return m_texture->get_height(); }
+  geom::isize get_size() const { return m_size; }
+  int get_width() const { return m_size.width(); }
+  int get_height() const { return m_size.height(); }
 
-  TexturePtr const& get_texture() const { return m_texture; }
+  /** The color buffer, owned by the framebuffer */
+  TextureId get_texture() const { return m_texture; }
+
+  bool has_depth() const { return m_depth_buffer != 0; }
+
+  /** The OpenGL framebuffer name */
   uint32_t get_handle() const { return m_handle; }
 
 private:
+  void attach_renderbuffer(uint32_t& handle, uint32_t format, uint32_t attachment);
+  void destroy();
+
+private:
+  geom::isize m_size;
+  Unique<Texture> m_texture;
   uint32_t m_handle;
   uint32_t m_depth_buffer;
   uint32_t m_stencil_buffer;
-  TexturePtr m_texture;
 
 public:
   Framebuffer(Framebuffer const&) = delete;

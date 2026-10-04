@@ -5,45 +5,23 @@
 #define HEADER_WSTDISPLAY_TEXTURE_HPP
 
 #include <cstdint>
-#include <memory>
 
+#include <geom/point.hpp>
 #include <geom/rect.hpp>
 #include <geom/size.hpp>
 #include <surf/software_surface.hpp>
 
 #include "fwd.hpp"
+#include "texture_params.hpp"
 
 namespace wstdisplay {
 
-enum class TextureFilter : uint8_t { Nearest, Linear };
-enum class TextureWrap : uint8_t { Clamp, Repeat };
-
-struct TextureParams
-{
-  TextureFilter filter = TextureFilter::Linear;
-
-  /** Horizontal and vertical wrapping, e.g. repeat only horizontally
-      for parallax layers */
-  TextureWrap wrap_x = TextureWrap::Clamp;
-  TextureWrap wrap_y = TextureWrap::Clamp;
-};
-
-/** An RGBA texture on the GPU. Requires a current OpenGL context
-    with the library initialized, see Renderer. */
+/** An RGBA texture on the GPU, owned by a Device and created with
+    Device::create_texture() */
 class Texture final
 {
 public:
-  /** Upload \a image, any pixel format is accepted and converted
-      to RGB8 or RGBA8 if needed */
-  static TexturePtr create(surf::SoftwareSurface const& image, TextureParams const& params = {});
-
-  /** Create a transparent RGBA8 texture */
-  static TexturePtr create(geom::isize const& size, TextureParams const& params = {});
-
-private:
-  Texture(geom::isize const& size, TextureParams const& params);
-
-public:
+  Texture(Caps const& caps, geom::isize const& size, TextureParams const& params);
   ~Texture();
 
   geom::isize get_size() const { return m_size; }

@@ -3,11 +3,11 @@
 
 #include "shader_program.hpp"
 
-#include <fstream>
-#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <vector>
+
+#include <logmich/log.hpp>
 
 #include "gl.hpp"
 
@@ -44,20 +44,8 @@ char const gl33_frag_preamble[] =
   "out vec4 wst_FragColor;\n"
   "#line 1\n";
 
-std::string read_file(std::filesystem::path const& filename)
+GLuint compile(bool gles, GLenum type, std::string_view source)
 {
-  std::ifstream in(filename, std::ios::binary);
-  if (!in) {
-    throw std::runtime_error("ShaderProgram: couldn't open " + filename.string());
-  }
-  std::ostringstream str;
-  str << in.rdbuf();
-  return str.str();
-}
-
-GLuint compile(GLenum type, std::string_view source)
-{
-  bool const gles = detail::current_caps().is_gles();
   char const* preamble = nullptr;
   if (type == GL_VERTEX_SHADER) {
     preamble = gles ? gles2_vert_preamble : gl33_vert_preamble;
@@ -89,29 +77,16 @@ GLuint compile(GLenum type, std::string_view source)
 
 } // namespace
 
-ShaderProgramPtr
-ShaderProgram::from_source(std::string_view vert_source, std::string_view frag_source)
-{
-  return ShaderProgramPtr(new ShaderProgram(vert_source, frag_source));
-}
-
-ShaderProgramPtr
-ShaderProgram::from_file(std::filesystem::path const& vert_filename,
-                         std::filesystem::path const& frag_filename)
-{
-  return from_source(read_file(vert_filename), read_file(frag_filename));
-}
-
-ShaderProgram::ShaderProgram(std::string_view vert_source, std::string_view frag_source) :
+ShaderProgram::ShaderProgram(Caps const& caps, std::string_view vert_source, std::string_view frag_source) :
   m_handle(0),
   m_mvp_location(-1),
   m_texture_locations(),
   m_uniform_locations()
 {
-  GLuint const vert = compile(GL_VERTEX_SHADER, vert_source);
+  GLuint const vert = compile(caps.is_gles(), GL_VERTEX_SHADER, vert_source);
   GLuint frag = 0;
   try {
-    frag = compile(GL_FRAGMENT_SHADER, frag_source);
+    frag = compile(caps.is_gles(), GL_FRAGMENT_SHADER, frag_source);
   } catch (...) {
     glDeleteShader(vert);
     throw;
@@ -171,6 +146,9 @@ ShaderProgram::get_uniform_location(std::string_view name) const
   }
 
   int const location = glGetUniformLocation(m_handle, std::string(name).c_str());
+  if (location == -1) {
+    log_debug("ShaderProgram: no active uniform '{}'", name);
+  }
   m_uniform_locations.emplace(std::string(name), location);
   return location;
 }

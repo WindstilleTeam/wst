@@ -16,13 +16,8 @@
 
 #include "batch.hpp"
 #include "canvas.hpp"
-#include "framebuffer.hpp"
+#include "device_impl.hpp"
 #include "gl.hpp"
-#include "material.hpp"
-#include "mesh.hpp"
-#include "shader_program.hpp"
-#include "static_batch.hpp"
-#include "texture.hpp"
 #include "view.hpp"
 
 namespace wstdisplay {
@@ -87,11 +82,12 @@ constexpr float depth_range = 4096.0f;
 class Renderer::Impl
 {
 public:
-  Caps caps;
+  Device& device;
+  Device::Impl& resources;
 
-  ShaderProgramPtr default_program;
-  ShaderProgramPtr mesh_program;
-  TexturePtr white_texture;
+  Unique<ShaderProgram> default_program;
+  Unique<ShaderProgram> mesh_program;
+  Unique<Texture> white_texture;
 
   GLuint vao = 0;
   GLuint vertex_buffer = 0;
@@ -101,10 +97,15 @@ public:
   Canvas blit_canvas;
 
   RenderStats stats;
+  bool warned_skipped = false;
 
   GLint frame_framebuffer = 0;
   geom::isize frame_size = geom::isize(1, 1);
-  Framebuffer* target = nullptr;
+
+  /** The current target, nullptr for the frame's target */
+  FramebufferId target_id = {};
+  Framebuffer const* target = nullptr;
+  bool target_bound = false;
 
   /*{ state cache, invalidated at the start of every render() */
   GLuint cur_program = invalid_handle;
@@ -121,8 +122,9 @@ public:
   /*} */
 
 public:
-  explicit Impl(ProcLoader loader) :
-    caps(detail::load_gl(loader)),
+  Impl(Device& device_, Device::Impl& resources_) :
+    device(device_),
+    resources(resources_),
     default_program(),
     mesh_program(),
     white_texture(),
@@ -130,16 +132,16 @@ public:
     blit_canvas(),
     stats()
   {
-    if (!caps.is_gles()) {
+    if (!device.get_caps().is_gles()) {
       // a core profile requires a VAO to be bound for drawing
       glGenVertexArrays(1, &vao);
     }
     glGenBuffers(1, &vertex_buffer);
     glGenBuffers(1, &index_buffer);
 
-    default_program = ShaderProgram::from_source(default_vert_source, default_frag_source);
-    mesh_program = ShaderProgram::from_source(mesh_vert_source, default_frag_source);
-    white_texture = Texture::create(
+    default_program = device.create_program(default_vert_source, default_frag_source);
+    mesh_program = device.create_program(mesh_vert_source, default_frag_source);
+    white_texture = device.create_texture(
       surf::SoftwareSurface::create(surf::PixelFormat::RGBA8, geom::isize(1, 1), surf::palette::white));
 
     WST_CHECK_GL("initializing renderer");
@@ -175,6 +177,40 @@ public:
       return glm::ortho(0.0f, w, 0.0f, h, -depth_range, depth_range);
     } else {
       return glm::ortho(0.0f, w, h, 0.0f, -depth_range, depth_range);
+    }
+  }
+
+  void bind_target(FramebufferId framebuffer)
+  {
+    Framebuffer const* const fb = framebuffer ? &device.get(framebuffer) : nullptr;
+    if (target_bound && fb == target) {
+      return;
+    }
+
+    target_id = framebuffer;
+    target = fb;
+    target_bound = true;
+
+    geom::isize const size = target_size();
+    glBindFramebuffer(GL_FRAMEBUFFER, target ? target->get_handle() : static_cast<GLuint>(frame_framebuffer));
+    glViewport(0, 0, size.width(), size.height());
+    stats.target_switches += 1;
+  }
+
+  void clear(surf::Color const& color)
+  {
+    glDisable(GL_SCISSOR_TEST);
+    cur_scissor_enabled = 0;
+    glClearColor(color.r, color.g, color.b, color.a);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+  }
+
+  void skip()
+  {
+    stats.skipped += 1;
+    if (!warned_skipped) {
+      log_warn("Renderer: skipping draws that use destroyed resources");
+      warned_skipped = true;
     }
   }
 
@@ -283,6 +319,27 @@ public:
     }
   }
 
+  /** The texture to bind for \a handle, white for null, nullptr if stale */
+  Texture const* resolve_texture(TextureId handle) const
+  {
+    return handle ? resources.textures.find(handle) : resources.textures.find(white_texture.get());
+  }
+
+  /** Program and material for a draw, false if a resource is stale */
+  bool resolve_material(MaterialId handle, ShaderProgram const& fallback,
+                        ShaderProgram const*& program, Material const*& material) const
+  {
+    if (!handle) {
+      program = &fallback;
+      material = nullptr;
+      return true;
+    }
+
+    material = resources.materials.find(handle);
+    program = material ? resources.programs.find(material->get_program()) : nullptr;
+    return program != nullptr;
+  }
+
   void apply_material(Material const* material)
   {
     if (cur_material_valid && cur_material == material) {
@@ -291,9 +348,10 @@ public:
 
     if (material) {
       for (int unit = 1; unit < ShaderProgram::max_textures; ++unit) {
-        TexturePtr const& texture = material->get_texture(unit);
-        if (texture) {
-          bind_texture(unit, texture->get_handle());
+        TextureId const handle = material->get_texture(unit);
+        if (handle) {
+          Texture const* texture = resources.textures.find(handle);
+          bind_texture(unit, texture ? texture->get_handle() : 0);
         }
       }
 
@@ -376,6 +434,40 @@ public:
     return geom::irect(left, bottom, std::max(left, right), std::max(bottom, top));
   }
 
+  /** Draw a run of indices from the currently bound buffers */
+  void draw_geometry(Batch const& batch, glm::mat4 const& mvp)
+  {
+    Texture const* const texture = resolve_texture(batch.texture);
+    ShaderProgram const* program = nullptr;
+    Material const* material = nullptr;
+    if (!texture || !resolve_material(batch.material, *default_program, program, material)) {
+      skip();
+      return;
+    }
+
+    use_program(*program);
+    set_mvp(*program, mvp);
+    apply_material(material);
+    bind_texture(0, texture->get_handle());
+    set_blend(batch.blend);
+    set_vertex_layout(batch.base_vertex);
+
+    glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(batch.index_count), GL_UNSIGNED_SHORT,
+                   reinterpret_cast<void const*>(static_cast<uintptr_t>(batch.first_index) * sizeof(uint16_t)));
+
+    stats.batches += 1;
+    stats.draw_calls += 1;
+    stats.triangles += static_cast<int>(batch.index_count / 3);
+  }
+
+  void bind_canvas_buffers()
+  {
+    glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer);
+    enable_2d_attribs();
+    cur_attrib_base = -1;
+  }
+
   void render(Canvas const& canvas, glm::mat4 const& world_matrix, glm::mat4 const& screen_matrix)
   {
     if (canvas.empty()) {
@@ -393,24 +485,23 @@ public:
       glBindVertexArray(vao);
     }
 
-    glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer);
+    bind_canvas_buffers();
     if (!batches.vertices.empty()) {
       glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(batches.vertices.size() * sizeof(Vertex)),
                    batches.vertices.data(), GL_STREAM_DRAW);
       glBufferData(GL_ELEMENT_ARRAY_BUFFER, static_cast<GLsizeiptr>(batches.indices.size() * sizeof(uint16_t)),
                    batches.indices.data(), GL_STREAM_DRAW);
     }
-    enable_2d_attribs();
 
     glm::mat4 const proj = projection();
     std::array<glm::mat4, 3> const space_mvp = {
       proj * world_matrix,  // World
       proj * screen_matrix, // Screen
-      glm::mat4(1.0f)      // Clip
+      glm::mat4(1.0f)            // Clip
     };
 
     auto const& clips = canvas.get_clip_rects();
+    auto const& objects = canvas.get_objects();
 
     for (Batch const& batch : batches.batches)
     {
@@ -419,35 +510,20 @@ public:
       set_scissor(batch.clip == 0 ? std::nullopt :
                   scissor_for(clips[batch.clip], space_mvp[static_cast<size_t>(clips[batch.clip].space)]));
 
-      if (batch.type == CommandType::StaticBatch) {
-        draw_static_batch(*static_cast<StaticBatch const*>(batch.object),
-                          mvp * canvas.get_matrices()[batch.matrix]);
-        continue;
-      } else if (batch.type == CommandType::Mesh) {
-        draw_mesh(*static_cast<Mesh const*>(batch.object),
-                  mvp, canvas.get_matrices()[batch.matrix]);
-        // meshes use their own buffers, restore the canvas ones
-        glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer);
-        enable_2d_attribs();
-        cur_attrib_base = -1;
-        continue;
+      switch (batch.type)
+      {
+        case CommandType::Geometry:
+          draw_geometry(batch, mvp);
+          break;
+
+        case CommandType::StaticBatch:
+          draw_static_batch(objects[batch.object].static_batch, mvp * objects[batch.object].matrix);
+          break;
+
+        case CommandType::Mesh:
+          draw_mesh(objects[batch.object].mesh, mvp, objects[batch.object].matrix);
+          break;
       }
-
-      ShaderProgram const& program = batch.material ? *batch.material->get_program() : *default_program;
-      use_program(program);
-      set_mvp(program, mvp);
-      apply_material(batch.material);
-      bind_texture(0, batch.texture ? batch.texture->get_handle() : white_texture->get_handle());
-      set_blend(batch.blend);
-      set_vertex_layout(batch.base_vertex);
-
-      glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(batch.index_count), GL_UNSIGNED_SHORT,
-                     reinterpret_cast<void const*>(static_cast<uintptr_t>(batch.first_index) * sizeof(uint16_t)));
-
-      stats.batches += 1;
-      stats.draw_calls += 1;
-      stats.triangles += static_cast<int>(batch.index_count / 3);
     }
 
     stats.vertices += static_cast<int>(batches.vertices.size());
@@ -456,83 +532,74 @@ public:
     WST_CHECK_GL("rendering canvas");
   }
 
-  void draw_static_batch(StaticBatch const& sbatch, glm::mat4 const& mvp)
+  void draw_static_batch(StaticBatchId handle, glm::mat4 const& mvp)
   {
-    sbatch.upload();
-
-    glBindBuffer(GL_ARRAY_BUFFER, sbatch.get_vertex_buffer());
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sbatch.get_index_buffer());
-    cur_attrib_base = -1;
-
-    for (Batch const& batch : sbatch.get_batches().batches) {
-      if (batch.type != CommandType::Geometry) {
-        continue;
-      }
-
-      ShaderProgram const& program = batch.material ? *batch.material->get_program() : *default_program;
-      use_program(program);
-      set_mvp(program, mvp);
-      apply_material(batch.material);
-      bind_texture(0, batch.texture ? batch.texture->get_handle() : white_texture->get_handle());
-      set_blend(batch.blend);
-      set_vertex_layout(batch.base_vertex);
-
-      glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(batch.index_count), GL_UNSIGNED_SHORT,
-                     reinterpret_cast<void const*>(static_cast<uintptr_t>(batch.first_index) * sizeof(uint16_t)));
-
-      stats.batches += 1;
-      stats.draw_calls += 1;
-      stats.triangles += static_cast<int>(batch.index_count / 3);
+    StaticBatch const* const sbatch = resources.static_batches.find(handle);
+    if (!sbatch) {
+      skip();
+      return;
     }
 
-    glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer);
+    sbatch->upload();
+
+    glBindBuffer(GL_ARRAY_BUFFER, sbatch->get_vertex_buffer());
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, sbatch->get_index_buffer());
     cur_attrib_base = -1;
+
+    for (Batch const& batch : sbatch->get_batches().batches) {
+      if (batch.type == CommandType::Geometry) {
+        draw_geometry(batch, mvp);
+      }
+    }
+
+    bind_canvas_buffers();
   }
 
-  void draw_mesh(Mesh const& mesh, glm::mat4 const& mvp, glm::mat4 const& model)
+  void draw_mesh(MeshId handle, glm::mat4 const& mvp, glm::mat4 const& model)
   {
-    mesh.upload();
+    Mesh const* const mesh = resources.meshes.find(handle);
+    Texture const* const texture = mesh ? resolve_texture(mesh->get_texture()) : nullptr;
+    ShaderProgram const* program = nullptr;
+    Material const* material = nullptr;
+    if (!mesh || !texture || !resolve_material(mesh->get_material(), *mesh_program, program, material)) {
+      skip();
+      return;
+    }
 
-    ShaderProgram const& program = mesh.get_material() ? *mesh.get_material()->get_program() : *mesh_program;
-    use_program(program);
-    set_mvp(program, mvp * model);
-    apply_material(mesh.get_material().get());
-    bind_texture(0, mesh.get_texture() ? mesh.get_texture()->get_handle() : white_texture->get_handle());
-    set_blend(mesh.get_blend());
+    mesh->upload();
 
-    int const model_location = program.get_uniform_location("u_model");
+    use_program(*program);
+    set_mvp(*program, mvp * model);
+    apply_material(material);
+    bind_texture(0, texture->get_handle());
+    set_blend(mesh->get_blend());
+
+    int const model_location = program->get_uniform_location("u_model");
     if (model_location != -1) {
       glUniformMatrix4fv(model_location, 1, GL_FALSE, glm::value_ptr(model));
     }
 
-    if (mesh.get_depth_test()) {
+    if (mesh->get_depth_test()) {
       glEnable(GL_DEPTH_TEST);
       glDepthFunc(GL_LEQUAL);
     }
 
-    mesh.draw();
+    mesh->draw();
 
-    if (mesh.get_depth_test()) {
+    if (mesh->get_depth_test()) {
       glDisable(GL_DEPTH_TEST);
     }
 
     stats.draw_calls += 1;
-    stats.triangles += mesh.get_triangle_count();
-    cur_attrib_base = -1;
-  }
+    stats.triangles += mesh->get_triangle_count();
 
-  void bind_target()
-  {
-    geom::isize const size = target_size();
-    glBindFramebuffer(GL_FRAMEBUFFER, target ? target->get_handle() : static_cast<GLuint>(frame_framebuffer));
-    glViewport(0, 0, size.width(), size.height());
-    stats.target_switches += 1;
+    // meshes use their own buffers, restore the canvas ones
+    bind_canvas_buffers();
   }
 };
 
-Renderer::Renderer(ProcLoader loader) :
-  m_impl(std::make_unique<Impl>(loader))
+Renderer::Renderer(Device& device) :
+  m_impl(std::make_unique<Impl>(device, *device.m_impl))
 {
 }
 
@@ -540,10 +607,16 @@ Renderer::~Renderer()
 {
 }
 
+Device&
+Renderer::get_device() const
+{
+  return m_impl->device;
+}
+
 Caps const&
 Renderer::get_caps() const
 {
-  return m_impl->caps;
+  return m_impl->device.get_caps();
 }
 
 void
@@ -552,6 +625,7 @@ Renderer::begin_frame(geom::isize const& size)
   glGetIntegerv(GL_FRAMEBUFFER_BINDING, &m_impl->frame_framebuffer);
   m_impl->frame_size = size;
   m_impl->target = nullptr;
+  m_impl->target_bound = false;
   m_impl->stats = RenderStats();
   m_impl->invalidate_cache();
 
@@ -559,14 +633,13 @@ Renderer::begin_frame(geom::isize const& size)
   glDisable(GL_CULL_FACE);
   glDisable(GL_SCISSOR_TEST);
 
-  m_impl->bind_target();
+  m_impl->bind_target({});
 }
 
 void
 Renderer::end_frame()
 {
-  m_impl->target = nullptr;
-  m_impl->bind_target();
+  m_impl->bind_target({});
 
   glUseProgram(0);
   glDisable(GL_SCISSOR_TEST);
@@ -578,21 +651,20 @@ Renderer::end_frame()
   }
   m_impl->invalidate_cache();
   WST_CHECK_GL("end of frame");
+
+  m_impl->device.collect();
 }
 
 void
-Renderer::set_target(Framebuffer* framebuffer)
+Renderer::set_target(FramebufferId framebuffer)
 {
-  if (m_impl->target != framebuffer) {
-    m_impl->target = framebuffer;
-    m_impl->bind_target();
-  }
+  m_impl->bind_target(framebuffer);
 }
 
-Framebuffer*
+FramebufferId
 Renderer::get_target() const
 {
-  return m_impl->target;
+  return m_impl->target_id;
 }
 
 geom::isize
@@ -604,10 +676,7 @@ Renderer::get_target_size() const
 void
 Renderer::clear(surf::Color const& color)
 {
-  glDisable(GL_SCISSOR_TEST);
-  m_impl->cur_scissor_enabled = 0;
-  glClearColor(color.r, color.g, color.b, color.a);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+  m_impl->clear(color);
 }
 
 void
@@ -635,7 +704,7 @@ Renderer::render(Canvas const& canvas)
 }
 
 void
-Renderer::blit(Texture const& texture, Blend blend, surf::Color const& color, bool flip_vertical)
+Renderer::blit(TextureId texture, Blend blend, surf::Color const& color, bool flip_vertical)
 {
   float const v0 = flip_vertical ? 1.0f : 0.0f;
   float const v1 = flip_vertical ? 0.0f : 1.0f;
@@ -652,7 +721,7 @@ Renderer::blit(Texture const& texture, Blend blend, surf::Color const& color, bo
   Canvas& canvas = m_impl->blit_canvas;
   canvas.clear();
   canvas.set_space(Space::Clip);
-  canvas.draw_quads(&texture, vertices, blend);
+  canvas.draw_quads(texture, vertices, blend);
   m_impl->render(canvas, glm::mat4(1.0f), glm::mat4(1.0f));
   canvas.clear();
 }
@@ -670,7 +739,8 @@ Renderer::read_pixels(geom::irect const& rect) const
   std::vector<uint8_t> pixels(static_cast<size_t>(rect.width()) * static_cast<size_t>(rect.height()) * 4);
 
   // the default framebuffer has row 0 at the bottom, framebuffers at the top
-  int const y = m_impl->target ? rect.top() : size.height() - rect.bottom();
+  bool const flipped = (m_impl->target == nullptr);
+  int const y = flipped ? size.height() - rect.bottom() : rect.top();
 
   glPixelStorei(GL_PACK_ALIGNMENT, 1);
   glReadPixels(rect.left(), y, rect.width(), rect.height(), GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
@@ -679,7 +749,7 @@ Renderer::read_pixels(geom::irect const& rect) const
   surf::SoftwareSurface surface = surf::SoftwareSurface::create(surf::PixelFormat::RGBA8, rect.size());
   size_t const row_size = static_cast<size_t>(rect.width()) * 4;
   for (int row = 0; row < rect.height(); ++row) {
-    int const src_row = m_impl->target ? row : rect.height() - 1 - row;
+    int const src_row = flipped ? rect.height() - 1 - row : row;
     std::memcpy(surface.get_row_data(row), pixels.data() + row_size * static_cast<size_t>(src_row), row_size);
   }
   return surface;
@@ -689,18 +759,6 @@ RenderStats const&
 Renderer::get_stats() const
 {
   return m_impl->stats;
-}
-
-ShaderProgramPtr const&
-Renderer::get_default_program() const
-{
-  return m_impl->default_program;
-}
-
-TexturePtr const&
-Renderer::get_white_texture() const
-{
-  return m_impl->white_texture;
 }
 
 } // namespace wstdisplay

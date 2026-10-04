@@ -12,19 +12,18 @@
 
 namespace wstdisplay {
 
-/** A run of indices that can be drawn with a single draw call */
+/** A run of indices that can be drawn with a single draw call, or a
+    StaticBatch or Mesh draw */
 struct Batch
 {
-  Texture const* texture;
-  Material const* material;
+  TextureId texture;
+  MaterialId material;
 
-  /** StaticBatch or Mesh for those types, see Canvas::Command */
-  void const* object;
-  uint32_t matrix;
+  /** Index into Canvas::get_objects() for StaticBatch and Mesh */
+  uint32_t object;
 
   /** Vertex offset the 16-bit indices of the batch are relative to */
   uint32_t base_vertex;
-
   uint32_t first_index;
   uint32_t index_count;
 

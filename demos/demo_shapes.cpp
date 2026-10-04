@@ -28,7 +28,7 @@ public:
 
   void init() override
   {
-    m_surfaces = std::make_unique<SurfaceManager>();
+    m_surfaces = std::make_unique<SurfaceManager>(get_device());
     m_tux = m_surfaces->get(get_data("tux.png"));
   }
 
@@ -110,12 +110,12 @@ public:
 
     // surfaces with DrawParams
     float const sx = 700.0f;
-    m_canvas.draw(*m_tux, geom::fpoint(sx, 340));
-    m_canvas.draw(*m_tux, DrawParams().set_pos(geom::fpoint(sx + 200, 440))
+    m_canvas.draw(m_tux, geom::fpoint(sx, 340));
+    m_canvas.draw(m_tux, DrawParams().set_pos(geom::fpoint(sx + 200, 440))
                   .set_anchor(geom::origin::CENTER).set_angle(t * 90.0f));
-    m_canvas.draw(*m_tux, DrawParams().set_pos(geom::fpoint(sx + 320, 340)).set_hflip(true)
+    m_canvas.draw(m_tux, DrawParams().set_pos(geom::fpoint(sx + 320, 340)).set_hflip(true)
                   .set_color(surf::Color(1.0f, 0.6f, 0.6f)));
-    m_canvas.draw(*m_tux, DrawParams().set_pos(geom::fpoint(sx + 470, 540))
+    m_canvas.draw(m_tux, DrawParams().set_pos(geom::fpoint(sx + 470, 540))
                   .set_anchor(geom::origin::BOTTOM_CENTER).set_scale(glm::vec2(1.0f, 0.75f + 0.25f * std::sin(t * 4.0f)))
                   .set_alpha(0.5f + 0.5f * std::sin(t)));
 
@@ -141,7 +141,7 @@ public:
 private:
   Canvas m_canvas;
   std::unique_ptr<SurfaceManager> m_surfaces;
-  SurfacePtr m_tux;
+  Surface m_tux;
 };
 
 WST_DEMO_MAIN(ShapesDemo)

@@ -17,6 +17,7 @@
 #include "blend.hpp"
 #include "draw_params.hpp"
 #include "fwd.hpp"
+#include "handle.hpp"
 #include "vertex.hpp"
 
 namespace wstdisplay {
@@ -43,10 +44,10 @@ enum class CommandType : uint8_t
   /** Vertices and indices stored in the canvas */
   Geometry,
 
-  /** A StaticBatch, drawn with a transform from get_matrices() */
+  /** A StaticBatch, see Canvas::get_objects() */
   StaticBatch,
 
-  /** A Mesh, drawn with a transform from get_matrices() */
+  /** A Mesh, see Canvas::get_objects() */
   Mesh
 };
 
@@ -55,6 +56,16 @@ struct ClipRect
 {
   geom::frect rect = {};
   Space space = Space::World;
+};
+
+/** A StaticBatch or Mesh draw */
+struct ObjectDraw
+{
+  StaticBatchId static_batch = {};
+  MeshId mesh = {};
+
+  /** Model transform including the canvas transform at record time */
+  glm::mat4 matrix = glm::mat4(1.0f);
 };
 
 /** Records drawing commands for later rendering with a Renderer.
@@ -83,17 +94,14 @@ public:
     uint32_t first_index;
     uint32_t index_count;
 
-    /** nullptr draws untextured (with a white texture) */
-    Texture const* texture;
+    /** Null draws untextured (with a white texture) */
+    TextureId texture;
 
-    /** nullptr uses the default program */
-    Material const* material;
+    /** Null uses the default program */
+    MaterialId material;
 
-    /** The StaticBatch or Mesh for those command types */
-    void const* object;
-
-    /** Index into get_matrices() for StaticBatch and Mesh commands */
-    uint32_t matrix;
+    /** Index into get_objects() for StaticBatch and Mesh commands */
+    uint32_t object;
 
     /** Index into get_clip_rects(), 0 is no clipping */
     uint16_t clip;
@@ -157,7 +165,7 @@ public:
   /** Fill \a rect by repeating \a texture, \a offset shifts the
       pattern. Needs a power-of-two texture on GLES 2.0 without
       GL_OES_texture_npot. */
-  void fill_pattern(Texture const& texture, geom::frect const& rect, geom::foffset const& offset = {},
+  void fill_pattern(Surface const& pattern, geom::frect const& rect, geom::foffset const& offset = {},
                     surf::Color const& color = {1.0f, 1.0f, 1.0f}, float z = 0.0f);
   /*} */
 
@@ -213,22 +221,22 @@ public:
   /*} */
 
   /*{ Raw geometry, vertices are in current canvas coordinates */
-  void draw_triangles(Texture const* texture, std::span<Vertex const> vertices,
+  void draw_triangles(TextureId texture, std::span<Vertex const> vertices,
                       std::span<uint16_t const> indices, Blend blend = Blend::Alpha,
-                      float z = 0.0f, Material const* material = nullptr);
+                      float z = 0.0f, MaterialId material = {});
 
   /** Four vertices per quad, in order top-left, top-right,
       bottom-right, bottom-left */
-  void draw_quads(Texture const* texture, std::span<Vertex const> vertices,
-                  Blend blend = Blend::Alpha, float z = 0.0f, Material const* material = nullptr);
+  void draw_quads(TextureId texture, std::span<Vertex const> vertices,
+                  Blend blend = Blend::Alpha, float z = 0.0f, MaterialId material = {});
 
   /** Draw the prebuilt geometry of \a batch with the current
       transform, the batch must stay alive until rendering */
-  void draw(StaticBatch const& batch, float z = 0.0f);
+  void draw(StaticBatchId batch, float z = 0.0f);
 
   /** Draw \a mesh with \a transform applied on top of the current
       canvas transform, the mesh must stay alive until rendering */
-  void draw(Mesh const& mesh, glm::mat4 const& transform, float z = 0.0f);
+  void draw(MeshId mesh, glm::mat4 const& transform, float z = 0.0f);
   /*} */
 
   /*{ Recorded data */
@@ -239,21 +247,20 @@ public:
   /** Clip rects, entry 0 is unused */
   std::vector<ClipRect> const& get_clip_rects() const { return m_clip_rects; }
 
-  /** Transforms of StaticBatch and Mesh commands */
-  std::vector<glm::mat4> const& get_matrices() const { return m_matrices; }
+  /** StaticBatch and Mesh draws */
+  std::vector<ObjectDraw> const& get_objects() const { return m_objects; }
   /*} */
 
 private:
   /** Append a command, reusing the previous one if all state matches.
       Returns the vertices to fill, indices are given relative to the
       first returned vertex. */
-  Vertex* add(Texture const* texture, Material const* material, Blend blend, float z,
+  Vertex* add(TextureId texture, MaterialId material, Blend blend, float z,
               uint32_t vertex_count, std::span<uint16_t const> indices);
-  Vertex* add_quads(Texture const* texture, Material const* material, Blend blend, float z,
+  Vertex* add_quads(TextureId texture, MaterialId material, Blend blend, float z,
                     uint32_t quad_count);
 
-  void add_object(CommandType type, void const* object, glm::mat4 const& matrix, float z,
-                  Material const* material);
+  void add_object(CommandType type, ObjectDraw const& object, float z);
 
   glm::vec2 apply(float x, float y) const;
   void transform_vertices(Vertex* vertices, size_t count) const;
@@ -270,7 +277,7 @@ private:
   bool m_identity;
 
   std::vector<ClipRect> m_clip_rects;
-  std::vector<glm::mat4> m_matrices;
+  std::vector<ObjectDraw> m_objects;
   std::vector<uint16_t> m_clip_stack;
 
   Space m_space;

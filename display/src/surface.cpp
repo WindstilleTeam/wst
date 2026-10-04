@@ -5,33 +5,21 @@
 
 namespace wstdisplay {
 
-SurfacePtr
-Surface::create(TexturePtr texture, geom::frect const& uv, geom::fsize const& size)
+Surface::Surface(TextureId texture, geom::isize const& texture_size) :
+  m_texture(texture),
+  m_uv(0.0f, 0.0f, 1.0f, 1.0f),
+  m_size(texture_size)
 {
-  return std::make_shared<Surface>(std::move(texture), uv, size);
 }
 
-SurfacePtr
-Surface::create(TexturePtr texture)
-{
-  geom::fsize const size(texture->get_size());
-  return std::make_shared<Surface>(std::move(texture), geom::frect(0.0f, 0.0f, 1.0f, 1.0f), size);
-}
-
-SurfacePtr
-Surface::create(surf::SoftwareSurface const& image, TextureParams const& params)
-{
-  return create(Texture::create(image, params));
-}
-
-Surface::Surface(TexturePtr texture, geom::frect const& uv, geom::fsize const& size) :
-  m_texture(std::move(texture)),
+Surface::Surface(TextureId texture, geom::frect const& uv, geom::fsize const& size) :
+  m_texture(texture),
   m_uv(uv),
   m_size(size)
 {
 }
 
-SurfacePtr
+Surface
 Surface::region(geom::frect const& rect) const
 {
   float const sx = m_uv.width() / m_size.width();
@@ -40,7 +28,7 @@ Surface::region(geom::frect const& rect) const
                        m_uv.top() + rect.top() * sy,
                        m_uv.left() + rect.right() * sx,
                        m_uv.top() + rect.bottom() * sy);
-  return create(m_texture, uv, rect.size());
+  return Surface(m_texture, uv, rect.size());
 }
 
 } // namespace wstdisplay

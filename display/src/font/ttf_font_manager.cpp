@@ -9,7 +9,8 @@
 
 namespace wstdisplay {
 
-TTFFontManager::TTFFontManager() :
+TTFFontManager::TTFFontManager(Device& device) :
+  m_device(device),
   m_freetype()
 {
   FT_Error error;

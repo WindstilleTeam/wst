@@ -16,7 +16,7 @@ Action make_action(std::string name, int frames, float duration, int loops = -1)
   action.name = std::move(name);
   action.loops = loops;
   for (int i = 0; i < frames; ++i) {
-    action.frames.push_back(Frame{nullptr, duration});
+    action.frames.push_back(Frame{{}, duration});
   }
   return action;
 }
