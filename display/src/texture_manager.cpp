@@ -24,7 +24,9 @@ TextureManager::~TextureManager()
 TexturePtr
 TextureManager::get(std::filesystem::path const& filename, TextureParams const& params)
 {
-  Key const key{filename, {static_cast<int>(params.filter), static_cast<int>(params.wrap)}};
+  Key const key{filename, static_cast<int>(params.filter) |
+                          (static_cast<int>(params.wrap_x) << 4) |
+                          (static_cast<int>(params.wrap_y) << 8)};
   auto it = m_textures.find(key);
   if (it != m_textures.end()) {
     return it->second;

@@ -34,6 +34,7 @@ geom::isize parse_size(std::string_view text)
 
 DemoApp::DemoApp(std::string title, int argc, char** argv) :
   m_title(std::move(title)),
+  m_args(argv, argv + argc),
   m_params(),
   m_max_frames(0),
   m_screenshot(),
@@ -53,17 +54,6 @@ DemoApp::DemoApp(std::string title, int argc, char** argv) :
   m_params.title = m_title;
   m_params.size = geom::isize(1280, 720);
   m_params.resizable = true;
-  parse_args(argc, argv);
-
-  if (m_datadir.empty()) {
-    if (char const* env = std::getenv("WST_DEMO_DATADIR")) {
-      m_datadir = env;
-    } else if (std::filesystem::exists(WST_DEMO_INSTALL_DATADIR)) {
-      m_datadir = WST_DEMO_INSTALL_DATADIR;
-    } else {
-      m_datadir = WST_DEMO_SOURCE_DATADIR;
-    }
-  }
 }
 
 DemoApp::~DemoApp()
@@ -71,16 +61,16 @@ DemoApp::~DemoApp()
 }
 
 void
-DemoApp::parse_args(int argc, char** argv)
+DemoApp::parse_args()
 {
-  for (int i = 1; i < argc; ++i)
+  for (size_t i = 1; i < m_args.size(); ++i)
   {
-    std::string_view const arg = argv[i];
-    auto const next = [&]() -> std::string_view {
-      if (i + 1 >= argc) {
+    std::string_view const arg = m_args[i];
+    std::function<std::string_view()> const next = [&]() -> std::string_view {
+      if (i + 1 >= m_args.size()) {
         throw std::invalid_argument(std::string(arg) + " requires an argument");
       }
-      return argv[++i];
+      return m_args[++i];
     };
 
     if (arg == "--gl") {
@@ -106,7 +96,7 @@ DemoApp::parse_args(int argc, char** argv)
     } else if (arg == "--datadir") {
       m_datadir = next();
     } else if (arg == "--help" || arg == "-h") {
-      std::cout << "Usage: " << argv[0] << " [OPTIONS]\n"
+      std::cout << "Usage: " << m_args[0] << " [OPTIONS]\n"
                 << "  --gl / --gles        force GL 3.3 core or GLES 2.0\n"
                 << "  --size WxH           window size\n"
                 << "  --fullscreen\n"
@@ -116,10 +106,21 @@ DemoApp::parse_args(int argc, char** argv)
                 << "  --screenshot FILE    save the last frame to FILE\n"
                 << "  --benchmark          print render stats every second\n"
                 << "  --datadir DIR        location of the demo data\n"
-                << "  --verbose            log OpenGL details\n";
+                << "  --verbose            log OpenGL details\n"
+                << get_usage();
       std::exit(EXIT_SUCCESS);
-    } else {
+    } else if (!parse_option(arg, next)) {
       throw std::invalid_argument("unknown option: " + std::string(arg));
+    }
+  }
+
+  if (m_datadir.empty()) {
+    if (char const* env = std::getenv("WST_DEMO_DATADIR")) {
+      m_datadir = env;
+    } else if (std::filesystem::exists(WST_DEMO_SOURCE_DATADIR)) {
+      m_datadir = WST_DEMO_SOURCE_DATADIR;
+    } else {
+      m_datadir = WST_DEMO_INSTALL_DATADIR;
     }
   }
 }
@@ -141,6 +142,8 @@ DemoApp::run()
 {
   try
   {
+    parse_args();
+
     m_system = std::make_unique<wstsys::System>();
     m_window = m_system->create_window(m_params);
     m_font_manager = std::make_unique<wstdisplay::TTFFontManager>();
@@ -182,7 +185,8 @@ DemoApp::run()
     init();
 
     using clock = std::chrono::steady_clock;
-    auto last_time = clock::now();
+    auto const start_time = clock::now();
+    auto last_time = start_time;
     auto fps_time = last_time;
     int fps_frames = 0;
 
@@ -241,6 +245,13 @@ DemoApp::run()
       if (last_frame) {
         break;
       }
+    }
+
+    if (m_benchmark) {
+      float const total = std::chrono::duration<float>(clock::now() - start_time).count();
+      std::cout << std::format("{}: average over {} frames: {:.1f} fps, {:.3f} ms/frame\n",
+                               m_title, m_frame, static_cast<float>(m_frame) / total,
+                               1000.0f * total / static_cast<float>(m_frame));
     }
 
     m_font.reset();

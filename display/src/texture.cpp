@@ -105,11 +105,13 @@ Texture::Texture(geom::isize const& size, TextureParams const& params) :
              size.width(), size.height(), caps.max_texture_size);
   }
 
-  if (m_params.wrap == TextureWrap::Repeat && !caps.npot_repeat &&
+  bool const repeat = (m_params.wrap_x == TextureWrap::Repeat || m_params.wrap_y == TextureWrap::Repeat);
+  if (repeat && !caps.npot_repeat &&
       (!is_power_of_two(size.width()) || !is_power_of_two(size.height()))) {
     log_warn("Texture: GL_REPEAT on a non-power-of-two texture ({}x{}) is not supported, using clamp",
              size.width(), size.height());
-    m_params.wrap = TextureWrap::Clamp;
+    m_params.wrap_x = TextureWrap::Clamp;
+    m_params.wrap_y = TextureWrap::Clamp;
   }
 
   glGenTextures(1, &m_handle);
@@ -138,8 +140,8 @@ Texture::apply_params()
   glBindTexture(GL_TEXTURE_2D, m_handle);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, to_gl(m_params.filter));
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, to_gl(m_params.filter));
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, to_gl(m_params.wrap));
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, to_gl(m_params.wrap));
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, to_gl(m_params.wrap_x));
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, to_gl(m_params.wrap_y));
 }
 
 void
@@ -150,9 +152,10 @@ Texture::set_filter(TextureFilter filter)
 }
 
 void
-Texture::set_wrap(TextureWrap wrap)
+Texture::set_wrap(TextureWrap wrap_x, TextureWrap wrap_y)
 {
-  m_params.wrap = wrap;
+  m_params.wrap_x = wrap_x;
+  m_params.wrap_y = wrap_y;
   apply_params();
 }
 

@@ -6,6 +6,9 @@
 #define HEADER_WST_DEMOS_DEMO_APP_HPP
 
 #include <filesystem>
+#include <functional>
+#include <string_view>
+#include <vector>
 #include <memory>
 #include <string>
 
@@ -48,6 +51,17 @@ public:
   int run();
 
 protected:
+  /** Handle a demo specific command line option, \a next returns
+      the option argument. Return false for unknown options. */
+  virtual bool parse_option(std::string_view arg, std::function<std::string_view()> const& next)
+  {
+    (void)arg; (void)next;
+    return false;
+  }
+
+  /** Extra lines for --help */
+  virtual std::string get_usage() const { return {}; }
+
   /** Called once the window and renderer exist */
   virtual void init() {}
 
@@ -79,12 +93,13 @@ protected:
   bool is_benchmark() const { return m_benchmark; }
 
 private:
-  void parse_args(int argc, char** argv);
+  void parse_args();
   void draw_overlay(wstdisplay::Renderer& renderer);
   void save_screenshot(std::filesystem::path const& filename);
 
 private:
   std::string m_title;
+  std::vector<std::string> m_args;
 
   wstdisplay::OpenGLWindow::Params m_params;
   int m_max_frames;

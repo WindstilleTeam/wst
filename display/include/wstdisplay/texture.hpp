@@ -22,7 +22,11 @@ enum class TextureWrap : uint8_t { Clamp, Repeat };
 struct TextureParams
 {
   TextureFilter filter = TextureFilter::Linear;
-  TextureWrap wrap = TextureWrap::Clamp;
+
+  /** Horizontal and vertical wrapping, e.g. repeat only horizontally
+      for parallax layers */
+  TextureWrap wrap_x = TextureWrap::Clamp;
+  TextureWrap wrap_y = TextureWrap::Clamp;
 };
 
 /** An RGBA texture on the GPU. Requires a current OpenGL context
@@ -49,7 +53,7 @@ public:
 
   TextureParams const& get_params() const { return m_params; }
   void set_filter(TextureFilter filter);
-  void set_wrap(TextureWrap wrap);
+  void set_wrap(TextureWrap wrap_x, TextureWrap wrap_y);
 
   /** Upload \a image to the given position */
   void put(surf::SoftwareSurface const& image, geom::ipoint const& pos);

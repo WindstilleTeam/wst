@@ -33,7 +33,7 @@ public:
   void cleanup();
 
 private:
-  using Key = std::pair<std::filesystem::path, std::pair<int, int>>;
+  using Key = std::pair<std::filesystem::path, int>;
   std::map<Key, TexturePtr> m_textures;
   TexturePtr m_fallback;
 

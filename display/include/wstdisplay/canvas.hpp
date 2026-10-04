@@ -54,8 +54,8 @@ enum class CommandType : uint8_t
 /** A clip rect together with the space it was specified in */
 struct ClipRect
 {
-  geom::frect rect;
-  Space space;
+  geom::frect rect = {};
+  Space space = Space::World;
 };
 
 /** Records drawing commands for later rendering with a Renderer.

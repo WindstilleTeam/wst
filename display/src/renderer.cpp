@@ -143,6 +143,9 @@ public:
     WST_CHECK_GL("initializing renderer");
   }
 
+  Impl(Impl const&) = delete;
+  Impl& operator=(Impl const&) = delete;
+
   ~Impl()
   {
     glDeleteBuffers(1, &vertex_buffer);
