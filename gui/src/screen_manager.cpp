@@ -245,6 +245,25 @@ ScreenManager::apply_pending_actions()
 void
 ScreenManager::handle_event(const SDL_Event& event)
 {
+  // pointer and touch input reaches the HUDs too, e.g. an on-screen
+  // gamepad, in addition to the screens below
+  switch(event.type)
+  {
+    case SDL_FINGERDOWN:
+    case SDL_FINGERMOTION:
+    case SDL_FINGERUP:
+    case SDL_MOUSEBUTTONDOWN:
+    case SDL_MOUSEBUTTONUP:
+    case SDL_MOUSEMOTION:
+      for(Screen* hud : m_huds) {
+        hud->handle_event(event);
+      }
+      break;
+
+    default:
+      break;
+  }
+
   switch(event.type)
   {
     case SDL_QUIT:
